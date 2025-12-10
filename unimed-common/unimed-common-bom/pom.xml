@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.dromara</groupId>
+    <artifactId>unimed-common-bom</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <description>
+        unimed-common-bom common依赖项
+    </description>
+
+    <properties>
+        <revision>2.5.1</revision>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 核心模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 接口模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-doc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 安全模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-security</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 权限认证服务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-satoken</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 日志记录 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-log</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 通用service实现模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-service-impl</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- excel -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-excel</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 缓存服务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- web服务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-web</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 数据库服务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-mybatis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 定时任务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-job</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- RPC服务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-dubbo</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 分布式事务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-seata</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 自定义负载均衡 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-loadbalancer</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- oss服务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-oss</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 限流功能 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-ratelimiter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 幂等功能 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-idempotent</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 邮件模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-mail</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 短信模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-sms</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- logstash日志推送模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-logstash</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- ES搜索引擎服务 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-elasticsearch</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- skywalking日志收集模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-skylog</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- prometheus监控 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-prometheus</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 通用翻译功能 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-translation</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 脱敏模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-sensitive</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 序列化模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-json</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 数据加解密模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-encrypt</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 租户模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-tenant</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- websocket模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-websocket</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 授权认证 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-social</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 配置中心 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-nacos</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 消息总线模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-bus</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- sse -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-common-sse</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+</project>

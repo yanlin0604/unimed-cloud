@@ -6,9 +6,9 @@ services:
       # 时区上海
       TZ: Asia/Shanghai
       # root 密码
-      MYSQL_ROOT_PASSWORD: ruoyi123
+      MYSQL_ROOT_PASSWORD: unimed123
       # 初始化数据库
-      MYSQL_DATABASE: ry-cloud
+      MYSQL_DATABASE: um-cloud
     ports:
       - "3306:3306"
     volumes:
@@ -27,7 +27,7 @@ services:
     network_mode: "host"
 
   nacos:
-    image: ruoyi/ruoyi-nacos:2.5.1
+    image: unimed/unimed-nacos:2.5.1
     container_name: nacos
     ports:
       - "8848:8848"
@@ -73,9 +73,9 @@ services:
       # 时区上海
       TZ: Asia/Shanghai
       # 管理后台用户名
-      MINIO_ROOT_USER: ruoyi
+      MINIO_ROOT_USER: unimed
       # 管理后台密码，最小8个字符
-      MINIO_ROOT_PASSWORD: ruoyi123
+      MINIO_ROOT_PASSWORD: unimed123
       # https需要指定域名
       #MINIO_SERVER_URL: "https://xxx.com:9000"
       #MINIO_BROWSER_REDIRECT_URL: "https://xxx.com:9001"
@@ -95,7 +95,7 @@ services:
     network_mode: "host"
 
   seata-server:
-    image: ruoyi/ruoyi-seata-server:2.5.1
+    image: unimed/unimed-seata-server:2.5.1
     container_name: seata-server
     ports:
       - "7091:7091"
@@ -106,9 +106,9 @@ services:
       # SEATA_IP: 127.0.0.1
       SEATA_PORT: 8091
     volumes:
-      - /docker/ruoyi-seata-server/logs/:/ruoyi/seata-server/logs
+      - /docker/unimed-seata-server/logs/:/unimed/seata-server/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
@@ -133,9 +133,9 @@ services:
     privileged: true
     network_mode: "host"
 
-  ruoyi-monitor:
-    image: ruoyi/ruoyi-monitor:2.5.1
-    container_name: ruoyi-monitor
+  unimed-monitor:
+    image: unimed/unimed-monitor:2.5.1
+    container_name: unimed-monitor
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -143,15 +143,15 @@ services:
       - "9100:9100"
     volumes:
       # 配置文件
-      - /docker/ruoyi-monitor/logs/:/ruoyi/monitor/logs
+      - /docker/unimed-monitor/logs/:/unimed/monitor/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
-  ruoyi-snailjob-server:
-    image: ruoyi/ruoyi-snailjob-server:2.5.1
-    container_name: ruoyi-snailjob-server
+  unimed-snailjob-server:
+    image: unimed/unimed-snailjob-server:2.5.1
+    container_name: unimed-snailjob-server
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -159,13 +159,13 @@ services:
       - "8800:8800"
       - "17888:17888"
     volumes:
-      - /docker/snailjob/logs/:/ruoyi/snailjob/logs
+      - /docker/snailjob/logs/:/unimed/snailjob/logs
     privileged: true
     network_mode: "host"
 
-  ruoyi-gateway:
-    image: ruoyi/ruoyi-gateway:2.5.1
-    container_name: ruoyi-gateway
+  unimed-gateway:
+    image: unimed/unimed-gateway:2.5.1
+    container_name: unimed-gateway
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -173,15 +173,15 @@ services:
       - "8080:8080"
     volumes:
       # 配置文件
-      - /docker/ruoyi-gateway/logs/:/ruoyi/gateway/logs
+      - /docker/unimed-gateway/logs/:/unimed/gateway/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
-  ruoyi-auth:
-    image: ruoyi/ruoyi-auth:2.5.1
-    container_name: ruoyi-auth
+  unimed-auth:
+    image: unimed/unimed-auth:2.5.1
+    container_name: unimed-auth
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -189,15 +189,15 @@ services:
       - "9210:9210"
     volumes:
       # 配置文件
-      - /docker/ruoyi-auth/logs/:/ruoyi/auth/logs
+      - /docker/unimed-auth/logs/:/unimed/auth/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
-  ruoyi-system:
-    image: ruoyi/ruoyi-system:2.5.1
-    container_name: ruoyi-system
+  unimed-system:
+    image: unimed/unimed-system:2.5.1
+    container_name: unimed-system
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -205,15 +205,15 @@ services:
       - "9201:9201"
     volumes:
       # 配置文件
-      - /docker/ruoyi-system/logs/:/ruoyi/system/logs
+      - /docker/unimed-system/logs/:/unimed/system/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
-  ruoyi-gen:
-    image: ruoyi/ruoyi-gen:2.5.1
-    container_name: ruoyi-gen
+  unimed-gen:
+    image: unimed/unimed-gen:2.5.1
+    container_name: unimed-gen
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -221,15 +221,15 @@ services:
       - "9202:9202"
     volumes:
       # 配置文件
-      - /docker/ruoyi-gen/logs/:/ruoyi/gen/logs
+      - /docker/unimed-gen/logs/:/unimed/gen/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
-  ruoyi-job:
-    image: ruoyi/ruoyi-job:2.5.1
-    container_name: ruoyi-job
+  unimed-job:
+    image: unimed/unimed-job:2.5.1
+    container_name: unimed-job
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -239,15 +239,15 @@ services:
       - "9203:9203"
     volumes:
       # 配置文件
-      - /docker/ruoyi-job/logs/:/ruoyi/job/logs
+      - /docker/unimed-job/logs/:/unimed/job/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
-  ruoyi-resource:
-    image: ruoyi/ruoyi-resource:2.5.1
-    container_name: ruoyi-resource
+  unimed-resource:
+    image: unimed/unimed-resource:2.5.1
+    container_name: unimed-resource
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -255,15 +255,15 @@ services:
       - "9204:9204"
     volumes:
       # 配置文件
-      - /docker/ruoyi-resource/logs/:/ruoyi/resource/logs
+      - /docker/unimed-resource/logs/:/unimed/resource/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
-  ruoyi-workflow:
-    image: ruoyi/ruoyi-workflow:2.5.1
-    container_name: ruoyi-workflow
+  unimed-workflow:
+    image: unimed/unimed-workflow:2.5.1
+    container_name: unimed-workflow
     environment:
       # 时区上海
       TZ: Asia/Shanghai
@@ -271,9 +271,9 @@ services:
       - "9205:9205"
     volumes:
       # 配置文件
-      - /docker/ruoyi-workflow/logs/:/ruoyi/workflow/logs
+      - /docker/unimed-workflow/logs/:/unimed/workflow/logs
       # skywalking 探针
-      - /docker/skywalking/agent/:/ruoyi/skywalking/agent
+      - /docker/skywalking/agent/:/unimed/skywalking/agent
     privileged: true
     network_mode: "host"
 
@@ -385,8 +385,8 @@ services:
     build:
       context: ./rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ruoyi
-      RABBITMQ_DEFAULT_PASS: ruoyi123
+      RABBITMQ_DEFAULT_USER: unimed
+      RABBITMQ_DEFAULT_PASS: unimed123
     ports:
       - "15672:15672" # 管理界面端口
       - "5672:5672"   # api 端口
@@ -440,8 +440,8 @@ services:
     environment:
       ZK_HOSTS: 127.0.0.1:2181
       APPLICATION_SECRET: letmein
-      KAFKA_MANAGER_USERNAME: ruoyi
-      KAFKA_MANAGER_PASSWORD: ruoyi123
+      KAFKA_MANAGER_USERNAME: unimed
+      KAFKA_MANAGER_PASSWORD: unimed123
       KM_ARGS: -Dhttp.port=19092
     depends_on:
       - kafka

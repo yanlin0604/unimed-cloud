@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.dromara</groupId>
+        <artifactId>unimed-cloud-plus</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>unimed-common-bom</module>
+        <module>unimed-common-alibaba-bom</module>
+        <module>unimed-common-log</module>
+        <module>unimed-common-service-impl</module>
+        <module>unimed-common-excel</module>
+        <module>unimed-common-core</module>
+        <module>unimed-common-redis</module>
+        <module>unimed-common-doc</module>
+        <module>unimed-common-security</module>
+        <module>unimed-common-satoken</module>
+        <module>unimed-common-web</module>
+        <module>unimed-common-mybatis</module>
+        <module>unimed-common-job</module>
+        <module>unimed-common-dubbo</module>
+        <module>unimed-common-seata</module>
+        <module>unimed-common-loadbalancer</module>
+        <module>unimed-common-oss</module>
+        <module>unimed-common-ratelimiter</module>
+        <module>unimed-common-idempotent</module>
+        <module>unimed-common-mail</module>
+        <module>unimed-common-sms</module>
+        <module>unimed-common-logstash</module>
+        <module>unimed-common-elasticsearch</module>
+        <module>unimed-common-skylog</module>
+        <module>unimed-common-prometheus</module>
+        <module>unimed-common-translation</module>
+        <module>unimed-common-sensitive</module>
+        <module>unimed-common-json</module>
+        <module>unimed-common-encrypt</module>
+        <module>unimed-common-tenant</module>
+        <module>unimed-common-websocket</module>
+        <module>unimed-common-social</module>
+        <module>unimed-common-nacos</module>
+        <module>unimed-common-bus</module>
+        <module>unimed-common-sse</module>
+    </modules>
+
+    <artifactId>unimed-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        unimed-common通用模块
+    </description>
+
+</project>

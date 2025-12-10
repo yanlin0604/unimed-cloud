@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.dromara</groupId>
-    <artifactId>ruoyi-cloud-plus</artifactId>
+    <artifactId>unimed-cloud-plus</artifactId>
     <version>${revision}</version>
 
-    <name>RuoYi-Cloud-Plus</name>
-    <url>https://gitee.com/dromara/RuoYi-Cloud-Plus</url>
-    <description>Dromara RuoYi-Cloud-Plus微服务系统</description>
+    <name>Unimed-Cloud-Plus</name>
+    <url>https://gitee.com/dromara/Unimed-Cloud-Plus</url>
+    <description>Dromara Unimed-Cloud-Plus微服务系统</description>
 
     <properties>
         <revision>2.5.1</revision>
@@ -113,7 +113,7 @@
             <!-- SpringCloud Alibaba 微服务 -->
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-alibaba-bom</artifactId>
+                <artifactId>unimed-common-alibaba-bom</artifactId>
                 <version>${revision}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -140,7 +140,7 @@
             <!-- common 的依赖配置-->
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-common-bom</artifactId>
+                <artifactId>unimed-common-bom</artifactId>
                 <version>${revision}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -149,7 +149,7 @@
             <!-- api 的依赖配置-->
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>ruoyi-api-bom</artifactId>
+                <artifactId>unimed-api-bom</artifactId>
                 <version>${revision}</version>
                 <type>pom</type>
                 <scope>import</scope>
@@ -373,13 +373,13 @@
     </dependencyManagement>
 
     <modules>
-        <module>ruoyi-auth</module>
-        <module>ruoyi-gateway</module>
-        <module>ruoyi-visual</module>
-        <module>ruoyi-modules</module>
-        <module>ruoyi-api</module>
-        <module>ruoyi-common</module>
-        <module>ruoyi-example</module>
+        <module>unimed-auth</module>
+        <module>unimed-gateway</module>
+        <module>unimed-visual</module>
+        <module>unimed-modules</module>
+        <module>unimed-api</module>
+        <module>unimed-common</module>
+        <module>unimed-example</module>
     </modules>
     <packaging>pom</packaging>
 

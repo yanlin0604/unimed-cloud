@@ -1,4 +1,4 @@
--- ry-workflow 数据库
+-- unimed-workflow 数据库
 CREATE TABLE flow_spel (
     id NUMBER(20) NOT NULL,
     component_name VARCHAR2(255),
@@ -35,7 +35,7 @@ COMMENT ON COLUMN flow_spel.update_time IS '更新时间';
 INSERT INTO flow_spel VALUES (1, 'spelRuleComponent', 'selectDeptLeaderById', 'initiatorDeptId', '#{@spelRuleComponent.selectDeptLeaderById(#initiatorDeptId)}', '根据部门id获取部门负责人', '0', '0', 103, 1, SYSDATE, 1, SYSDATE);
 INSERT INTO flow_spel VALUES (2, NULL, NULL, 'initiator', '${initiator}', '流程发起人', '0', '0', 103, 1, SYSDATE, 1, SYSDATE);
 
--- ry-cloud 数据库
+-- unimed-cloud 数据库
 INSERT INTO sys_menu VALUES ('11801', '流程表达式', '11616', 2, 'spel', 'workflow/spel/index', '', 1, 0, 'C', '0', '0', 'workflow:spel:list', 'input', 103, 1, SYSDATE, 1, SYSDATE, '流程达式定义菜单');
 INSERT INTO sys_menu VALUES ('11802', '流程spel达式定义查询', '11801', 1, '#', '', NULL, 1, 0, 'F', '0', '0', 'workflow:spel:query', '#', 103, 1, SYSDATE, NULL, NULL, '');
 INSERT INTO sys_menu VALUES ('11803', '流程spel达式定义新增', '11801', 2, '#', '', NULL, 1, 0, 'F', '0', '0', 'workflow:spel:add', '#', 103, 1, SYSDATE, NULL, NULL, '');

@@ -3408,8 +3408,8 @@
       {
         "current": {
           "selected": true,
-          "text": "ruoyi-auth",
-          "value": "ruoyi-auth"
+          "text": "unimed-auth",
+          "value": "unimed-auth"
         },
         "datasource": {
           "type": "prometheus"

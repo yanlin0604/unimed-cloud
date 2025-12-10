@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.dromara</groupId>
+        <artifactId>unimed-cloud-plus</artifactId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>unimed-system</module>
+        <module>unimed-gen</module>
+        <module>unimed-job</module>
+        <module>unimed-resource</module>
+        <module>unimed-workflow</module>
+    </modules>
+
+    <artifactId>unimed-modules</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        unimed-modules业务模块
+    </description>
+
+    <dependencies>
+        <!-- 自定义负载均衡(多团队开发使用) -->
+<!--        <dependency>-->
+<!--            <groupId>org.dromara</groupId>-->
+<!--            <artifactId>unimed-common-loadbalancer</artifactId>-->
+<!--        </dependency>-->
+
+        <!-- ELK 日志收集 -->
+<!--        <dependency>-->
+<!--            <groupId>org.dromara</groupId>-->
+<!--            <artifactId>unimed-common-logstash</artifactId>-->
+<!--        </dependency>-->
+
+        <!-- skywalking 日志收集 -->
+<!--        <dependency>-->
+<!--            <groupId>org.dromara</groupId>-->
+<!--            <artifactId>unimed-common-skylog</artifactId>-->
+<!--        </dependency>-->
+
+        <!-- prometheus 监控 -->
+<!--        <dependency>-->
+<!--            <groupId>org.dromara</groupId>-->
+<!--            <artifactId>unimed-common-prometheus</artifactId>-->
+<!--        </dependency>-->
+
+    </dependencies>
+
+</project>

@@ -1,0 +1,85 @@
+# 安全配置
+security:
+  # 不校验白名单
+  ignore:
+    whites:
+      - /auth/code
+      - /auth/logout
+      - /auth/login
+      - /auth/binding/*
+      - /auth/register
+      - /auth/tenant/list
+      - /resource/sms/code
+      - /resource/sse/close
+      - /*/v3/api-docs
+      - /*/error
+      - /csrf
+      - /warm-flow-ui/**
+
+spring:
+  cloud:
+    # 网关配置
+    gateway:
+      # 打印请求日志(自定义)
+      requestLog: true
+      server:
+        webflux:
+          discovery:
+            locator:
+              lowerCaseServiceId: true
+              enabled: true
+          routes:
+            # 认证中心
+            - id: unimed-auth
+              uri: lb://unimed-auth
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+            # 代码生成
+            - id: unimed-gen
+              uri: lb://unimed-gen
+              predicates:
+                - Path=/tool/**
+              filters:
+                - StripPrefix=1
+            # 系统模块
+            - id: unimed-system
+              uri: lb://unimed-system
+              predicates:
+                - Path=/system/**,/monitor/**
+              filters:
+                - StripPrefix=1
+            # 资源服务
+            - id: unimed-resource
+              uri: lb://unimed-resource
+              predicates:
+                - Path=/resource/**
+              filters:
+                - StripPrefix=1
+            # workflow服务
+            - id: unimed-workflow
+              uri: lb://unimed-workflow
+              predicates:
+                - Path=/workflow/**
+              filters:
+                - StripPrefix=1
+            # warm-flow服务
+            - id: warm-flow
+              uri: lb://unimed-workflow
+              predicates:
+                - Path=/warm-flow-ui/**,/warm-flow/**
+            # 演示服务
+            - id: unimed-demo
+              uri: lb://unimed-demo
+              predicates:
+                - Path=/demo/**
+              filters:
+                - StripPrefix=1
+            # MQ演示服务
+            - id: unimed-test-mq
+              uri: lb://unimed-test-mq
+              predicates:
+                - Path=/test-mq/**
+              filters:
+                - StripPrefix=1
