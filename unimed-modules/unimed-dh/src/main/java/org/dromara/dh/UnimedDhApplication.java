@@ -1,5 +1,6 @@
 package org.dromara.dh;
 
+import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -10,6 +11,7 @@ import org.springframework.boot.context.metrics.buffering.BufferingApplicationSt
  * @author unimed
  * @since 2.5.1
  */
+@EnableDubbo
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class UnimedDhApplication {
 

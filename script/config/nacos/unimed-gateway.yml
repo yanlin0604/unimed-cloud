@@ -12,9 +12,12 @@ security:
       - /resource/sms/code
       - /resource/sse/close
       - /*/v3/api-docs
+      - /*/swagger-ui/**
       - /*/error
       - /csrf
       - /warm-flow-ui/**
+      - /dh/api/v1/dh/health
+      - /dh/api/v1/dh/info
 
 spring:
   cloud:
@@ -83,3 +86,11 @@ spring:
                 - Path=/test-mq/**
               filters:
                 - StripPrefix=1
+            # 数字人服务
+            - id: unimed-dh
+              uri: lb://unimed-dh
+              predicates:
+                - Path=/dh/**
+              filters:
+                - StripPrefix=1
+    

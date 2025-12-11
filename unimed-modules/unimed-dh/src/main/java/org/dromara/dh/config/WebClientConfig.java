@@ -4,6 +4,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  * @since 2.5.1
  */
 @Configuration
+@EnableConfigurationProperties(WebClientConfig.DigitalHumanProperties.class)
 public class WebClientConfig {
 
     /**
@@ -48,15 +50,6 @@ public class WebClientConfig {
                  Duration.ofSeconds(30),
                  new RetryConfig(3, Duration.ofSeconds(1), 2.0));
         }
-    }
-
-    /**
-     * 数字人服务配置属性 Bean
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "digital-human.python-api")
-    public DigitalHumanProperties digitalHumanProperties() {
-        return new DigitalHumanProperties();
     }
 
     /**
