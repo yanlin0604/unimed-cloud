@@ -13,6 +13,7 @@
         <module>unimed-api-system</module>
         <module>unimed-api-resource</module>
         <module>unimed-api-workflow</module>
+        <module>unimed-api-auth</module>
     </modules>
 
     <artifactId>unimed-api</artifactId>

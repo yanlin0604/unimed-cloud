@@ -12,6 +12,7 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.dh.domain.dto.*;
+import org.dromara.dh.filter.ApiKeyAuthFilter;
 import org.dromara.dh.service.IDigitalHumanApiService;
 import org.dromara.dh.service.IWebRtcService;
 import org.dromara.dh.service.IChatService;
@@ -421,8 +422,7 @@ public class ExternalApiController extends BaseController {
      * 获取 API Key 名称
      */
     private String getApiKeyName(HttpServletRequest request) {
-//        var name = request.getAttribute(ApiKeyAuthFilter.API_KEY_NAME_ATTRIBUTE);
-//        return name != null ? name.toString() : "unknown";
-        return "111";
+        var name = request.getAttribute(ApiKeyAuthFilter.API_KEY_NAME_ATTRIBUTE);
+        return name != null ? name.toString() : "unknown";
     }
 }

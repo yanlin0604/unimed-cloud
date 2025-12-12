@@ -53,6 +53,12 @@
             <artifactId>unimed-common-dubbo</artifactId>
         </dependency>
 
+        <!-- 认证服务API -->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-api-auth</artifactId>
+        </dependency>
+
         <!-- Spring Boot WebFlux for WebClient -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

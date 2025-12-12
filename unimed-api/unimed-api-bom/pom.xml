@@ -41,6 +41,13 @@
                 <version>${revision}</version>
             </dependency>
 
+            <!-- 认证服务接口 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>unimed-api-auth</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 </project>
