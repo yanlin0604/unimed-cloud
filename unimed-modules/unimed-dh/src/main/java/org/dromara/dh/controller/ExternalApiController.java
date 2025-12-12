@@ -310,6 +310,111 @@ public class ExternalApiController extends BaseController {
             });
     }
 
+    /**
+     * 上传视频并开始训练
+     */
+    @Operation(summary = "上传视频并开始训练", description = "上传视频到数字人服务并启动训练任务，两个操作会并行执行")
+    @Log(title = "视频上传训练", businessType = BusinessType.INSERT)
+    @PostMapping("/digital-humans/upload-and-train")
+    public Mono<R<VideoUploadTrainResponse>> uploadVideoAndTrain(
+        HttpServletRequest request,
+        @Valid @RequestBody VideoUploadTrainRequest uploadTrainRequest
+    ) {
+        var apiKeyName = getApiKeyName(request);
+        log.info("外部接口调用 - 上传视频并训练, 调用方: {}, 形象标题: {}, 性别: {}, 训练类型: {}, 是否强制重训: {}",
+            apiKeyName,
+            uploadTrainRequest.getFigureTitle(),
+            uploadTrainRequest.getSex(),
+            uploadTrainRequest.getType(),
+            uploadTrainRequest.getForceRetrain());
+
+        return digitalHumanApiService.uploadVideoAndTrain(uploadTrainRequest)
+            .map(response -> {
+                if (response.getSuccess() != null && response.getSuccess()) {
+                    log.info("视频上传和训练启动成功 - 调用方: {}, 形象标题: {}, 数字人ID: {}, 任务ID: {}",
+                        apiKeyName, uploadTrainRequest.getFigureTitle(), response.getDigitalId(), response.getTaskId());
+                    return R.ok(response);
+                } else {
+                    log.warn("视频上传和训练失败 - 调用方: {}, 形象标题: {}, 错误: {}",
+                        apiKeyName, uploadTrainRequest.getFigureTitle(), response.getMessage());
+                    return R.<VideoUploadTrainResponse>fail(response.getMessage());
+                }
+            })
+            .onErrorResume(throwable -> {
+                log.error("视频上传和训练失败 - 调用方: {}, 形象标题: {}, 错误: {}",
+                    apiKeyName, uploadTrainRequest.getFigureTitle(), throwable.getMessage(), throwable);
+                return Mono.just(R.<VideoUploadTrainResponse>fail("视频上传和训练失败: " + throwable.getMessage()));
+            });
+    }
+
+    /**
+     * 查询训练进度
+     */
+    @Operation(summary = "查询训练进度", description = "根据任务ID查询数字人训练的当前进度和状态")
+    @Log(title = "训练进度查询", businessType = BusinessType.OTHER)
+    @GetMapping("/digital-humans/training/progress/{taskId}")
+    public Mono<R<TrainingProgressResponse>> getTrainingProgress(
+        HttpServletRequest request,
+        @PathVariable("taskId") String taskId
+    ) {
+        var apiKeyName = getApiKeyName(request);
+        log.info("外部接口调用 - 查询训练进度, 调用方: {}, 任务ID: {}", apiKeyName, taskId);
+
+        return digitalHumanApiService.getTrainingProgress(taskId)
+            .map(response -> {
+                if (response.getSuccess() != null && response.getSuccess()) {
+                    log.info("训练进度查询成功 - 调用方: {}, 任务ID: {}, 状态: {}, 进度: {}%",
+                        apiKeyName, taskId, response.getStatus(), response.getProgress());
+                    return R.ok(response);
+                } else {
+                    log.warn("训练进度查询失败 - 调用方: {}, 任务ID: {}, 错误: {}",
+                        apiKeyName, taskId, response.getMessage());
+                    return R.<TrainingProgressResponse>fail("查询训练进度失败");
+                }
+            })
+            .onErrorResume(throwable -> {
+                log.error("训练进度查询失败 - 调用方: {}, 任务ID: {}, 错误: {}",
+                    apiKeyName, taskId, throwable.getMessage(), throwable);
+                return Mono.just(R.<TrainingProgressResponse>fail("查询训练进度失败: " + throwable.getMessage()));
+            });
+    }
+
+    /**
+     * 修改数字人状态
+     */
+    @Operation(summary = "修改数字人状态", description = "更新数字人的视频合成状态和相关信息")
+    @Log(title = "数字人状态修改", businessType = BusinessType.UPDATE)
+    @PutMapping("/digital-humans/status")
+    public Mono<R<StatusUpdateResponse>> updateDigitalHumanStatus(
+        HttpServletRequest request,
+        @Valid @RequestBody StatusUpdateRequest statusRequest
+    ) {
+        var apiKeyName = getApiKeyName(request);
+        log.info("外部接口调用 - 修改数字人状态, 调用方: {}, 数字人ID: {}, 视频合成状态: {}, 训练人物ID: {}",
+            apiKeyName,
+            statusRequest.getId(),
+            statusRequest.getVideoComposeState(),
+            statusRequest.getTrainHumanId());
+
+        return digitalHumanApiService.updateDigitalHumanStatus(statusRequest)
+            .map(response -> {
+                if (response.getCode() != null && response.getCode() == 200) {
+                    log.info("数字人状态修改成功 - 调用方: {}, 数字人ID: {}, 消息: {}",
+                        apiKeyName, statusRequest.getId(), response.getMsg());
+                    return R.ok(response);
+                } else {
+                    log.warn("数字人状态修改失败 - 调用方: {}, 数字人ID: {}, 错误码: {}, 消息: {}",
+                        apiKeyName, statusRequest.getId(), response.getCode(), response.getMsg());
+                    return R.<StatusUpdateResponse>fail(response.getMsg());
+                }
+            })
+            .onErrorResume(throwable -> {
+                log.error("数字人状态修改失败 - 调用方: {}, 数字人ID: {}, 错误: {}",
+                    apiKeyName, statusRequest.getId(), throwable.getMessage(), throwable);
+                return Mono.just(R.<StatusUpdateResponse>fail("修改数字人状态失败: " + throwable.getMessage()));
+            });
+    }
+
 
 
     /**

@@ -1,6 +1,5 @@
 package org.dromara.dh.service.impl;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.dh.domain.dto.WebRtcStatusResponse;
 import org.dromara.dh.domain.dto.WebRtcOfferRequest;
@@ -25,11 +24,16 @@ import java.time.Duration;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class WebRtcServiceImpl implements IWebRtcService {
 
-    @Qualifier("webRtcWebClient")
     private final WebClient webClient;
+
+    /**
+     * 构造函数注入 WebClient 实例
+     */
+    public WebRtcServiceImpl(@Qualifier("webRtcWebClient") WebClient webClient) {
+        this.webClient = webClient;
+    }
 
     /**
      * 建立 WebRTC 连接

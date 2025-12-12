@@ -1,10 +1,6 @@
 package org.dromara.dh.service;
 
-import org.dromara.dh.domain.dto.DhConfigRequest;
-import org.dromara.dh.domain.dto.DhConfigResponse;
-import org.dromara.dh.domain.dto.DigitalHumanListRequest;
-import org.dromara.dh.domain.dto.DigitalHumanListResponse;
-import org.dromara.dh.domain.dto.DigitalHumanDeleteResponse;
+import org.dromara.dh.domain.dto.*;
 import reactor.core.publisher.Mono;
 
 /**
@@ -40,4 +36,28 @@ public interface IDigitalHumanApiService {
      * @return 删除响应
      */
     Mono<DigitalHumanDeleteResponse> deleteDigitalHuman(String digitalHumanId);
+
+    /**
+     * 上传视频并开始训练
+     *
+     * @param request 上传训练请求
+     * @return 上传训练响应
+     */
+    Mono<VideoUploadTrainResponse> uploadVideoAndTrain(VideoUploadTrainRequest request);
+
+    /**
+     * 查询训练进度
+     *
+     * @param taskId 任务ID
+     * @return 训练进度响应
+     */
+    Mono<TrainingProgressResponse> getTrainingProgress(String taskId);
+
+    /**
+     * 修改数字人状态
+     *
+     * @param request 状态修改请求
+     * @return 状态修改响应
+     */
+    Mono<StatusUpdateResponse> updateDigitalHumanStatus(StatusUpdateRequest request);
 }
