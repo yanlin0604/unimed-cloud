@@ -42,11 +42,14 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                 "/actuator", "/actuator/**",
                 // 接口文档
                 "/v3/api-docs", "/v3/api-docs/**",
-                "/webjars/**",
+                "/webjars/**", "/swagger-ui/**",
                 // API Token 相关接口（auth 模块）
                 "/api-token/**",
                 "/public-api-token/**",
-                "/api/v1/dh/**"
+                // 数字人外部接口（使用自定义认证）
+                "/api/v1/dh/external/**",
+                // 健康检查
+                "/health", "/info"
             )
             .setAuth(obj -> {
                 if (SaManager.getConfig().getCheckSameToken()) {

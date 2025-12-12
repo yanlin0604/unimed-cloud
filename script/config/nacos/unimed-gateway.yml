@@ -3,23 +3,30 @@ security:
   # 不校验白名单
   ignore:
     whites:
+      # 基础认证接口
       - /auth/code
       - /auth/logout
       - /auth/login
       - /auth/binding/*
       - /auth/register
       - /auth/tenant/list
+      # API Token 相关接口
+      - /auth/api-token/**
+      - /auth/public-api-token/**
+      # 资源服务
       - /resource/sms/code
       - /resource/sse/close
+      # 接口文档
       - /*/v3/api-docs
       - /*/swagger-ui/**
       - /*/error
       - /csrf
+      # 工作流
       - /warm-flow-ui/**
-      # 数字人 Token 获取接口（路由到 auth 模块）
-      - /api/v1/dh/auth/**
-      # 数字人外部接口（使用 Bearer Token 鉴权，不走 Sa-Token）
+      # 数字人外部接口（使用自定义认证，不走 Sa-Token）
       - /dh/api/v1/dh/external/**
+      # 健康检查和监控
+      - /actuator/**
 
 spring:
   cloud:
@@ -41,13 +48,7 @@ spring:
                 - Path=/auth/**
               filters:
                 - StripPrefix=1
-            # 数字人认证接口路由到 auth 模块
-            - id: unimed-dh-auth
-              uri: lb://unimed-auth
-              predicates:
-                - Path=/api/v1/dh/auth/**
-              filters:
-                - StripPrefix=3
+
             # 代码生成
             - id: unimed-gen
               uri: lb://unimed-gen

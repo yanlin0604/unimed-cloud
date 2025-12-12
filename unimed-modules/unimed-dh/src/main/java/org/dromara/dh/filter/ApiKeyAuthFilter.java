@@ -60,7 +60,15 @@ public class ApiKeyAuthFilter implements Filter {
      */
     private static final List<String> EXCLUDED_PATTERNS = List.of(
         "/api/v1/dh/external/health",
-        "/api/v1/dh/external/debug"
+        "/api/v1/dh/external/debug",
+        "/actuator/**",
+        "/health",
+        "/info",
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/webjars/**",
+        "/favicon.ico",
+        "/error"
     );
 
     private final IAuthClientService authClientService;
