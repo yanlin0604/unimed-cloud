@@ -71,33 +71,92 @@ Unimed-Cloud-Plus 是基于 Dromara 开源组织开发的企业级微服务架�
 ### 模块结构
 
 ```
-unimed-cloud-plus/
-├── unimed-auth/                    # 认证授权中心
-├── unimed-gateway/                 # API 网关服务
-├── unimed-modules/                 # 业务模块
-│   ├── unimed-system/             # 系统管理模块
-│   ├── unimed-gen/                # 代码生成模块
-│   ├── unimed-job/                # 定时任务模块
-│   ├── unimed-resource/           # 资源管理模块
-│   └── unimed-workflow/           # 工作流模块
-├── unimed-api/                     # API 接口定义
-│   ├── unimed-api-system/         # 系统 API
-│   ├── unimed-api-resource/       # 资源 API
-│   └── unimed-api-workflow/       # 工作流 API
-├── unimed-common/                  # 公共模块
-│   ├── unimed-common-core/        # 核心工具类
-│   ├── unimed-common-web/         # Web 相关
-│   ├── unimed-common-security/    # 安全相关
-│   ├── unimed-common-redis/       # Redis 配置
-│   ├── unimed-common-mybatis/     # MyBatis 配置
-│   ├── unimed-common-nacos/       # Nacos 配置
-│   └── ...                        # 其他公共模块
-├── unimed-visual/                  # 可视化模块
-├── unimed-example/                 # 示例代码
-└── script/                         # 部署脚本
-    ├── docker/                     # Docker 配置
-    ├── sql/                        # 数据库脚本
-    └── config/                     # 配置文件
+unimed-Cloud-Plus
+├─ unimed-api             // api模块
+│  └─ unimed-api-bom                // api模块依赖管理
+│  └─ unimed-api-resource           // 资源api模块
+│  └─ unimed-api-system             // 系统api模块
+│  └─ unimed-api-workflow           // 工作流api模块
+├─ unimed-auth            // 认证服务 [9210]
+├─ unimed-common          // 通用模块
+│  └─ unimed-common-alibaba-bom     // alibaba 依赖管理
+│  └─ unimed-common-bom             // common 依赖管理
+│  └─ unimed-common-bus             // 消息总线模块
+│  └─ unimed-common-core            // 核心功能模块
+│  └─ unimed-common-dict            // 字典集成模块
+│  └─ unimed-common-doc             // 文档集成模块
+│  └─ unimed-common-dubbo           // dubbo集成模块
+│  └─ unimed-common-elasticsearch   // ES集成模块
+│  └─ unimed-common-encrypt         // 数据加解密模块
+│  └─ unimed-common-excel           // excel集成模块
+│  └─ unimed-common-idempotent      // 幂等功能模块
+│  └─ unimed-common-job             // job定时任务集成模块
+│  └─ unimed-common-json            // json集成模块
+│  └─ unimed-common-loadbalancer    // 团队负载均衡集成模块
+│  └─ unimed-common-log             // 日志集成模块
+│  └─ unimed-common-logstash        // elk日志集成模块
+│  └─ unimed-common-mail            // 邮件集成模块
+│  └─ unimed-common-mybatis         // mybatis数据库相关集成模块
+│  └─ unimed-common-oss             // oss相关集成模块
+│  └─ unimed-common-prometheus      // prometheus监控
+│  └─ unimed-common-redis           // redis集成模块
+│  └─ unimed-common-satoken         // satoken集成模块
+│  └─ unimed-common-seata           // seata分布式事务集成模块
+│  └─ unimed-common-security        // 框架权限鉴权集成模块
+│  └─ unimed-common-sensitive       // 脱敏功能模块
+│  └─ unimed-common-sentinel        // sentinel集成模块
+│  └─ unimed-common-skylog          // skywalking日志收集模块
+│  └─ unimed-common-sms             // 短信集成模块
+│  └─ unimed-common-social          // 社交三方功能模块
+│  └─ unimed-common-sse             // sse流推送模块
+│  └─ unimed-common-tenant          // 租户功能模块
+│  └─ unimed-common-translation     // 通用翻译功能
+│  └─ unimed-common-web             // web服务集成模块
+│  └─ unimed-common-websocket       // websocket服务集成模块
+├─ unimed-example        // 例子模块
+│  └─ unimed-demo        // 演示模块 [9401]
+│  └─ unimed-test-mq     // mq演示模块 [9402]
+├─ unimed-gateway        // 网关模块 [8080]
+├─ unimed-modules        // 功能模块
+│  └─ unimed-gen                    // 代码生成模块 [9202]
+│  └─ unimed-job                    // 任务调度模块 [9203,9901]
+│  └─ unimed-resource               // 资源模块 [9204]
+│  └─ unimed-system                 // 系统模块 [9201]
+│  └─ unimed-workflow               // 工作流模块 [9205]
+├─ unimed-visual         // 可视化模块
+│  └─ unimed-monitor                // 服务监控模块 [9100]
+│  └─ unimed-nacos                  // nacos服务模块 [8848,9848,9849]
+│  └─ unimed-seata-server           // seata服务模块 [7091,8091]
+│  └─ unimed-sentinel-dashboard     // sentinel控制台模块 [8718]
+│  └─ unimed-snailjob-server        // 任务调度控制台模块 [8800,17888]
+├─ plus-ui              // 前端框架 [80]
+├─ config/nacos         // nacos配置文件(需复制到nacos配置中心使用)
+│  └─ sentinel-unimed-gateway.json  // sentinel对接gateway限流配置文件
+│  └─ seata-server.properties      // seata服务配置文件
+│  └─ application-common.yml              // 所有应用主共享配置文件
+│  └─ datasource.yml               // 所有应用共享数据源配置文件
+│  └─ unimed-auth.yml               // auth 模块配置文件
+│  └─ unimed-gateway.yml            // gateway 模块配置文件
+│  └─ unimed-gen.yml                // gen 模块配置文件
+│  └─ unimed-job.yml                // job 模块配置文件
+│  └─ unimed-monitor.yml            // monitor 模块配置文件
+│  └─ unimed-resource.yml           // resource 模块配置文件
+│  └─ unimed-sentinel-dashboard.yml // sentinel 控制台 模块配置文件
+│  └─ unimed-snailjob-server.yml    // snailjob 控制台 模块配置文件
+│  └─ unimed-system.yml             // systen 模块配置文件
+│  └─ unimed-workflow.yml           // workflow 模块配置文件
+├─ config/grafana       // grafana配置文件(需复制到grafana使用)
+│  └─ Nacos.json                        // Nacos监控页面
+│  └─ SLS JVM监控大盘.json               // JVM监控页面
+│  └─ Spring Boot 2.1 Statistics.json   // SpringBoot监控页面
+├─ sql                  // sql脚本
+├─ docker               // docker 配置脚本
+├─ .run                 // 执行脚本文件
+├─ .editorconfig        // 编辑器编码格式配置
+├─ LICENSE              // 开源协议
+├─ pom.xml              // 公共依赖
+├─ README.md            // 框架说明文件
+
 ```
 
 ### 技术架构图

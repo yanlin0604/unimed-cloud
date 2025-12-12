@@ -16,8 +16,10 @@ security:
       - /*/error
       - /csrf
       - /warm-flow-ui/**
-      - /dh/api/v1/dh/health
-      - /dh/api/v1/dh/info
+      # 数字人 Token 获取接口（路由到 auth 模块）
+      - /api/v1/dh/auth/**
+      # 数字人外部接口（使用 Bearer Token 鉴权，不走 Sa-Token）
+      - /dh/api/v1/dh/external/**
 
 spring:
   cloud:
@@ -39,6 +41,13 @@ spring:
                 - Path=/auth/**
               filters:
                 - StripPrefix=1
+            # 数字人认证接口路由到 auth 模块
+            - id: unimed-dh-auth
+              uri: lb://unimed-auth
+              predicates:
+                - Path=/api/v1/dh/auth/**
+              filters:
+                - StripPrefix=3
             # 代码生成
             - id: unimed-gen
               uri: lb://unimed-gen

@@ -1,3 +1,29 @@
+# API Token 认证配置
+api-token:
+  auth:
+    # 是否启用 API Token 认证
+    enabled: true
+    # API Key 请求头名称（用于换取 Token）
+    headerName: X-API-Key
+    # Token 请求头名称（用于业务接口鉴权）
+    tokenHeaderName: Authorization
+    # Token 过期时间（默认 2 小时）
+    tokenExpiration: PT2H
+    # API Key 配置列表
+    keys:
+      - key: default-api-key-for-development
+        name: default-dev
+        description: 开发环境默认 API Key
+        allowedEndpoints:
+          - /api/v1/dh/external/**
+        rateLimit: 100
+      - key: test-api-key-for-integration
+        name: test-integration
+        description: 集成测试 API Key
+        allowedEndpoints:
+          - /api/v1/dh/external/**
+        rateLimit: 50
+
 # 安全配置
 security:
   # 验证码

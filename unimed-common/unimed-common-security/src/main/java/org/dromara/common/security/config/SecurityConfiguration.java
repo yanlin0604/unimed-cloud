@@ -37,7 +37,17 @@ public class SecurityConfiguration implements WebMvcConfigurer {
     public SaServletFilter getSaServletFilter() {
         return new SaServletFilter()
             .addInclude("/**")
-            .addExclude("/actuator", "/actuator/**")
+            .addExclude(
+                // actuator 端点
+                "/actuator", "/actuator/**",
+                // 接口文档
+                "/v3/api-docs", "/v3/api-docs/**",
+                "/webjars/**",
+                // API Token 相关接口（auth 模块）
+                "/api-token/**",
+                "/public-api-token/**",
+                "/api/v1/dh/**"
+            )
             .setAuth(obj -> {
                 if (SaManager.getConfig().getCheckSameToken()) {
                     SaSameUtil.checkCurrentRequestToken();

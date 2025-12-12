@@ -23,7 +23,11 @@ import java.util.concurrent.TimeUnit;
  * @since 2.5.1
  */
 @Configuration
-@EnableConfigurationProperties(WebClientConfig.DigitalHumanProperties.class)
+@EnableConfigurationProperties({
+    WebClientConfig.DigitalHumanProperties.class, 
+    WebClientConfig.WebRtcProperties.class,
+    WebClientConfig.DigitalHumanListProperties.class
+})
 public class WebClientConfig {
 
     /**
@@ -44,11 +48,47 @@ public class WebClientConfig {
         ) {}
         
         public DigitalHumanProperties() {
-            this("http://localhost:8080", 
+            this("http://localhost:8011", 
                  Duration.ofSeconds(30), 
                  Duration.ofSeconds(10), 
                  Duration.ofSeconds(30),
                  new RetryConfig(3, Duration.ofSeconds(1), 2.0));
+        }
+    }
+
+    /**
+     * WebRTC 服务配置属性
+     */
+    @ConfigurationProperties(prefix = "digital-human.webrtc-api")
+    public record WebRtcProperties(
+        String baseUrl,
+        Duration timeout,
+        Duration connectTimeout,
+        Duration readTimeout
+    ) {
+        public WebRtcProperties() {
+            this("http://localhost:8010", 
+                 Duration.ofSeconds(30), 
+                 Duration.ofSeconds(10), 
+                 Duration.ofSeconds(30));
+        }
+    }
+
+    /**
+     * 数字人列表查询服务配置属性
+     */
+    @ConfigurationProperties(prefix = "digital-human.list-api")
+    public record DigitalHumanListProperties(
+        String baseUrl,
+        Duration timeout,
+        Duration connectTimeout,
+        Duration readTimeout
+    ) {
+        public DigitalHumanListProperties() {
+            this("http://192.168.1.35:8009", 
+                 Duration.ofSeconds(30), 
+                 Duration.ofSeconds(10), 
+                 Duration.ofSeconds(30));
         }
     }
 
@@ -60,6 +100,70 @@ public class WebClientConfig {
      */
     @Bean("digitalHumanWebClient")
     public WebClient digitalHumanWebClient(DigitalHumanProperties properties) {
+        // 配置 HTTP 客户端
+        var httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
+                (int) properties.connectTimeout().toMillis())
+            .responseTimeout(properties.timeout())
+            .doOnConnected(conn -> 
+                conn.addHandlerLast(new ReadTimeoutHandler(
+                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS))
+                    .addHandlerLast(new WriteTimeoutHandler(
+                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS)));
+
+        return WebClient.builder()
+            .baseUrl(properties.baseUrl())
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .codecs(configurer -> {
+                // 设置内存缓冲区大小为 2MB
+                configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024);
+            })
+            .defaultHeader("Content-Type", "application/json")
+            .defaultHeader("Accept", "application/json")
+            .defaultHeader("User-Agent", "Unimed-DH-Service/2.5.1")
+            .build();
+    }
+
+    /**
+     * 配置用于调用 WebRTC API 的 WebClient
+     * 
+     * @param properties WebRTC 服务配置属性
+     * @return 配置好的 WebClient 实例
+     */
+    @Bean("webRtcWebClient")
+    public WebClient webRtcWebClient(WebRtcProperties properties) {
+        // 配置 HTTP 客户端
+        var httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
+                (int) properties.connectTimeout().toMillis())
+            .responseTimeout(properties.timeout())
+            .doOnConnected(conn -> 
+                conn.addHandlerLast(new ReadTimeoutHandler(
+                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS))
+                    .addHandlerLast(new WriteTimeoutHandler(
+                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS)));
+
+        return WebClient.builder()
+            .baseUrl(properties.baseUrl())
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .codecs(configurer -> {
+                // 设置内存缓冲区大小为 2MB
+                configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024);
+            })
+            .defaultHeader("Content-Type", "application/json")
+            .defaultHeader("Accept", "application/json")
+            .defaultHeader("User-Agent", "Unimed-DH-Service/2.5.1")
+            .build();
+    }
+
+    /**
+     * 配置用于调用数字人列表查询 API 的 WebClient
+     * 
+     * @param properties 数字人列表查询服务配置属性
+     * @return 配置好的 WebClient 实例
+     */
+    @Bean("digitalHumanListWebClient")
+    public WebClient digitalHumanListWebClient(DigitalHumanListProperties properties) {
         // 配置 HTTP 客户端
         var httpClient = HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
