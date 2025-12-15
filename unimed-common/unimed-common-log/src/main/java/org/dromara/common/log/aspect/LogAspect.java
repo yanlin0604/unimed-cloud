@@ -86,15 +86,36 @@ public class LogAspect {
 
             // *========数据库日志=========*//
             OperLogEvent operLog = new OperLogEvent();
-            operLog.setTenantId(LoginHelper.getTenantId());
+            
+            // 尝试获取租户ID，如果获取失败则使用默认值
+            try {
+                operLog.setTenantId(LoginHelper.getTenantId());
+            } catch (Exception tenantException) {
+                log.debug("获取租户ID失败，使用默认值: {}", tenantException.getMessage());
+                operLog.setTenantId("000000"); // 默认租户ID
+            }
+            
             operLog.setStatus(BusinessStatus.SUCCESS.ordinal());
             // 请求的地址
             String ip = ServletUtils.getClientIP();
             operLog.setOperIp(ip);
             operLog.setOperUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-            LoginUser loginUser = LoginHelper.getLoginUser();
-            operLog.setOperName(loginUser.getUsername());
-            operLog.setDeptName(loginUser.getDeptName());
+            
+            // 尝试获取登录用户信息，如果获取失败（如API Key认证），则使用默认值
+            try {
+                LoginUser loginUser = LoginHelper.getLoginUser();
+                if (loginUser != null) {
+                    operLog.setOperName(loginUser.getUsername());
+                    operLog.setDeptName(loginUser.getDeptName());
+                } else {
+                    // 没有登录用户时的默认处理
+                    setDefaultOperatorInfo(operLog);
+                }
+            } catch (Exception loginException) {
+                // 获取登录用户失败时的处理（如API Key认证、token过期等）
+                log.debug("获取登录用户信息失败，使用默认操作者信息: {}", loginException.getMessage());
+                setDefaultOperatorInfo(operLog);
+            }
 
             if (e != null) {
                 operLog.setStatus(BusinessStatus.FAIL.ordinal());
@@ -202,6 +223,26 @@ public class LogAspect {
             }
         }
         return params.toString();
+    }
+
+    /**
+     * 设置默认操作者信息
+     * 用于API Key认证或其他无法获取登录用户的场景
+     */
+    private void setDefaultOperatorInfo(OperLogEvent operLog) {
+        HttpServletRequest request = ServletUtils.getRequest();
+        
+        // 尝试从请求中获取API Key相关信息
+        String apiKeyName = (String) request.getAttribute("apiKeyName");
+        if (StringUtils.isNotBlank(apiKeyName)) {
+            operLog.setOperName("API:" + apiKeyName);
+            operLog.setDeptName("外部系统");
+        } else {
+            // 使用IP地址作为操作者标识
+            String clientIp = ServletUtils.getClientIP();
+            operLog.setOperName("ANONYMOUS:" + clientIp);
+            operLog.setDeptName("匿名访问");
+        }
     }
 
     /**

@@ -1,6 +1,6 @@
 package org.dromara.dh.service;
 
-import org.dromara.auth.api.domain.vo.RemoteApiTokenValidationVo;
+import org.dromara.dh.domain.vo.TokenValidationVo;
 
 import java.util.Optional;
 
@@ -33,7 +33,7 @@ public interface IAuthClientService {
      * @param token Token值（可以包含Bearer前缀）
      * @return Token验证结果，如果Token无效则返回空
      */
-    Optional<RemoteApiTokenValidationVo> validateToken(String token);
+    Optional<TokenValidationVo> validateToken(String token);
 
     /**
      * 验证API Key是否有效

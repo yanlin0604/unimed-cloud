@@ -10,7 +10,7 @@ import org.dromara.auth.api.domain.vo.RemoteApiTokenValidationVo;
 import org.dromara.auth.service.ApiTokenService;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+
 
 /**
  * 远程认证服务实现
@@ -33,17 +33,17 @@ public class RemoteAuthServiceImpl implements RemoteAuthService {
      * 根据API Key获取Token
      *
      * @param request API Token请求
-     * @return Token信息，如果API Key无效则返回空
+     * @return Token信息，如果API Key无效则返回null
      */
     @Override
-    public Optional<RemoteApiTokenDto> generateToken(RemoteApiTokenRequest request) {
+    public RemoteApiTokenDto generateToken(RemoteApiTokenRequest request) {
         try {
             log.debug("收到远程Token生成请求 - API Key: {}", maskApiKey(request.apiKey()));
 
             var tokenOpt = apiTokenService.generateToken(request.apiKey());
             if (tokenOpt.isEmpty()) {
                 log.warn("远程Token生成失败 - 无效的API Key");
-                return Optional.empty();
+                return null;
             }
 
             var token = tokenOpt.get();
@@ -54,11 +54,11 @@ public class RemoteAuthServiceImpl implements RemoteAuthService {
             );
 
             log.debug("远程Token生成成功");
-            return Optional.of(remoteToken);
+            return remoteToken;
 
         } catch (Exception e) {
             log.error("远程Token生成过程中发生异常", e);
-            return Optional.empty();
+            return null;
         }
     }
 
@@ -66,17 +66,17 @@ public class RemoteAuthServiceImpl implements RemoteAuthService {
      * 验证Token有效性
      *
      * @param token Token值（可以包含Bearer前缀）
-     * @return Token验证结果，如果Token无效则返回空
+     * @return Token验证结果，如果Token无效则返回null
      */
     @Override
-    public Optional<RemoteApiTokenValidationVo> validateToken(String token) {
+    public RemoteApiTokenValidationVo validateToken(String token) {
         try {
             log.debug("收到远程Token验证请求");
 
             var keyConfigOpt = apiTokenService.validateToken(token);
             if (keyConfigOpt.isEmpty()) {
                 log.debug("远程Token验证失败 - Token无效或已过期");
-                return Optional.of(RemoteApiTokenValidationVo.invalid());
+                return RemoteApiTokenValidationVo.invalid();
             }
 
             var keyConfig = keyConfigOpt.get();
@@ -87,11 +87,11 @@ public class RemoteAuthServiceImpl implements RemoteAuthService {
             );
 
             log.debug("远程Token验证成功 - API Key: {}", keyConfig.getName());
-            return Optional.of(validationResult);
+            return validationResult;
 
         } catch (Exception e) {
             log.error("远程Token验证过程中发生异常", e);
-            return Optional.of(RemoteApiTokenValidationVo.invalid());
+            return RemoteApiTokenValidationVo.invalid();
         }
     }
 

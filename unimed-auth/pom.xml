@@ -87,6 +87,12 @@
             <artifactId>unimed-api-resource</artifactId>
         </dependency>
 
+        <!-- 系统服务API -->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-api-system</artifactId>
+        </dependency>
+
         <!-- 认证服务API -->
         <dependency>
             <groupId>org.dromara</groupId>

@@ -4,7 +4,7 @@ import org.dromara.auth.api.domain.dto.RemoteApiTokenDto;
 import org.dromara.auth.api.domain.dto.RemoteApiTokenRequest;
 import org.dromara.auth.api.domain.vo.RemoteApiTokenValidationVo;
 
-import java.util.Optional;
+
 
 /**
  * 远程认证服务接口
@@ -23,9 +23,9 @@ public interface RemoteAuthService {
      * <p>外部系统使用有效的API Key换取访问令牌</p>
      *
      * @param request API Token请求
-     * @return Token信息，如果API Key无效则返回空
+     * @return Token信息，如果API Key无效则返回null
      */
-    Optional<RemoteApiTokenDto> generateToken(RemoteApiTokenRequest request);
+    RemoteApiTokenDto generateToken(RemoteApiTokenRequest request);
 
     /**
      * 验证Token有效性
@@ -33,9 +33,9 @@ public interface RemoteAuthService {
      * <p>检查Token的有效性并返回相关信息</p>
      *
      * @param token Token值（可以包含Bearer前缀）
-     * @return Token验证结果，如果Token无效则返回空
+     * @return Token验证结果，如果Token无效则返回null
      */
-    Optional<RemoteApiTokenValidationVo> validateToken(String token);
+    RemoteApiTokenValidationVo validateToken(String token);
 
     /**
      * 撤销Token

@@ -39,8 +39,16 @@ public class LogEventListener {
      */
     @EventListener
     public void saveLog(OperLogEvent operLogEvent) {
-        RemoteOperLogBo sysOperLog = BeanUtil.toBean(operLogEvent, RemoteOperLogBo.class);
-        remoteLogService.saveLog(sysOperLog);
+        try {
+            RemoteOperLogBo sysOperLog = BeanUtil.toBean(operLogEvent, RemoteOperLogBo.class);
+            remoteLogService.saveLog(sysOperLog);
+            log.debug("操作日志保存成功 - 操作者: {}, 操作: {}", 
+                operLogEvent.getOperName(), operLogEvent.getTitle());
+        } catch (Exception e) {
+            log.warn("操作日志保存失败，远程日志服务不可用 - 操作者: {}, 操作: {}, 错误: {}", 
+                operLogEvent.getOperName(), operLogEvent.getTitle(), e.getMessage());
+            // 可以考虑将日志保存到本地文件或其他存储
+        }
     }
 
     /**
@@ -90,7 +98,13 @@ public class LogEventListener {
         } else if (Constants.LOGIN_FAIL.equals(logininforEvent.getStatus())) {
             logininfor.setStatus(Constants.FAIL);
         }
-        remoteLogService.saveLogininfor(logininfor);
+        try {
+            remoteLogService.saveLogininfor(logininfor);
+            log.debug("登录日志保存成功 - 用户: {}, IP: {}", logininfor.getUserName(), logininfor.getIpaddr());
+        } catch (Exception e) {
+            log.warn("登录日志保存失败，远程日志服务不可用 - 用户: {}, IP: {}, 错误: {}", 
+                logininfor.getUserName(), logininfor.getIpaddr(), e.getMessage());
+        }
     }
 
     private String getBlock(Object msg) {

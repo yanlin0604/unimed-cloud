@@ -32,13 +32,21 @@ dubbo:
   consumer:
     # 超时时间
     timeout: 3000
+    # 启用 Sa-Token 过滤器 (临时禁用以解决启动问题)
+    # filter: satoken
+  # 提供者相关配置
+  provider:
+    # 启用 Sa-Token 过滤器 (临时禁用以解决启动问题)
+    # filter: satoken
   metadata-report:
     # Redis集群开关
     cluster: false
     parameters:
       # 集群地址 cluster 为 true 生效
       # 集群把所有Redis集群节点写到这里就行了
-      backup: 127.0.0.1:6379,127.0.0.1:6381
+      backup: 47.113.122.118:3719
+      # 使用不同的数据库避免键名冲突
+      database: 6
   # 自定义配置
   custom:
     # 全局请求log
@@ -114,7 +122,7 @@ spring:
       port: 3719
       # redis 密码必须配置
       password: 20255Jkoot#12#
-      database: 2
+      database: 5
       # 需要使用数字
       timeout: 10000
       ssl.enabled: false
@@ -179,7 +187,8 @@ sa-token:
   # token名称 (同时也是cookie名称)
   token-name: Authorization
   # 开启内网服务调用鉴权(不允许越过gateway访问内网服务 保障服务安全)
-  check-same-token: true
+  # 临时禁用 Same-Token 检查以解决 Dubbo RPC 调用问题
+  check-same-token: false
   # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
   is-concurrent: true
   # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)

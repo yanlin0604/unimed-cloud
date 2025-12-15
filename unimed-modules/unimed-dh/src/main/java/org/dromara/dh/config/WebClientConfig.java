@@ -46,14 +46,6 @@ public class WebClientConfig {
             Duration delay,
             double multiplier
         ) {}
-        
-        public DigitalHumanProperties() {
-            this("http://localhost:8011", 
-                 Duration.ofSeconds(30), 
-                 Duration.ofSeconds(10), 
-                 Duration.ofSeconds(30),
-                 new RetryConfig(3, Duration.ofSeconds(1), 2.0));
-        }
     }
 
     /**
@@ -65,14 +57,7 @@ public class WebClientConfig {
         Duration timeout,
         Duration connectTimeout,
         Duration readTimeout
-    ) {
-        public WebRtcProperties() {
-            this("http://localhost:8010", 
-                 Duration.ofSeconds(30), 
-                 Duration.ofSeconds(10), 
-                 Duration.ofSeconds(30));
-        }
-    }
+    ) {}
 
     /**
      * 数字人列表查询服务配置属性
@@ -83,14 +68,7 @@ public class WebClientConfig {
         Duration timeout,
         Duration connectTimeout,
         Duration readTimeout
-    ) {
-        public DigitalHumanListProperties() {
-            this("http://192.168.1.35:8009", 
-                 Duration.ofSeconds(30), 
-                 Duration.ofSeconds(10), 
-                 Duration.ofSeconds(30));
-        }
-    }
+    ) {}
 
     /**
      * 配置用于调用 Python API 的 WebClient
@@ -100,6 +78,20 @@ public class WebClientConfig {
      */
     @Bean("digitalHumanWebClient")
     public WebClient digitalHumanWebClient(DigitalHumanProperties properties) {
+        // 验证必要的配置项
+        if (properties.baseUrl() == null || properties.baseUrl().isBlank()) {
+            throw new IllegalArgumentException("数字人服务配置 digital-human.python-api.base-url 不能为空");
+        }
+        if (properties.timeout() == null) {
+            throw new IllegalArgumentException("数字人服务配置 digital-human.python-api.timeout 不能为空");
+        }
+        if (properties.connectTimeout() == null) {
+            throw new IllegalArgumentException("数字人服务配置 digital-human.python-api.connect-timeout 不能为空");
+        }
+        if (properties.readTimeout() == null) {
+            throw new IllegalArgumentException("数字人服务配置 digital-human.python-api.read-timeout 不能为空");
+        }
+
         // 配置 HTTP 客户端
         var httpClient = HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
@@ -132,6 +124,20 @@ public class WebClientConfig {
      */
     @Bean("webRtcWebClient")
     public WebClient webRtcWebClient(WebRtcProperties properties) {
+        // 验证必要的配置项
+        if (properties.baseUrl() == null || properties.baseUrl().isBlank()) {
+            throw new IllegalArgumentException("WebRTC服务配置 digital-human.webrtc-api.base-url 不能为空");
+        }
+        if (properties.timeout() == null) {
+            throw new IllegalArgumentException("WebRTC服务配置 digital-human.webrtc-api.timeout 不能为空");
+        }
+        if (properties.connectTimeout() == null) {
+            throw new IllegalArgumentException("WebRTC服务配置 digital-human.webrtc-api.connect-timeout 不能为空");
+        }
+        if (properties.readTimeout() == null) {
+            throw new IllegalArgumentException("WebRTC服务配置 digital-human.webrtc-api.read-timeout 不能为空");
+        }
+
         // 配置 HTTP 客户端
         var httpClient = HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
@@ -164,6 +170,20 @@ public class WebClientConfig {
      */
     @Bean("digitalHumanListWebClient")
     public WebClient digitalHumanListWebClient(DigitalHumanListProperties properties) {
+        // 验证必要的配置项
+        if (properties.baseUrl() == null || properties.baseUrl().isBlank()) {
+            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.base-url 不能为空");
+        }
+        if (properties.timeout() == null) {
+            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.timeout 不能为空");
+        }
+        if (properties.connectTimeout() == null) {
+            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.connect-timeout 不能为空");
+        }
+        if (properties.readTimeout() == null) {
+            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.read-timeout 不能为空");
+        }
+
         // 配置 HTTP 客户端
         var httpClient = HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
