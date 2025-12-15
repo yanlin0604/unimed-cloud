@@ -1,7 +1,9 @@
 package org.dromara.dh.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -29,7 +31,6 @@ import reactor.core.publisher.Mono;
  * @since 2.5.1
  */
 @Tag(name = "数字人服务 - 外部接口", description = "提供给外部系统调用的数字人接口，需要 API Key 鉴权")
-@SecurityRequirement(name = "X-API-Key")
 @Validated
 @Slf4j
 @RestController
@@ -54,6 +55,8 @@ public class ExternalApiController extends BaseController {
      * </ul>
      */
     @Operation(summary = "保存数字人配置", description = "调用数字人服务保存配置信息")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人配置", businessType = BusinessType.UPDATE)
     @PostMapping("/digital-humans/config")
     public Mono<R<DhConfigResponse>> saveDigitalHumanConfig(
@@ -83,6 +86,8 @@ public class ExternalApiController extends BaseController {
      * 建立数字人 WebRTC 连接
      */
     @Operation(summary = "建立数字人 WebRTC 连接", description = "处理客户端的 WebRTC SDP offer，建立音视频连接")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人WebRTC连接", businessType = BusinessType.INSERT)
     @PostMapping("/digital-humans/webrtc/offer")
     public Mono<R<WebRtcOfferResponse>> establishWebRtcConnection(
@@ -124,6 +129,8 @@ public class ExternalApiController extends BaseController {
      * 获取数字人 WebRTC 连接状态
      */
     @Operation(summary = "获取数字人 WebRTC 连接状态", description = "获取所有 WebRTC 连接的状态统计信息")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人WebRTC状态", businessType = BusinessType.OTHER)
     @GetMapping("/digital-humans/webrtc/status")
     public Mono<R<WebRtcStatusResponse>> getWebRtcConnectionStatus(
@@ -149,6 +156,8 @@ public class ExternalApiController extends BaseController {
      * 发送文本消息给数字人
      */
     @Operation(summary = "发送文本消息给数字人", description = "支持直接播报和AI对话两种模式")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人对话", businessType = BusinessType.INSERT)
     @PostMapping("/digital-humans/chat")
     public Mono<R<ChatResponse>> sendTextMessage(
@@ -186,6 +195,8 @@ public class ExternalApiController extends BaseController {
      * 打断数字人当前说话
      */
     @Operation(summary = "打断数字人当前说话", description = "立即停止数字人当前的说话，清空待播放的消息队列")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人打断", businessType = BusinessType.UPDATE)
     @PostMapping("/digital-humans/interrupt")
     public Mono<R<ChatResponse>> interruptTalk(
@@ -219,6 +230,8 @@ public class ExternalApiController extends BaseController {
      * 查询数字人是否正在说话
      */
     @Operation(summary = "查询数字人是否正在说话", description = "获取数字人当前的说话状态和相关信息")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人状态查询", businessType = BusinessType.OTHER)
     @PostMapping("/digital-humans/speaking-status")
     public Mono<R<SpeakingStatusResponse>> getSpeakingStatus(
@@ -252,6 +265,8 @@ public class ExternalApiController extends BaseController {
      * 查询数字人列表
      */
     @Operation(summary = "查询数字人列表", description = "分页查询数字人列表，支持按关键词、性别、分组类别筛选")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人列表查询", businessType = BusinessType.OTHER)
     @GetMapping("/digital-humans/list")
     public Mono<R<DigitalHumanListResponse>> getDigitalHumanList(
@@ -284,6 +299,8 @@ public class ExternalApiController extends BaseController {
      * 删除数字人
      */
     @Operation(summary = "删除数字人", description = "删除指定的数字人，会同时调用数字人服务和训练服务的删除接口")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人删除", businessType = BusinessType.DELETE)
     @DeleteMapping("/digital-humans/{digitalHumanId}")
     public Mono<R<DigitalHumanDeleteResponse>> deleteDigitalHuman(
@@ -315,6 +332,8 @@ public class ExternalApiController extends BaseController {
      * 上传视频并开始训练
      */
     @Operation(summary = "上传视频并开始训练", description = "上传视频到数字人服务并启动训练任务，两个操作会并行执行")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "视频上传训练", businessType = BusinessType.INSERT)
     @PostMapping("/digital-humans/upload-and-train")
     public Mono<R<VideoUploadTrainResponse>> uploadVideoAndTrain(
@@ -352,6 +371,8 @@ public class ExternalApiController extends BaseController {
      * 查询训练进度
      */
     @Operation(summary = "查询训练进度", description = "根据任务ID查询数字人训练的当前进度和状态")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "训练进度查询", businessType = BusinessType.OTHER)
     @GetMapping("/digital-humans/training/progress/{taskId}")
     public Mono<R<TrainingProgressResponse>> getTrainingProgress(
@@ -384,6 +405,8 @@ public class ExternalApiController extends BaseController {
      * 修改数字人状态
      */
     @Operation(summary = "修改数字人状态", description = "更新数字人的视频合成状态和相关信息")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人状态修改", businessType = BusinessType.UPDATE)
     @PutMapping("/digital-humans/status")
     public Mono<R<StatusUpdateResponse>> updateDigitalHumanStatus(
