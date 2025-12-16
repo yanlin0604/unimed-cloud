@@ -49,3 +49,5 @@ nbdist/
 /.kiro
 /.vscode
 /.fastRequest
+/.claude
+/.spec-workflow
