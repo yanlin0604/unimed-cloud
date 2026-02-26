@@ -43,8 +43,8 @@ public class WebRtcServiceImpl implements IWebRtcService {
      */
     @Override
     public Mono<WebRtcOfferResponse> establishConnection(WebRtcOfferRequest request) {
-        log.info("开始建立 WebRTC 连接 - 会话ID: {}, SDP类型: {}, SDP长度: {}", 
-            request.getSessionid(), request.getType(), 
+        log.info("开始建立 WebRTC 连接 - 会话ID: {}, SDP类型: {}, SDP长度: {}",
+            request.getSessionid(), request.getType(),
             request.getSdp() != null ? request.getSdp().length() : 0);
 
         return webClient.post()
@@ -54,29 +54,29 @@ public class WebRtcServiceImpl implements IWebRtcService {
             .bodyToMono(WebRtcOfferResponse.class)
             .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
                 .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
-                .doBeforeRetry(retrySignal -> 
-                    log.warn("WebRTC 连接建立失败，正在重试 - 重试次数: {}, 错误: {}", 
+                .doBeforeRetry(retrySignal ->
+                    log.warn("WebRTC 连接建立失败，正在重试 - 重试次数: {}, 错误: {}",
                         retrySignal.totalRetries() + 1, retrySignal.failure().getMessage())))
             .doOnSuccess(response -> {
                 if (response.getCode() != null && response.getCode() != 0) {
-                    log.warn("WebRTC 连接建立返回错误 - 错误码: {}, 消息: {}, 建议: {}", 
+                    log.warn("WebRTC 连接建立返回错误 - 错误码: {}, 消息: {}, 建议: {}",
                         response.getCode(), response.getMsg(), response.getSuggestion());
                 } else {
-                    log.info("WebRTC 连接建立成功 - 会话ID: {}, SDP类型: {}, SDP长度: {}", 
+                    log.info("WebRTC 连接建立成功 - 会话ID: {}, SDP类型: {}, SDP长度: {}",
                         response.getSessionid(), response.getType(),
                         response.getSdp() != null ? response.getSdp().length() : 0);
                 }
             })
-            .doOnError(error -> 
-                log.error("WebRTC 连接建立失败 - 会话ID: {}, 错误: {}", 
+            .doOnError(error ->
+                log.error("WebRTC 连接建立失败 - 会话ID: {}, 错误: {}",
                     request.getSessionid(), error.getMessage(), error))
             .onErrorMap(WebClientResponseException.class, ex -> {
                 if (ex.getStatusCode().value() == 409) {
-                    log.error("WebRTC 连接冲突 - 状态码: {} - 响应体: {}", 
+                    log.error("WebRTC 连接冲突 - 状态码: {} - 响应体: {}",
                         ex.getStatusCode(), ex.getResponseBodyAsString());
                     return new RuntimeException("WebRTC 连接冲突: " + ex.getResponseBodyAsString(), ex);
                 } else {
-                    log.error("WebRTC 服务返回错误状态码: {} - 响应体: {}", 
+                    log.error("WebRTC 服务返回错误状态码: {} - 响应体: {}",
                         ex.getStatusCode(), ex.getResponseBodyAsString());
                     return new RuntimeException("WebRTC 连接建立失败: " + ex.getMessage(), ex);
                 }
@@ -99,16 +99,16 @@ public class WebRtcServiceImpl implements IWebRtcService {
         log.info("获取 WebRTC 连接状态");
 
         return webClient.get()
-            .uri("/connection_status")
+            .uri("/webrtc/status")
             .retrieve()
             .bodyToMono(WebRtcStatusResponse.class)
-            .doOnSuccess(response -> 
-                log.info("获取 WebRTC 连接状态成功 - 活跃连接: {}, 总会话: {}", 
+            .doOnSuccess(response ->
+                log.info("获取 WebRTC 连接状态成功 - 活跃连接: {}, 总会话: {}",
                     response.getActiveConnections(), response.getTotalSessions()))
-            .doOnError(error -> 
+            .doOnError(error ->
                 log.error("获取 WebRTC 连接状态失败 - 错误: {}", error.getMessage(), error))
             .onErrorMap(WebClientResponseException.class, ex -> {
-                log.error("WebRTC 服务返回错误状态码: {} - 响应体: {}", 
+                log.error("WebRTC 服务返回错误状态码: {} - 响应体: {}",
                     ex.getStatusCode(), ex.getResponseBodyAsString());
                 return new RuntimeException("获取连接状态失败: " + ex.getMessage(), ex);
             })

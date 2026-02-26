@@ -41,7 +41,7 @@
 通过 Nacos 配置中心动态管理路由规则：
 
 #### 核心服务路由
-- **认证服务**: `/auth/**` → `unimed-auth:9210`
+- **认证服务**: `/auth/**` → `unimed-auth:9221`
 - **系统服务**: `/system/**` → `unimed-system:9201`
 - **代码生成**: `/gen/**` → `unimed-gen:9202`
 - **任务调度**: `/job/**` → `unimed-job:9203`

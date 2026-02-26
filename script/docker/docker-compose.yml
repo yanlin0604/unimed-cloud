@@ -186,7 +186,7 @@ services:
       # 时区上海
       TZ: Asia/Shanghai
     ports:
-      - "9210:9210"
+      - "9221:9221"
     volumes:
       # 配置文件
       - /docker/unimed-auth/logs/:/unimed/auth/logs

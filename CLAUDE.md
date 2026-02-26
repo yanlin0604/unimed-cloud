@@ -76,7 +76,7 @@ graph TD
 
 | 模块路径 | 模块名称 | 端口 | 主要职责 | 技术特点 |
 |---------|---------|------|----------|----------|
-| unimed-auth | 认证授权中心 | 9210 | 用户认证、权限管理、租户管理 | Sa-Token、OAuth2、多租户 |
+| unimed-auth | 认证授权中心 | 9221 | 用户认证、权限管理、租户管理 | Sa-Token、OAuth2、多租户 |
 | unimed-gateway | API 网关 | 9200 | 路由转发、负载均衡、限流熔断 | Spring Cloud Gateway、Redis |
 | unimed-modules/unimed-system | 系统管理 | 9201 | 用户、角色、菜单、字典管理 | MyBatis-Plus、数据权限 |
 | unimed-modules/unimed-gen | 代码生成 | 9202 | 代码模板、表结构管理 | Velocity、Freemarker |
@@ -98,7 +98,7 @@ graph TD
 
 ### 启动顺序
 1. **基础设施**: Nacos (8848) → MySQL → Redis
-2. **核心服务**: unimed-auth (9210) → unimed-gateway (9200)
+2. **核心服务**: unimed-auth (9221) → unimed-gateway (9200)
 3. **业务模块**: unimed-system (9201) → unimed-resource (9204) → unimed-workflow (9206)
 4. **扩展功能**: unimed-dh (9205) → unimed-job (9203)
 5. **监控工具**: unimed-monitor (9100)

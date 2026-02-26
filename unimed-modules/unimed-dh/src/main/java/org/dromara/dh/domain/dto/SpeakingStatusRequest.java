@@ -1,11 +1,11 @@
 package org.dromara.dh.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 说话状态查询请求 DTO
- *
  * <p>用于查询数字人是否正在说话的请求参数</p>
  *
  * @author unimed
@@ -16,5 +16,6 @@ import lombok.Data;
 public class SpeakingStatusRequest {
 
     @Schema(description = "会话ID", example = "123456")
+    @JsonProperty("sessionid")
     private String sessionid = "0";
 }

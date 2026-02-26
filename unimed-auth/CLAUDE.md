@@ -10,7 +10,7 @@
 
 ### 启动类
 - **文件**: `src/main/java/org/dromara/auth/UnimedAuthApplication.java`
-- **端口**: 9210
+- **端口**: 9221
 - **特点**:
   - 使用 `@EnableDubbo` 启用 Dubbo 服务
   - 排除 `DataSourceAutoConfiguration`（无数据库依赖）
@@ -22,7 +22,7 @@
 - **关键配置**:
   ```yaml
   server:
-    port: 9210
+    port: 9221
   spring:
     application:
       name: unimed-auth

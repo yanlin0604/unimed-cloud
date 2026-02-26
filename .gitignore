@@ -51,3 +51,4 @@ nbdist/
 /.fastRequest
 /.claude
 /.spec-workflow
+*.jar
