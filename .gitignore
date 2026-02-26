@@ -52,3 +52,4 @@ nbdist/
 /.claude
 /.spec-workflow
 *.jar
+/_bmad
