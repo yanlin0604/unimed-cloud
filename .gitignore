@@ -53,3 +53,5 @@ nbdist/
 /.spec-workflow
 *.jar
 /_bmad
+/docs
+/.serena
