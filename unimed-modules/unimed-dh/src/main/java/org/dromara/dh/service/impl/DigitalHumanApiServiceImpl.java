@@ -25,17 +25,17 @@ import java.time.Duration;
 public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
 
     private final WebClient webClient;
-//    private final WebClient digitalHumanListWebClient;
+    private final WebClient digitalHumanListWebClient;
 
     /**
      * 构造函数注入 WebClient 实例
      */
     public DigitalHumanApiServiceImpl(
-        @Qualifier("digitalHumanWebClient") WebClient webClient
-//        @Qualifier("digitalHumanListWebClient") WebClient digitalHumanListWebClient
+        @Qualifier("digitalHumanWebClient") WebClient webClient,
+        @Qualifier("digitalHumanListWebClient") WebClient digitalHumanListWebClient
     ) {
         this.webClient = webClient;
-//        this.digitalHumanListWebClient = digitalHumanListWebClient;
+        this.digitalHumanListWebClient = digitalHumanListWebClient;
     }
 
     /**
@@ -90,13 +90,51 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
      */
     @Override
     public Mono<DigitalHumanListResponse> getDigitalHumanList(DigitalHumanListRequest request) {
-        log.warn("digitalHumanListWebClient 调用已注释，数字人列表接口暂不可用 - 页码: {}", request.getPageNum());
-        var disabledResponse = new DigitalHumanListResponse();
-        disabledResponse.setCode(503);
-        disabledResponse.setMsg("digitalHumanListWebClient 调用已注释，接口暂不可用");
-        disabledResponse.setTotal(0L);
-        disabledResponse.setRows(java.util.Collections.emptyList());
-        return Mono.just(disabledResponse);
+
+        return digitalHumanListWebClient.get()
+            .uri(uriBuilder -> {
+                var builder = uriBuilder.path("/ai/digital/list")
+                    .queryParam("pageNum", request.getPageNum())
+                    .queryParam("pageSize", request.getPageSize());
+
+                // 添加可选查询参数
+//                if (request.getKeyword() != null && !request.getKeyword().isBlank()) {
+//                    builder.queryParam("keyword", request.getKeyword());
+//                }
+//                if (request.getSex() != null && !request.getSex().isBlank()) {
+//                    builder.queryParam("sex", request.getSex());
+//                }
+//                if (request.getGroupCategory() != null && !request.getGroupCategory().isBlank()) {
+//                    builder.queryParam("groupCategory", request.getGroupCategory());
+//                }
+
+                return builder.build();
+            })
+            .retrieve()
+            .bodyToMono(DigitalHumanListResponse.class)
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
+                .doBeforeRetry(retrySignal ->
+                    log.warn("查询数字人列表失败，正在重试 - 重试次数: {}, 错误: {}",
+                        retrySignal.totalRetries() + 1, retrySignal.failure().getMessage())))
+            .doOnSuccess(response ->
+                log.info("数字人列表查询成功 - 总数: {}, 返回数量: {}",
+                    response.getTotal(),
+                    response.getRows() != null ? response.getRows().size() : 0))
+            .doOnError(error ->
+                log.error("查询数字人列表失败 - 页码: {}, 错误: {}",
+                    request.getPageNum(), error.getMessage(), error))
+            .onErrorMap(WebClientResponseException.class, ex -> {
+                log.error("数字人列表服务返回错误状态码: {} - 响应体: {}",
+                    ex.getStatusCode(), ex.getResponseBodyAsString());
+                return new RuntimeException("调用数字人列表服务失败: " + ex.getMessage(), ex);
+            })
+            .onErrorMap(Exception.class, ex -> {
+                if (!(ex instanceof RuntimeException)) {
+                    return new RuntimeException("查询数字人列表时发生未知错误: " + ex.getMessage(), ex);
+                }
+                return ex;
+            });
     }
 
     /**
@@ -159,11 +197,26 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
      * 从数字人服务删除
      */
     private Mono<DigitalHumanDeleteResponse.DigitalServiceDeleteResult> deleteFromDigitalService(String digitalHumanId) {
-        log.warn("digitalHumanListWebClient 调用已注释，跳过数字人服务删除 - 数字人ID: {}", digitalHumanId);
-        var errorResult = new DigitalHumanDeleteResponse.DigitalServiceDeleteResult();
-        errorResult.setCode(503);
-        errorResult.setMsg("digitalHumanListWebClient 调用已注释，数字人服务删除已禁用");
-        return Mono.just(errorResult);
+        log.debug("调用数字人服务删除接口 - 数字人ID: {}", digitalHumanId);
+
+        return digitalHumanListWebClient.delete()
+            .uri("/ai/digital/{id}", digitalHumanId)
+            .retrieve()
+            .bodyToMono(DigitalHumanDeleteResponse.DigitalServiceDeleteResult.class)
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
+                .doBeforeRetry(retrySignal ->
+                    log.warn("数字人服务删除失败，正在重试 - 重试次数: {}, 数字人ID: {}, 错误: {}",
+                        retrySignal.totalRetries() + 1, digitalHumanId, retrySignal.failure().getMessage())))
+            .doOnSuccess(response ->
+                log.debug("数字人服务删除调用完成 - 数字人ID: {}, 响应码: {}", digitalHumanId, response.getCode()))
+            .onErrorResume(throwable -> {
+                log.error("数字人服务删除失败 - 数字人ID: {}, 错误: {}", digitalHumanId, throwable.getMessage());
+                var errorResult = new DigitalHumanDeleteResponse.DigitalServiceDeleteResult();
+                errorResult.setCode(500);
+                errorResult.setMsg("数字人服务删除失败: " + throwable.getMessage());
+                return Mono.just(errorResult);
+            });
     }
 
     /**
@@ -312,22 +365,74 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
         log.info("开始修改数字人状态 - 数字人ID: {}, 视频合成状态: {}, 训练人物ID: {}",
             request.getId(), request.getVideoComposeState(), request.getTrainHumanId());
 
-        log.warn("digitalHumanListWebClient 调用已注释，数字人状态修改接口暂不可用 - 数字人ID: {}", request.getId());
-        var disabledResponse = new StatusUpdateResponse();
-        disabledResponse.setCode(503);
-        disabledResponse.setMsg("digitalHumanListWebClient 调用已注释，接口暂不可用");
-        return Mono.just(disabledResponse);
+        return digitalHumanListWebClient.put()
+            .uri("/ai/digital")
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(StatusUpdateResponse.class)
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
+                .doBeforeRetry(retrySignal ->
+                    log.warn("修改数字人状态失败，正在重试 - 重试次数: {}, 数字人ID: {}, 错误: {}",
+                        retrySignal.totalRetries() + 1, request.getId(), retrySignal.failure().getMessage())))
+            .doOnSuccess(response ->
+                log.info("数字人状态修改成功 - 数字人ID: {}, 响应码: {}, 消息: {}",
+                    request.getId(), response.getCode(), response.getMsg()))
+            .doOnError(error ->
+                log.error("修改数字人状态失败 - 数字人ID: {}, 错误: {}", 
+                    request.getId(), error.getMessage(), error))
+            .onErrorMap(WebClientResponseException.class, ex -> {
+                log.error("数字人状态服务返回错误状态码: {} - 响应体: {}",
+                    ex.getStatusCode(), ex.getResponseBodyAsString());
+                return new RuntimeException("调用数字人状态服务失败: " + ex.getMessage(), ex);
+            })
+            .onErrorMap(Exception.class, ex -> {
+                if (!(ex instanceof RuntimeException)) {
+                    return new RuntimeException("修改数字人状态时发生未知错误: " + ex.getMessage(), ex);
+                }
+                return ex;
+            });
     }
 
     /**
      * 上传视频到数字人服务
      */
     private Mono<VideoUploadTrainResponse.UploadServiceResult> uploadVideoToDigitalService(VideoUploadTrainRequest request) {
-        log.warn("digitalHumanListWebClient 调用已注释，跳过视频上传 - 形象标题: {}", request.getFigureTitle());
-        var errorResult = new VideoUploadTrainResponse.UploadServiceResult();
-        errorResult.setCode(503);
-        errorResult.setMsg("digitalHumanListWebClient 调用已注释，视频上传已禁用");
-        return Mono.just(errorResult);
+        log.debug("调用数字人服务上传视频 - 形象标题: {}", request.getFigureTitle());
+
+        // 构建上传请求
+        var uploadRequest = new UploadVideoRequest();
+        uploadRequest.setSilentVideoUrl(request.getSilentVideoUrl());
+        uploadRequest.setActionVideoUrl(request.getActionVideoUrl());
+        uploadRequest.setFigureTitle(request.getFigureTitle());
+        uploadRequest.setSex(request.getSex());
+        uploadRequest.setFigureIntroduction(request.getFigureIntroduction());
+        uploadRequest.setChangeBackground(request.getChangeBackground());
+        uploadRequest.setReplaceBg(request.getReplaceBg());
+        uploadRequest.setVoiceFile(request.getVoiceFile());
+        uploadRequest.setAgree(request.getAgree());
+
+        return digitalHumanListWebClient.post()
+            .uri("/ai/digital")
+            .bodyValue(uploadRequest)
+            .retrieve()
+            .bodyToMono(VideoUploadTrainResponse.UploadServiceResult.class)
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
+                .doBeforeRetry(retrySignal ->
+                    log.warn("上传视频失败，正在重试 - 重试次数: {}, 形象标题: {}, 错误: {}",
+                        retrySignal.totalRetries() + 1, request.getFigureTitle(), retrySignal.failure().getMessage())))
+            .doOnSuccess(response ->
+                log.debug("视频上传调用完成 - 形象标题: {}, 响应码: {}", 
+                    request.getFigureTitle(), response.getCode()))
+            .onErrorResume(throwable -> {
+                log.error("视频上传失败 - 形象标题: {}, 错误: {}", 
+                    request.getFigureTitle(), throwable.getMessage());
+                var errorResult = new VideoUploadTrainResponse.UploadServiceResult();
+                errorResult.setCode(500);
+                errorResult.setMsg("视频上传失败: " + throwable.getMessage());
+                return Mono.just(errorResult);
+            });
     }
 
     /**

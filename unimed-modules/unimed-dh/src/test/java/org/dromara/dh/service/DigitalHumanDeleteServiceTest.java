@@ -25,8 +25,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class DigitalHumanDeleteServiceTest {
 
-//    @Mock
-//    private WebClient digitalHumanListWebClient;
+    @Mock
+    private WebClient digitalHumanListWebClient;
 
     @Mock
     private WebClient webClient;
@@ -49,24 +49,31 @@ class DigitalHumanDeleteServiceTest {
         // Given
         var digitalHumanId = "7856875483760";
 
+        var digitalServiceResult = new DigitalHumanDeleteResponse.DigitalServiceDeleteResult();
+        digitalServiceResult.setCode(200);
+        digitalServiceResult.setMsg("操作成功");
+
         var trainingServiceResult = new DigitalHumanDeleteResponse.TrainingServiceDeleteResult();
         trainingServiceResult.setSuccess(true);
         trainingServiceResult.setMessage("任务已删除");
         trainingServiceResult.setTaskId("4486675750304");
 
-        // Mock 训练服务删除
-        when(webClient.delete()).thenReturn(requestHeadersUriSpec);
+        // Mock 数字人服务删除
+        when(digitalHumanListWebClient.delete()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString(), any(Object.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(DigitalHumanDeleteResponse.TrainingServiceDeleteResult.class))
-            .thenReturn(Mono.just(trainingServiceResult));
+        when(responseSpec.bodyToMono(DigitalHumanDeleteResponse.DigitalServiceDeleteResult.class))
+            .thenReturn(Mono.just(digitalServiceResult));
+
+        // Mock 训练服务删除
+        when(webClient.delete()).thenReturn(requestHeadersUriSpec);
 
         // When & Then
         StepVerifier.create(digitalHumanApiService.deleteDigitalHuman(digitalHumanId))
             .expectNextMatches(response -> 
                 response.getSuccess() != null && 
-                !response.getSuccess() && 
-                response.getMessage().contains("数字人删除部分失败"))
+                response.getSuccess() && 
+                "数字人删除成功".equals(response.getMessage()))
             .verifyComplete();
     }
 
@@ -76,23 +83,29 @@ class DigitalHumanDeleteServiceTest {
         // Given
         var digitalHumanId = "7856875483760";
 
-        var trainingServiceResult = new DigitalHumanDeleteResponse.TrainingServiceDeleteResult();
-        trainingServiceResult.setSuccess(false);
-        trainingServiceResult.setMessage("训练服务异常");
+        var digitalServiceResult = new DigitalHumanDeleteResponse.DigitalServiceDeleteResult();
+        digitalServiceResult.setCode(500);
+        digitalServiceResult.setMsg("服务器错误");
 
-        // Mock 训练服务响应
-        when(webClient.delete()).thenReturn(requestHeadersUriSpec);
+        var trainingServiceResult = new DigitalHumanDeleteResponse.TrainingServiceDeleteResult();
+        trainingServiceResult.setSuccess(true);
+        trainingServiceResult.setMessage("任务已删除");
+
+        // Mock responses
+        when(digitalHumanListWebClient.delete()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString(), any(Object.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.bodyToMono(DigitalHumanDeleteResponse.TrainingServiceDeleteResult.class))
-            .thenReturn(Mono.just(trainingServiceResult));
+        when(responseSpec.bodyToMono(DigitalHumanDeleteResponse.DigitalServiceDeleteResult.class))
+            .thenReturn(Mono.just(digitalServiceResult));
+
+        when(webClient.delete()).thenReturn(requestHeadersUriSpec);
 
         // When & Then
         StepVerifier.create(digitalHumanApiService.deleteDigitalHuman(digitalHumanId))
             .expectNextMatches(response -> 
                 response.getSuccess() != null && 
                 !response.getSuccess() && 
-                response.getMessage().contains("训练服务删除失败"))
+                response.getMessage().contains("数字人删除部分失败"))
             .verifyComplete();
     }
 }
