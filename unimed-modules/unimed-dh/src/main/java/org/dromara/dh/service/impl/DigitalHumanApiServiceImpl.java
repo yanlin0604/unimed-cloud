@@ -25,7 +25,7 @@ import java.time.Duration;
 public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
 
     private final WebClient webClient;
-    private final WebClient digitalHumanListWebClient;
+//    private final WebClient digitalHumanListWebClient;
 
     /**
      * 构造函数注入 WebClient 实例
@@ -35,7 +35,7 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
         @Qualifier("digitalHumanListWebClient") WebClient digitalHumanListWebClient
     ) {
         this.webClient = webClient;
-        this.digitalHumanListWebClient = digitalHumanListWebClient;
+//        this.digitalHumanListWebClient = digitalHumanListWebClient;
     }
 
     /**
@@ -82,60 +82,6 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
             });
     }
 
-    /**
-     * 查询数字人列表
-     *
-     * @param request 查询请求
-     * @return 数字人列表响应
-     */
-    @Override
-    public Mono<DigitalHumanListResponse> getDigitalHumanList(DigitalHumanListRequest request) {
-
-        return digitalHumanListWebClient.get()
-            .uri(uriBuilder -> {
-                var builder = uriBuilder.path("/ai/digital/list")
-                    .queryParam("pageNum", request.getPageNum())
-                    .queryParam("pageSize", request.getPageSize());
-
-                // 添加可选查询参数
-//                if (request.getKeyword() != null && !request.getKeyword().isBlank()) {
-//                    builder.queryParam("keyword", request.getKeyword());
-//                }
-//                if (request.getSex() != null && !request.getSex().isBlank()) {
-//                    builder.queryParam("sex", request.getSex());
-//                }
-//                if (request.getGroupCategory() != null && !request.getGroupCategory().isBlank()) {
-//                    builder.queryParam("groupCategory", request.getGroupCategory());
-//                }
-
-                return builder.build();
-            })
-            .retrieve()
-            .bodyToMono(DigitalHumanListResponse.class)
-            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
-                .doBeforeRetry(retrySignal ->
-                    log.warn("查询数字人列表失败，正在重试 - 重试次数: {}, 错误: {}",
-                        retrySignal.totalRetries() + 1, retrySignal.failure().getMessage())))
-            .doOnSuccess(response ->
-                log.info("数字人列表查询成功 - 总数: {}, 返回数量: {}",
-                    response.getTotal(),
-                    response.getRows() != null ? response.getRows().size() : 0))
-            .doOnError(error ->
-                log.error("查询数字人列表失败 - 页码: {}, 错误: {}",
-                    request.getPageNum(), error.getMessage(), error))
-            .onErrorMap(WebClientResponseException.class, ex -> {
-                log.error("数字人列表服务返回错误状态码: {} - 响应体: {}",
-                    ex.getStatusCode(), ex.getResponseBodyAsString());
-                return new RuntimeException("调用数字人列表服务失败: " + ex.getMessage(), ex);
-            })
-            .onErrorMap(Exception.class, ex -> {
-                if (!(ex instanceof RuntimeException)) {
-                    return new RuntimeException("查询数字人列表时发生未知错误: " + ex.getMessage(), ex);
-                }
-                return ex;
-            });
-    }
 
     /**
      * 删除数字人
@@ -147,37 +93,25 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
     public Mono<DigitalHumanDeleteResponse> deleteDigitalHuman(String digitalHumanId) {
         log.info("开始删除数字人 - 数字人ID: {}", digitalHumanId);
 
-        // 并行调用两个删除接口
-        var digitalServiceDelete = deleteFromDigitalService(digitalHumanId);
+        // 调用训练服务删除接口
         var trainingServiceDelete = deleteFromTrainingService(digitalHumanId);
 
-        return Mono.zip(digitalServiceDelete, trainingServiceDelete)
-            .map(tuple -> {
-                var digitalResult = tuple.getT1();
-                var trainingResult = tuple.getT2();
-
+        return trainingServiceDelete
+            .map(trainingResult -> {
                 var response = new DigitalHumanDeleteResponse();
-                response.setDigitalServiceResult(digitalResult);
                 response.setTrainingServiceResult(trainingResult);
 
                 // 判断整体删除是否成功
-                boolean digitalSuccess = digitalResult.getCode() != null && digitalResult.getCode() == 200;
-                boolean trainingSuccess = trainingResult.getSuccess() != null && trainingResult.getSuccess();
+                boolean trainingSuccess = Boolean.TRUE.equals(trainingResult.getSuccess());
 
-                if (digitalSuccess && trainingSuccess) {
+                if (trainingSuccess) {
                     response.setSuccess(true);
                     response.setMessage("数字人删除成功");
                     log.info("数字人删除成功 - 数字人ID: {}", digitalHumanId);
                 } else {
                     response.setSuccess(false);
-                    var errorMsg = new StringBuilder("数字人删除部分失败: ");
-                    if (!digitalSuccess) {
-                        errorMsg.append("数字人服务删除失败(").append(digitalResult.getMsg()).append(") ");
-                    }
-                    if (!trainingSuccess) {
-                        errorMsg.append("训练服务删除失败(").append(trainingResult.getMessage()).append(")");
-                    }
-                    response.setMessage(errorMsg.toString());
+                    var errorMsg = "数字人删除部分失败: 训练服务删除失败(" + trainingResult.getMessage() + ")";
+                    response.setMessage(errorMsg);
                     log.warn("数字人删除部分失败 - 数字人ID: {}, 错误: {}", digitalHumanId, errorMsg);
                 }
 
@@ -193,31 +127,6 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
             });
     }
 
-    /**
-     * 从数字人服务删除
-     */
-    private Mono<DigitalHumanDeleteResponse.DigitalServiceDeleteResult> deleteFromDigitalService(String digitalHumanId) {
-        log.debug("调用数字人服务删除接口 - 数字人ID: {}", digitalHumanId);
-
-        return digitalHumanListWebClient.delete()
-            .uri("/ai/digital/{id}", digitalHumanId)
-            .retrieve()
-            .bodyToMono(DigitalHumanDeleteResponse.DigitalServiceDeleteResult.class)
-            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
-                .doBeforeRetry(retrySignal ->
-                    log.warn("数字人服务删除失败，正在重试 - 重试次数: {}, 数字人ID: {}, 错误: {}",
-                        retrySignal.totalRetries() + 1, digitalHumanId, retrySignal.failure().getMessage())))
-            .doOnSuccess(response ->
-                log.debug("数字人服务删除调用完成 - 数字人ID: {}, 响应码: {}", digitalHumanId, response.getCode()))
-            .onErrorResume(throwable -> {
-                log.error("数字人服务删除失败 - 数字人ID: {}, 错误: {}", digitalHumanId, throwable.getMessage());
-                var errorResult = new DigitalHumanDeleteResponse.DigitalServiceDeleteResult();
-                errorResult.setCode(500);
-                errorResult.setMsg("数字人服务删除失败: " + throwable.getMessage());
-                return Mono.just(errorResult);
-            });
-    }
 
     /**
      * 从训练服务删除
@@ -246,72 +155,45 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
     }
 
     /**
-     * 上传视频并开始训练
+     * 启动训练任务
      *
-     * @param request 上传训练请求
-     * @return 上传训练响应
+     * @param request 训练请求
+     * @return 训练响应
      */
     @Override
     public Mono<VideoUploadTrainResponse> uploadVideoAndTrain(VideoUploadTrainRequest request) {
-        log.info("开始上传视频并训练 - 形象标题: {}, 性别: {}, 训练类型: {}",
-            request.getFigureTitle(), request.getSex(), request.getType());
+        log.info("开始启动训练任务 - 形象标题: {}, 数字人ID: {}, 训练类型: {}",
+            request.getFigureTitle(), request.getDigitalId(), request.getType());
 
-        // 并行调用上传和训练接口
-        var uploadMono = uploadVideoToDigitalService(request);
-        
-        return uploadMono.flatMap(uploadResult -> {
-            if (uploadResult.getCode() != null && uploadResult.getCode() == 200) {
-                // 上传成功，开始训练
-                var digitalId = extractDigitalId(uploadResult.getData());
-                return trainVideoModel(request, digitalId)
-                    .map(trainingResult -> {
-                        var response = new VideoUploadTrainResponse();
-                        response.setUploadResult(uploadResult);
-                        response.setTrainingResult(trainingResult);
-                        response.setDigitalId(digitalId);
-                        response.setTaskId(trainingResult.getTaskId());
-                        
-                        boolean uploadSuccess = uploadResult.getCode() == 200;
-                        boolean trainingSuccess = trainingResult.getSuccess() != null && trainingResult.getSuccess();
-                        
-                        if (uploadSuccess && trainingSuccess) {
-                            response.setSuccess(true);
-                            response.setMessage("视频上传和训练启动成功");
-                            log.info("视频上传和训练启动成功 - 形象标题: {}, 数字人ID: {}, 任务ID: {}",
-                                request.getFigureTitle(), digitalId, trainingResult.getTaskId());
-                        } else {
-                            response.setSuccess(false);
-                            var errorMsg = new StringBuilder("操作部分失败: ");
-                            if (!uploadSuccess) {
-                                errorMsg.append("上传失败(").append(uploadResult.getMsg()).append(") ");
-                            }
-                            if (!trainingSuccess) {
-                                errorMsg.append("训练启动失败(").append(trainingResult.getMessage()).append(")");
-                            }
-                            response.setMessage(errorMsg.toString());
-                            log.warn("视频上传和训练部分失败 - 形象标题: {}, 错误: {}", 
-                                request.getFigureTitle(), errorMsg);
-                        }
-                        
-                        return response;
-                    });
-            } else {
-                // 上传失败，不进行训练
+        return trainVideoModel(request)
+            .map(trainingResult -> {
                 var response = new VideoUploadTrainResponse();
-                response.setUploadResult(uploadResult);
-                response.setSuccess(false);
-                response.setMessage("视频上传失败: " + uploadResult.getMsg());
-                log.error("视频上传失败 - 形象标题: {}, 错误: {}", 
-                    request.getFigureTitle(), uploadResult.getMsg());
-                return Mono.just(response);
-            }
-        })
+                response.setTrainingResult(trainingResult);
+                response.setDigitalId(request.getDigitalId());
+                response.setTaskId(trainingResult.getTaskId());
+
+                boolean trainingSuccess = Boolean.TRUE.equals(trainingResult.getSuccess());
+                if (trainingSuccess) {
+                    response.setSuccess(true);
+                    response.setMessage("训练启动成功");
+                    log.info("训练启动成功 - 形象标题: {}, 数字人ID: {}, 任务ID: {}",
+                        request.getFigureTitle(), request.getDigitalId(), trainingResult.getTaskId());
+                } else {
+                    response.setSuccess(false);
+                    var errorMsg = "训练启动失败: " + trainingResult.getMessage();
+                    response.setMessage(errorMsg);
+                    log.warn("训练启动失败 - 形象标题: {}, 数字人ID: {}, 错误: {}",
+                        request.getFigureTitle(), request.getDigitalId(), errorMsg);
+                }
+
+                return response;
+            })
         .doOnError(error ->
-            log.error("上传视频并训练失败 - 形象标题: {}, 错误: {}", 
-                request.getFigureTitle(), error.getMessage(), error))
+            log.error("启动训练任务失败 - 形象标题: {}, 数字人ID: {}, 错误: {}",
+                request.getFigureTitle(), request.getDigitalId(), error.getMessage(), error))
         .onErrorMap(Exception.class, ex -> {
             if (!(ex instanceof RuntimeException)) {
-                return new RuntimeException("上传视频并训练时发生未知错误: " + ex.getMessage(), ex);
+                return new RuntimeException("启动训练任务时发生未知错误: " + ex.getMessage(), ex);
             }
             return ex;
         });
@@ -354,97 +236,19 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
             });
     }
 
-    /**
-     * 修改数字人状态
-     *
-     * @param request 状态修改请求
-     * @return 状态修改响应
-     */
-    @Override
-    public Mono<StatusUpdateResponse> updateDigitalHumanStatus(StatusUpdateRequest request) {
-        log.info("开始修改数字人状态 - 数字人ID: {}, 视频合成状态: {}, 训练人物ID: {}",
-            request.getId(), request.getVideoComposeState(), request.getTrainHumanId());
 
-        return digitalHumanListWebClient.put()
-            .uri("/ai/digital")
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(StatusUpdateResponse.class)
-            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
-                .doBeforeRetry(retrySignal ->
-                    log.warn("修改数字人状态失败，正在重试 - 重试次数: {}, 数字人ID: {}, 错误: {}",
-                        retrySignal.totalRetries() + 1, request.getId(), retrySignal.failure().getMessage())))
-            .doOnSuccess(response ->
-                log.info("数字人状态修改成功 - 数字人ID: {}, 响应码: {}, 消息: {}",
-                    request.getId(), response.getCode(), response.getMsg()))
-            .doOnError(error ->
-                log.error("修改数字人状态失败 - 数字人ID: {}, 错误: {}", 
-                    request.getId(), error.getMessage(), error))
-            .onErrorMap(WebClientResponseException.class, ex -> {
-                log.error("数字人状态服务返回错误状态码: {} - 响应体: {}",
-                    ex.getStatusCode(), ex.getResponseBodyAsString());
-                return new RuntimeException("调用数字人状态服务失败: " + ex.getMessage(), ex);
-            })
-            .onErrorMap(Exception.class, ex -> {
-                if (!(ex instanceof RuntimeException)) {
-                    return new RuntimeException("修改数字人状态时发生未知错误: " + ex.getMessage(), ex);
-                }
-                return ex;
-            });
-    }
 
-    /**
-     * 上传视频到数字人服务
-     */
-    private Mono<VideoUploadTrainResponse.UploadServiceResult> uploadVideoToDigitalService(VideoUploadTrainRequest request) {
-        log.debug("调用数字人服务上传视频 - 形象标题: {}", request.getFigureTitle());
-
-        // 构建上传请求
-        var uploadRequest = new UploadVideoRequest();
-        uploadRequest.setSilentVideoUrl(request.getSilentVideoUrl());
-        uploadRequest.setActionVideoUrl(request.getActionVideoUrl());
-        uploadRequest.setFigureTitle(request.getFigureTitle());
-        uploadRequest.setSex(request.getSex());
-        uploadRequest.setFigureIntroduction(request.getFigureIntroduction());
-        uploadRequest.setChangeBackground(request.getChangeBackground());
-        uploadRequest.setReplaceBg(request.getReplaceBg());
-        uploadRequest.setVoiceFile(request.getVoiceFile());
-        uploadRequest.setAgree(request.getAgree());
-
-        return digitalHumanListWebClient.post()
-            .uri("/ai/digital")
-            .bodyValue(uploadRequest)
-            .retrieve()
-            .bodyToMono(VideoUploadTrainResponse.UploadServiceResult.class)
-            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
-                .doBeforeRetry(retrySignal ->
-                    log.warn("上传视频失败，正在重试 - 重试次数: {}, 形象标题: {}, 错误: {}",
-                        retrySignal.totalRetries() + 1, request.getFigureTitle(), retrySignal.failure().getMessage())))
-            .doOnSuccess(response ->
-                log.debug("视频上传调用完成 - 形象标题: {}, 响应码: {}", 
-                    request.getFigureTitle(), response.getCode()))
-            .onErrorResume(throwable -> {
-                log.error("视频上传失败 - 形象标题: {}, 错误: {}", 
-                    request.getFigureTitle(), throwable.getMessage());
-                var errorResult = new VideoUploadTrainResponse.UploadServiceResult();
-                errorResult.setCode(500);
-                errorResult.setMsg("视频上传失败: " + throwable.getMessage());
-                return Mono.just(errorResult);
-            });
-    }
 
     /**
      * 训练视频模型
      */
-    private Mono<VideoUploadTrainResponse.TrainingServiceResult> trainVideoModel(VideoUploadTrainRequest request, String digitalId) {
-        log.debug("调用训练服务训练模型 - 形象标题: {}, 数字人ID: {}", request.getFigureTitle(), digitalId);
+    private Mono<VideoUploadTrainResponse.TrainingServiceResult> trainVideoModel(VideoUploadTrainRequest request) {
+        log.debug("调用训练服务训练模型 - 形象标题: {}, 数字人ID: {}", request.getFigureTitle(), request.getDigitalId());
 
         // 构建训练请求
         var trainRequest = new TrainVideoRequest();
         trainRequest.setVideoName(request.getFigureTitle());
-        trainRequest.setTaskId(digitalId);
+        trainRequest.setTaskId(request.getDigitalId());
         trainRequest.setForceRetrain(request.getForceRetrain());
         trainRequest.setVideoUrl(request.getSilentVideoUrl());
         trainRequest.setType(request.getType());
@@ -460,61 +264,16 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
                     log.warn("训练模型失败，正在重试 - 重试次数: {}, 形象标题: {}, 错误: {}",
                         retrySignal.totalRetries() + 1, request.getFigureTitle(), retrySignal.failure().getMessage())))
             .doOnSuccess(response ->
-                log.debug("模型训练调用完成 - 形象标题: {}, 任务ID: {}", 
+                log.debug("模型训练调用完成 - 形象标题: {}, 任务ID: {}",
                     request.getFigureTitle(), response.getTaskId()))
             .onErrorResume(throwable -> {
-                log.error("模型训练失败 - 形象标题: {}, 错误: {}", 
+                log.error("模型训练失败 - 形象标题: {}, 错误: {}",
                     request.getFigureTitle(), throwable.getMessage());
                 var errorResult = new VideoUploadTrainResponse.TrainingServiceResult();
                 errorResult.setSuccess(false);
                 errorResult.setMessage("模型训练失败: " + throwable.getMessage());
                 return Mono.just(errorResult);
             });
-    }
-
-    /**
-     * 从上传响应中提取数字人ID
-     */
-    private String extractDigitalId(String data) {
-        if (data != null && data.startsWith("{\"digitalId\":\"") && data.endsWith("\"}")) {
-            return data.substring(14, data.length() - 2);
-        }
-        return data;
-    }
-
-    /**
-     * 上传视频请求（内部使用）
-     */
-    private static class UploadVideoRequest {
-        private String silentVideoUrl;
-        private String actionVideoUrl;
-        private String figureTitle;
-        private String sex;
-        private String figureIntroduction;
-        private Boolean changeBackground;
-        private String replaceBg;
-        private String voiceFile;
-        private Boolean agree;
-
-        // Getters and Setters
-        public String getSilentVideoUrl() { return silentVideoUrl; }
-        public void setSilentVideoUrl(String silentVideoUrl) { this.silentVideoUrl = silentVideoUrl; }
-        public String getActionVideoUrl() { return actionVideoUrl; }
-        public void setActionVideoUrl(String actionVideoUrl) { this.actionVideoUrl = actionVideoUrl; }
-        public String getFigureTitle() { return figureTitle; }
-        public void setFigureTitle(String figureTitle) { this.figureTitle = figureTitle; }
-        public String getSex() { return sex; }
-        public void setSex(String sex) { this.sex = sex; }
-        public String getFigureIntroduction() { return figureIntroduction; }
-        public void setFigureIntroduction(String figureIntroduction) { this.figureIntroduction = figureIntroduction; }
-        public Boolean getChangeBackground() { return changeBackground; }
-        public void setChangeBackground(Boolean changeBackground) { this.changeBackground = changeBackground; }
-        public String getReplaceBg() { return replaceBg; }
-        public void setReplaceBg(String replaceBg) { this.replaceBg = replaceBg; }
-        public String getVoiceFile() { return voiceFile; }
-        public void setVoiceFile(String voiceFile) { this.voiceFile = voiceFile; }
-        public Boolean getAgree() { return agree; }
-        public void setAgree(Boolean agree) { this.agree = agree; }
     }
 
     /**

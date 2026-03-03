@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.auth.api.RemoteAuthService;
+import org.dromara.auth.api.domain.dto.RemoteApiTokenDto;
 import org.dromara.auth.api.domain.dto.RemoteApiTokenRequest;
+import org.dromara.auth.api.domain.vo.RemoteApiTokenValidationVo;
 import org.dromara.dh.domain.vo.TokenValidationVo;
 import org.dromara.dh.service.IAuthClientService;
 import org.springframework.stereotype.Service;
@@ -42,7 +44,8 @@ public class AuthClientServiceImpl implements IAuthClientService {
 
         try {
             var request = RemoteApiTokenRequest.of(apiKey);
-            var tokenDto = remoteAuthService.generateToken(request);
+            var tokenResult = remoteAuthService.generateToken(request);
+            var tokenDto = unwrapTokenDto(tokenResult);
 
             if (tokenDto != null) {
                 var authHeader = tokenDto.getAuthorizationHeader();
@@ -75,7 +78,8 @@ public class AuthClientServiceImpl implements IAuthClientService {
         }
 
         try {
-            var remoteValidation = remoteAuthService.validateToken(token);
+            var validationResult = remoteAuthService.validateToken(token);
+            var remoteValidation = unwrapTokenValidation(validationResult);
             
             if (remoteValidation != null) {
                 // 转换远程验证结果为本地类型
@@ -154,5 +158,31 @@ public class AuthClientServiceImpl implements IAuthClientService {
             return "****";
         }
         return apiKey.substring(0, 4) + "****" + apiKey.substring(apiKey.length() - 4);
+    }
+
+    private RemoteApiTokenDto unwrapTokenDto(Object tokenResult) {
+        if (tokenResult == null) {
+            return null;
+        }
+
+        if (tokenResult instanceof Optional<?> tokenOpt) {
+            var value = tokenOpt.orElse(null);
+            return value instanceof RemoteApiTokenDto tokenDto ? tokenDto : null;
+        }
+
+        return tokenResult instanceof RemoteApiTokenDto tokenDto ? tokenDto : null;
+    }
+
+    private RemoteApiTokenValidationVo unwrapTokenValidation(Object validationResult) {
+        if (validationResult == null) {
+            return null;
+        }
+
+        if (validationResult instanceof Optional<?> validationOpt) {
+            var value = validationOpt.orElse(null);
+            return value instanceof RemoteApiTokenValidationVo validationVo ? validationVo : null;
+        }
+
+        return validationResult instanceof RemoteApiTokenValidationVo validationVo ? validationVo : null;
     }
 }

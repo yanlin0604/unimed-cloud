@@ -55,7 +55,7 @@ public class ExternalApiController extends BaseController {
      * </ul>
      */
     @Operation(summary = "保存数字人配置", description = "调用数字人服务保存配置信息")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人配置", businessType = BusinessType.UPDATE)
     @PostMapping("/digital-humans/config")
@@ -86,7 +86,7 @@ public class ExternalApiController extends BaseController {
      * 建立数字人 WebRTC 连接
      */
     @Operation(summary = "建立数字人 WebRTC 连接", description = "处理客户端的 WebRTC SDP offer，建立音视频连接")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人WebRTC连接", businessType = BusinessType.INSERT)
     @PostMapping("/digital-humans/webrtc/offer")
@@ -129,7 +129,7 @@ public class ExternalApiController extends BaseController {
      * 获取数字人 WebRTC 连接状态
      */
     @Operation(summary = "获取数字人 WebRTC 连接状态", description = "获取所有 WebRTC 连接的状态统计信息")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人WebRTC状态", businessType = BusinessType.OTHER)
     @GetMapping("/digital-humans/webrtc/status")
@@ -156,7 +156,7 @@ public class ExternalApiController extends BaseController {
      * 发送文本消息给数字人
      */
     @Operation(summary = "发送文本消息给数字人", description = "支持直接播报和AI对话两种模式")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人对话", businessType = BusinessType.INSERT)
     @PostMapping("/digital-humans/chat")
@@ -195,7 +195,7 @@ public class ExternalApiController extends BaseController {
      * 打断数字人当前说话
      */
     @Operation(summary = "打断数字人当前说话", description = "立即停止数字人当前的说话，清空待播放的消息队列")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人打断", businessType = BusinessType.UPDATE)
     @PostMapping("/digital-humans/interrupt")
@@ -230,7 +230,7 @@ public class ExternalApiController extends BaseController {
      * 查询数字人是否正在说话
      */
     @Operation(summary = "查询数字人是否正在说话", description = "获取数字人当前的说话状态和相关信息")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人状态查询", businessType = BusinessType.OTHER)
     @PostMapping("/digital-humans/speaking-status")
@@ -261,45 +261,12 @@ public class ExternalApiController extends BaseController {
             });
     }
 
-    /**
-     * 查询数字人列表
-     */
-    @Operation(summary = "查询数字人列表", description = "分页查询数字人列表，支持按关键词、性别、分组类别筛选")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
-               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
-    @Log(title = "数字人列表查询", businessType = BusinessType.OTHER)
-    @GetMapping("/digital-humans/list")
-    public Mono<R<DigitalHumanListResponse>> getDigitalHumanList(
-        HttpServletRequest request,
-        @Valid DigitalHumanListRequest listRequest
-    ) {
-        var apiKeyName = getApiKeyName(request);
-
-        return digitalHumanApiService.getDigitalHumanList(listRequest)
-            .map(response -> {
-                if (response.getCode() != null && response.getCode() == 200) {
-                    log.info("数字人列表查询成功 - 调用方: {}, 总数: {}, 返回数量: {}",
-                        apiKeyName, response.getTotal(),
-                        response.getRows() != null ? response.getRows().size() : 0);
-                    return R.ok(response);
-                } else {
-                    log.warn("数字人列表查询返回错误 - 调用方: {}, 错误码: {}, 消息: {}",
-                        apiKeyName, response.getCode(), response.getMsg());
-                    return R.<DigitalHumanListResponse>fail(response.getMsg());
-                }
-            })
-            .onErrorResume(throwable -> {
-                log.error("数字人列表查询失败 - 调用方: {}, 错误: {}",
-                    apiKeyName, throwable.getMessage(), throwable);
-                return Mono.just(R.<DigitalHumanListResponse>fail("查询数字人列表失败: " + throwable.getMessage()));
-            });
-    }
 
     /**
      * 删除数字人
      */
     @Operation(summary = "删除数字人", description = "删除指定的数字人，会同时调用数字人服务和训练服务的删除接口")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "数字人删除", businessType = BusinessType.DELETE)
     @DeleteMapping("/digital-humans/{digitalHumanId}")
@@ -329,41 +296,41 @@ public class ExternalApiController extends BaseController {
     }
 
     /**
-     * 上传视频并开始训练
+     * 启动训练任务
      */
-    @Operation(summary = "上传视频并开始训练", description = "上传视频到数字人服务并启动训练任务，两个操作会并行执行")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Operation(summary = "启动训练任务", description = "基于已存在的数字人ID和静默视频URL启动训练任务")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
-    @Log(title = "视频上传训练", businessType = BusinessType.INSERT)
+    @Log(title = "训练任务启动", businessType = BusinessType.INSERT)
     @PostMapping("/digital-humans/upload-and-train")
     public Mono<R<VideoUploadTrainResponse>> uploadVideoAndTrain(
         HttpServletRequest request,
         @Valid @RequestBody VideoUploadTrainRequest uploadTrainRequest
     ) {
         var apiKeyName = getApiKeyName(request);
-        log.info("外部接口调用 - 上传视频并训练, 调用方: {}, 形象标题: {}, 性别: {}, 训练类型: {}, 是否强制重训: {}",
+        log.info("外部接口调用 - 启动训练任务, 调用方: {}, 形象标题: {}, 数字人ID: {}, 训练类型: {}, 是否强制重训: {}",
             apiKeyName,
             uploadTrainRequest.getFigureTitle(),
-            uploadTrainRequest.getSex(),
+            uploadTrainRequest.getDigitalId(),
             uploadTrainRequest.getType(),
             uploadTrainRequest.getForceRetrain());
 
         return digitalHumanApiService.uploadVideoAndTrain(uploadTrainRequest)
             .map(response -> {
                 if (response.getSuccess() != null && response.getSuccess()) {
-                    log.info("视频上传和训练启动成功 - 调用方: {}, 形象标题: {}, 数字人ID: {}, 任务ID: {}",
+                    log.info("训练启动成功 - 调用方: {}, 形象标题: {}, 数字人ID: {}, 任务ID: {}",
                         apiKeyName, uploadTrainRequest.getFigureTitle(), response.getDigitalId(), response.getTaskId());
                     return R.ok(response);
                 } else {
-                    log.warn("视频上传和训练失败 - 调用方: {}, 形象标题: {}, 错误: {}",
+                    log.warn("训练启动失败 - 调用方: {}, 形象标题: {}, 错误: {}",
                         apiKeyName, uploadTrainRequest.getFigureTitle(), response.getMessage());
                     return R.<VideoUploadTrainResponse>fail(response.getMessage());
                 }
             })
             .onErrorResume(throwable -> {
-                log.error("视频上传和训练失败 - 调用方: {}, 形象标题: {}, 错误: {}",
+                log.error("训练任务失败 - 调用方: {}, 形象标题: {}, 错误: {}",
                     apiKeyName, uploadTrainRequest.getFigureTitle(), throwable.getMessage(), throwable);
-                return Mono.just(R.<VideoUploadTrainResponse>fail("视频上传和训练失败: " + throwable.getMessage()));
+                return Mono.just(R.<VideoUploadTrainResponse>fail("训练任务失败: " + throwable.getMessage()));
             });
     }
 
@@ -371,7 +338,7 @@ public class ExternalApiController extends BaseController {
      * 查询训练进度
      */
     @Operation(summary = "查询训练进度", description = "根据任务ID查询数字人训练的当前进度和状态")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
                in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
     @Log(title = "训练进度查询", businessType = BusinessType.OTHER)
     @GetMapping("/digital-humans/training/progress/{taskId}")
@@ -400,46 +367,6 @@ public class ExternalApiController extends BaseController {
                 return Mono.just(R.<TrainingProgressResponse>fail("查询训练进度失败: " + throwable.getMessage()));
             });
     }
-
-    /**
-     * 修改数字人状态
-     */
-    @Operation(summary = "修改数字人状态", description = "更新数字人的视频合成状态和相关信息")
-    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true, 
-               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
-    @Log(title = "数字人状态修改", businessType = BusinessType.UPDATE)
-    @PutMapping("/digital-humans/status")
-    public Mono<R<StatusUpdateResponse>> updateDigitalHumanStatus(
-        HttpServletRequest request,
-        @Valid @RequestBody StatusUpdateRequest statusRequest
-    ) {
-        var apiKeyName = getApiKeyName(request);
-        log.info("外部接口调用 - 修改数字人状态, 调用方: {}, 数字人ID: {}, 视频合成状态: {}, 训练人物ID: {}",
-            apiKeyName,
-            statusRequest.getId(),
-            statusRequest.getVideoComposeState(),
-            statusRequest.getTrainHumanId());
-
-        return digitalHumanApiService.updateDigitalHumanStatus(statusRequest)
-            .map(response -> {
-                if (response.getCode() != null && response.getCode() == 200) {
-                    log.info("数字人状态修改成功 - 调用方: {}, 数字人ID: {}, 消息: {}",
-                        apiKeyName, statusRequest.getId(), response.getMsg());
-                    return R.ok(response);
-                } else {
-                    log.warn("数字人状态修改失败 - 调用方: {}, 数字人ID: {}, 错误码: {}, 消息: {}",
-                        apiKeyName, statusRequest.getId(), response.getCode(), response.getMsg());
-                    return R.<StatusUpdateResponse>fail(response.getMsg());
-                }
-            })
-            .onErrorResume(throwable -> {
-                log.error("数字人状态修改失败 - 调用方: {}, 数字人ID: {}, 错误: {}",
-                    apiKeyName, statusRequest.getId(), throwable.getMessage(), throwable);
-                return Mono.just(R.<StatusUpdateResponse>fail("修改数字人状态失败: " + throwable.getMessage()));
-            });
-    }
-
-
 
     /**
      * 获取 API Key 名称

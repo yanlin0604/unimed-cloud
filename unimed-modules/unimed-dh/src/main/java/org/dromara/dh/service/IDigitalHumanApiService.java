@@ -21,13 +21,6 @@ public interface IDigitalHumanApiService {
      */
     Mono<DhConfigResponse> saveDigitalHumanConfig(DhConfigRequest request);
 
-    /**
-     * 查询数字人列表
-     *
-     * @param request 查询请求
-     * @return 数字人列表响应
-     */
-    Mono<DigitalHumanListResponse> getDigitalHumanList(DigitalHumanListRequest request);
 
     /**
      * 删除数字人
@@ -38,10 +31,10 @@ public interface IDigitalHumanApiService {
     Mono<DigitalHumanDeleteResponse> deleteDigitalHuman(String digitalHumanId);
 
     /**
-     * 上传视频并开始训练
+     * 启动训练任务
      *
-     * @param request 上传训练请求
-     * @return 上传训练响应
+     * @param request 训练请求
+     * @return 训练响应
      */
     Mono<VideoUploadTrainResponse> uploadVideoAndTrain(VideoUploadTrainRequest request);
 
@@ -53,11 +46,4 @@ public interface IDigitalHumanApiService {
      */
     Mono<TrainingProgressResponse> getTrainingProgress(String taskId);
 
-    /**
-     * 修改数字人状态
-     *
-     * @param request 状态修改请求
-     * @return 状态修改响应
-     */
-    Mono<StatusUpdateResponse> updateDigitalHumanStatus(StatusUpdateRequest request);
 }

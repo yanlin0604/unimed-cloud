@@ -19,9 +19,6 @@ public class DigitalHumanDeleteResponse {
     @Schema(description = "删除结果消息", example = "数字人删除成功")
     private String message;
 
-    @Schema(description = "数字人服务删除结果")
-    private DigitalServiceDeleteResult digitalServiceResult;
-
     @Schema(description = "训练服务删除结果")
     private TrainingServiceDeleteResult trainingServiceResult;
 
