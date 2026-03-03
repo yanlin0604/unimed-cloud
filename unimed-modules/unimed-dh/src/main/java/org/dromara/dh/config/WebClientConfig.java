@@ -25,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @EnableConfigurationProperties({
     WebClientConfig.DigitalHumanProperties.class, 
-    WebClientConfig.WebRtcProperties.class,
-    WebClientConfig.DigitalHumanListProperties.class
+    WebClientConfig.WebRtcProperties.class
+//    WebClientConfig.DigitalHumanListProperties.class
 })
 public class WebClientConfig {
 
@@ -162,49 +162,49 @@ public class WebClientConfig {
             .build();
     }
 
-    /**
-     * 配置用于调用数字人列表查询 API 的 WebClient
-     * 
-     * @param properties 数字人列表查询服务配置属性
-     * @return 配置好的 WebClient 实例
-     */
-    @Bean("digitalHumanListWebClient")
-    public WebClient digitalHumanListWebClient(DigitalHumanListProperties properties) {
-        // 验证必要的配置项
-        if (properties.baseUrl() == null || properties.baseUrl().isBlank()) {
-            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.base-url 不能为空");
-        }
-        if (properties.timeout() == null) {
-            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.timeout 不能为空");
-        }
-        if (properties.connectTimeout() == null) {
-            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.connect-timeout 不能为空");
-        }
-        if (properties.readTimeout() == null) {
-            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.read-timeout 不能为空");
-        }
-
-        // 配置 HTTP 客户端
-        var httpClient = HttpClient.create()
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 
-                (int) properties.connectTimeout().toMillis())
-            .responseTimeout(properties.timeout())
-            .doOnConnected(conn -> 
-                conn.addHandlerLast(new ReadTimeoutHandler(
-                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS))
-                    .addHandlerLast(new WriteTimeoutHandler(
-                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS)));
-
-        return WebClient.builder()
-            .baseUrl(properties.baseUrl())
-            .clientConnector(new ReactorClientHttpConnector(httpClient))
-            .codecs(configurer -> {
-                // 设置内存缓冲区大小为 2MB
-                configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024);
-            })
-            .defaultHeader("Content-Type", "application/json")
-            .defaultHeader("Accept", "application/json")
-            .defaultHeader("User-Agent", "Unimed-DH-Service/2.5.1")
-            .build();
-    }
+//    /**
+//     * 配置用于调用数字人列表查询 API 的 WebClient
+//     *
+//     * @param properties 数字人列表查询服务配置属性
+//     * @return 配置好的 WebClient 实例
+//     */
+//    @Bean("digitalHumanListWebClient")
+//    public WebClient digitalHumanListWebClient(DigitalHumanListProperties properties) {
+//        // 验证必要的配置项
+//        if (properties.baseUrl() == null || properties.baseUrl().isBlank()) {
+//            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.base-url 不能为空");
+//        }
+//        if (properties.timeout() == null) {
+//            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.timeout 不能为空");
+//        }
+//        if (properties.connectTimeout() == null) {
+//            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.connect-timeout 不能为空");
+//        }
+//        if (properties.readTimeout() == null) {
+//            throw new IllegalArgumentException("数字人列表服务配置 digital-human.list-api.read-timeout 不能为空");
+//        }
+//
+//        // 配置 HTTP 客户端
+//        var httpClient = HttpClient.create()
+//            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS,
+//                (int) properties.connectTimeout().toMillis())
+//            .responseTimeout(properties.timeout())
+//            .doOnConnected(conn ->
+//                conn.addHandlerLast(new ReadTimeoutHandler(
+//                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS))
+//                    .addHandlerLast(new WriteTimeoutHandler(
+//                        properties.readTimeout().toSeconds(), TimeUnit.SECONDS)));
+//
+//        return WebClient.builder()
+//            .baseUrl(properties.baseUrl())
+//            .clientConnector(new ReactorClientHttpConnector(httpClient))
+//            .codecs(configurer -> {
+//                // 设置内存缓冲区大小为 2MB
+//                configurer.defaultCodecs().maxInMemorySize(2 * 1024 * 1024);
+//            })
+//            .defaultHeader("Content-Type", "application/json")
+//            .defaultHeader("Accept", "application/json")
+//            .defaultHeader("User-Agent", "Unimed-DH-Service/2.5.1")
+//            .build();
+//    }
 }
