@@ -13,14 +13,14 @@ import org.springframework.boot.context.metrics.buffering.BufferingApplicationSt
  */
 @EnableDubbo
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
-public class UnimedDhApplication {
+public class UnimedDhRelayApplication {
 
     public static void main(String[] args) {
-        var application = new SpringApplication(UnimedDhApplication.class);
+        var application = new SpringApplication(UnimedDhRelayApplication.class);
         application.setApplicationStartup(new BufferingApplicationStartup(2048));
         application.run(args);
 
-        System.out.println("(♥◠‿◠)ﾉﾞ  数字人微服务启动成功 (本地模式)   ლ(´ڡ`ლ)ﾞ  ");
+        System.out.println("(♥◠‿◠)ﾉﾞ  数字人中转微服务启动成功 (本地模式)   ლ(´ڡ`ლ)ﾞ  ");
         System.out.println("服务地址: http://localhost:9205");
         System.out.println("健康检查: http://localhost:9205/actuator/health");
     }

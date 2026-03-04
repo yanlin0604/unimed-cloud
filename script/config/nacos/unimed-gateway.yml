@@ -96,11 +96,18 @@ spring:
                 - Path=/test-mq/**
               filters:
                 - StripPrefix=1
-            # 数字人服务
+            # 数字人中转服务
+            - id: unimed-dh-relay
+              uri: lb://unimed-dh-relay
+              predicates:
+                - Path=/dh/**
+              filters:
+                - StripPrefix=1
+            # 数字人业务服务
             - id: unimed-dh
               uri: lb://unimed-dh
               predicates:
-                - Path=/dh/**
+                - Path=/dh-core/**
               filters:
                 - StripPrefix=1
     

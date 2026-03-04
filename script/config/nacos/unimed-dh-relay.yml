@@ -1,0 +1,79 @@
+# 数字人中转微服务配置
+# 此配置文件用于 Nacos 配置中心，请将内容复制到 Nacos 对应的配置中
+
+# 数字人中转服务配置
+digital-human:
+  python-api:
+    # 数字人服务地址（配置接口）
+    base-url: http://192.168.2.43:8011
+    # 请求超时时间
+    timeout: 30s
+    # 连接超时时间
+    connect-timeout: 10s
+    # 读取超时时间
+    read-timeout: 30s
+    # 重试配置
+    retry:
+      # 最大重试次数
+      max-attempts: 3
+      # 重试延迟
+      delay: 1s
+      # 重试延迟倍数
+      multiplier: 2.0
+  webrtc-api:
+    # WebRTC 服务地址
+    base-url: http://192.168.2.43:8010
+    # 请求超时时间
+    timeout: 30s
+    # 连接超时时间
+    connect-timeout: 10s
+    # 读取超时时间
+    read-timeout: 30s
+  list-api:
+    # 数字人列表查询服务地址
+    base-url: http://192.168.1.35:8009
+    # 请求超时时间
+    timeout: 30s
+    # 连接超时时间
+    connect-timeout: 10s
+    # 读取超时时间
+    read-timeout: 30s
+
+  # 熔断器配置
+  circuit-breaker:
+    # 失败率阈值 (50%)
+    failure-rate-threshold: 50
+    # 熔断器打开状态持续时间
+    wait-duration-in-open-state: 30s
+    # 滑动窗口大小
+    sliding-window-size: 10
+    # 最小调用次数
+    minimum-number-of-calls: 5
+
+  # 限流配置
+  rate-limiter:
+    # 每个周期允许的请求数
+    limit-for-period: 10
+    # 限流周期
+    limit-refresh-period: 1s
+    # 获取许可的超时时间
+    timeout-duration: 0s
+
+  # 缓存配置
+  cache:
+    # 数字人信息缓存时间 (分钟)
+    digital-human-ttl: 30
+    # 配置信息缓存时间 (分钟)
+    configuration-ttl: 60
+    # 缓存键前缀
+    key-prefix: "dh:"
+
+  # API Token 过滤器配置（用于验证来自 auth 模块的 Token）
+  api-filter:
+    # 是否启用 API Token 过滤器
+    enabled: true
+    # Token 请求头名称（用于业务接口鉴权）
+    tokenHeaderName: Authorization
+    # 需要 Token 鉴权的路径模式（支持 Ant 风格通配符）
+    protectedPaths:
+      - /api/v1/dh/external/**

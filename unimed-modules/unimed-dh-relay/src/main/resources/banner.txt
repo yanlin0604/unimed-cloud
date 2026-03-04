@@ -4,4 +4,4 @@
 | |_| | | | | | | | | | |  __/ (_| |_____| |_| |  _  |
  \___/|_| |_|_|_| |_| |_|\___|\__,_|     |____/  |_| |_|
                                                         
-:: Unimed Digital Human Core Service ::   (v2.5.1)
+:: Unimed Digital Human Service ::        (v2.5.1)

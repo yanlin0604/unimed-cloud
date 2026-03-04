@@ -27,7 +27,7 @@ public class DhSecurityConfiguration {
      * <p>排除外部接口，这些接口使用ApiKeyAuthFilter进行认证</p>
      */
     @Bean
-    @ConditionalOnProperty(name = "spring.application.name", havingValue = "unimed-dh")
+    @ConditionalOnProperty(name = "spring.application.name", havingValue = "unimed-dh-relay")
     public SaServletFilter dhSaServletFilter() {
         return new SaServletFilter()
             .addInclude("/**")

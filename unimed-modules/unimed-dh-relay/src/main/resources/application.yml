@@ -1,12 +1,12 @@
 # Tomcat
 server:
-  port: 9206
+  port: 9205
 
 # Spring
 spring:
   application:
     # 应用名称
-    name: unimed-dh
+    name: unimed-dh-relay
   profiles:
     # 环境配置
     active: @profiles.active@
