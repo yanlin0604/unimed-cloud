@@ -39,6 +39,16 @@
 
         <dependency>
             <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-mybatis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-tenant</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
             <artifactId>unimed-common-security</artifactId>
         </dependency>
 

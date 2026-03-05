@@ -1,11 +1,15 @@
 # 数字人业务模块配置
 # 此配置文件用于 Nacos 配置中心，请将内容复制到 Nacos 对应的配置中
-
-# 业务模块基线配置（后续按真实业务增量扩展）
-dh:
-  module:
-    name: unimed-dh
-    enabled: true
-  feature:
-    # 示例开关，后续可扩展业务能力
-    bootstrap-check: true
+spring:
+  datasource:
+    dynamic:
+      # 设置默认的数据源或者数据源组,默认值即为 master
+      primary: master
+      datasource:
+        # 主库数据源
+        master:
+          type: ${spring.datasource.type}
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: ${datasource.system-master.url}
+          username: ${datasource.system-master.username}
+          password: ${datasource.system-master.password}

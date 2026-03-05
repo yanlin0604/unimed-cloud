@@ -2,7 +2,6 @@ package org.dromara.dhcore;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
 
 /**
@@ -10,7 +9,7 @@ import org.springframework.boot.context.metrics.buffering.BufferingApplicationSt
  *
  * @author unimed
  */
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+@SpringBootApplication
 public class UnimedDhApplication {
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication(UnimedDhApplication.class);
