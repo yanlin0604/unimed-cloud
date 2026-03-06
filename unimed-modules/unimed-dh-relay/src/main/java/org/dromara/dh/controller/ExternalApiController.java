@@ -22,6 +22,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * 外部 API 控制器
  *
@@ -149,6 +151,32 @@ public class ExternalApiController extends BaseController {
                 log.error("获取 WebRTC 连接状态失败 - 调用方: {}, 错误: {}",
                     apiKeyName, throwable.getMessage(), throwable);
                 return Mono.just(R.<WebRtcStatusResponse>fail("获取连接状态失败: " + throwable.getMessage()));
+            });
+    }
+
+    /**
+     * 获取数字人形象列表
+     */
+    @Operation(summary = "获取数字人形象列表", description = "获取所有可用的数字人形象列表，包含名称和预览图片完整URL")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
+    @Log(title = "数字人形象列表", businessType = BusinessType.OTHER)
+    @GetMapping("/digital-humans/avatars")
+    public Mono<R<List<AvatarInfo>>> getAvatars(
+        HttpServletRequest request
+    ) {
+        var apiKeyName = getApiKeyName(request);
+        log.info("外部接口调用 - 获取数字人形象列表, 调用方: {}", apiKeyName);
+
+        return digitalHumanApiService.getAvatars()
+            .map(avatarList -> {
+                log.info("获取数字人形象列表成功 - 调用方: {}, 形象数量: {}", apiKeyName, avatarList.size());
+                return R.ok(avatarList);
+            })
+            .onErrorResume(throwable -> {
+                log.error("获取数字人形象列表失败 - 调用方: {}, 错误: {}",
+                    apiKeyName, throwable.getMessage(), throwable);
+                return Mono.just(R.fail("获取数字人形象列表失败: " + throwable.getMessage()));
             });
     }
 

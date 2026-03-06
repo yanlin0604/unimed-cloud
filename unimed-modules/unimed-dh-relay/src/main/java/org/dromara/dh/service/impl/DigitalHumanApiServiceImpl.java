@@ -1,6 +1,7 @@
 package org.dromara.dh.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.dh.config.WebClientConfig;
 import org.dromara.dh.domain.dto.*;
 import org.dromara.dh.service.IDigitalHumanApiService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,6 +12,8 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 数字人服务实现类
@@ -25,17 +28,22 @@ import java.time.Duration;
 public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
 
     private final WebClient webClient;
-//    private final WebClient digitalHumanListWebClient;
+    private final String pythonApiBaseUrl;
 
     /**
      * 构造函数注入 WebClient 实例
      */
     public DigitalHumanApiServiceImpl(
         @Qualifier("digitalHumanWebClient") WebClient webClient,
-        @Qualifier("digitalHumanListWebClient") WebClient digitalHumanListWebClient
+        @Qualifier("digitalHumanListWebClient") WebClient digitalHumanListWebClient,
+        WebClientConfig.DigitalHumanProperties digitalHumanProperties
     ) {
         this.webClient = webClient;
-//        this.digitalHumanListWebClient = digitalHumanListWebClient;
+        this.pythonApiBaseUrl = normalizeBaseUrl(digitalHumanProperties.baseUrl());
+    }
+
+    private static String normalizeBaseUrl(String baseUrl) {
+        return baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
     }
 
     /**
@@ -238,6 +246,61 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
 
 
 
+
+    @Override
+    public Mono<List<AvatarInfo>> getAvatars() {
+        log.info("开始调用数字人服务获取形象列表");
+
+        return webClient.get()
+            .uri("/get_avatars")
+            .retrieve()
+            .bodyToMono(GetAvatarsResponse.class)
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
+                .doBeforeRetry(retrySignal ->
+                    log.warn("获取形象列表失败，正在重试 - 重试次数: {}, 错误: {}",
+                        retrySignal.totalRetries() + 1, retrySignal.failure().getMessage())))
+            .map(response -> {
+                if (response.getCode() != null && response.getCode() != 0) {
+                    log.warn("获取形象列表返回错误码: {}", response.getCode());
+                    return Collections.<AvatarInfo>emptyList();
+                }
+                if (response.getData() == null) {
+                    return Collections.<AvatarInfo>emptyList();
+                }
+                return response.getData().stream()
+                    .map(item -> {
+                        var avatarInfo = new AvatarInfo();
+                        avatarInfo.setName(item.getName());
+                        avatarInfo.setPreviewImage(buildFullImageUrl(item.getPreviewImage()));
+                        return avatarInfo;
+                    })
+                    .toList();
+            })
+            .doOnSuccess(list ->
+                log.info("获取形象列表成功 - 数量: {}", list.size()))
+            .doOnError(error ->
+                log.error("获取形象列表失败 - 错误: {}", error.getMessage(), error))
+            .onErrorMap(WebClientResponseException.class, ex -> {
+                log.error("形象列表服务返回错误状态码: {} - 响应体: {}",
+                    ex.getStatusCode(), ex.getResponseBodyAsString());
+                return new RuntimeException("调用形象列表服务失败: " + ex.getMessage(), ex);
+            })
+            .onErrorMap(Exception.class, ex -> {
+                if (!(ex instanceof RuntimeException)) {
+                    return new RuntimeException("获取形象列表时发生未知错误: " + ex.getMessage(), ex);
+                }
+                return ex;
+            });
+    }
+
+    private String buildFullImageUrl(String relativePath) {
+        if (relativePath == null || relativePath.isBlank()) {
+            return "";
+        }
+        String path = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+        return pythonApiBaseUrl + path;
+    }
 
     /**
      * 训练视频模型

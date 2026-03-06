@@ -60,6 +60,11 @@
 | POST | `/digital-humans/interrupt` | 打断数字人当前说话 |
 | POST | `/digital-humans/speaking-status` | 查询数字人说话状态 |
 
+#### 数字人形象
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/digital-humans/avatars` | 获取数字人形象列表（含预览图完整URL） |
+
 #### 数字人管理
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -107,6 +112,8 @@ spring-cloud-starter-alibaba-sentinel -- 熔断限流
 | SpeakingStatusRequest / SpeakingStatusResponse | 说话状态查询 |
 | DigitalHumanListRequest / DigitalHumanListResponse | 数字人列表 |
 | DigitalHumanInfo | 数字人信息 |
+| GetAvatarsResponse | Python /get_avatars 原始响应 |
+| AvatarInfo | 数字人形象信息（含完整预览图URL） |
 | DigitalHumanDeleteRequest / DigitalHumanDeleteResponse | 删除数字人 |
 | VideoUploadTrainRequest / VideoUploadTrainResponse | 视频上传训练 |
 | TrainingProgressRequest / TrainingProgressResponse | 训练进度 |

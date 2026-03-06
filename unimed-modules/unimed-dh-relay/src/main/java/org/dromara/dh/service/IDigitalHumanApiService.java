@@ -3,6 +3,8 @@ package org.dromara.dh.service;
 import org.dromara.dh.domain.dto.*;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * 数字人服务接口
  *
@@ -45,5 +47,12 @@ public interface IDigitalHumanApiService {
      * @return 训练进度响应
      */
     Mono<TrainingProgressResponse> getTrainingProgress(String taskId);
+
+    /**
+     * 获取数字人形象列表
+     *
+     * @return 形象信息列表
+     */
+    Mono<List<AvatarInfo>> getAvatars();
 
 }
