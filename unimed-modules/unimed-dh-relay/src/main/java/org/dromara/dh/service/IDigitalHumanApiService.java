@@ -55,4 +55,12 @@ public interface IDigitalHumanApiService {
      */
     Mono<List<AvatarInfo>> getAvatars();
 
+    /**
+     * TTS 音色试听
+     *
+     * @param request 试听请求
+     * @return 试听响应（含 base64 音频）
+     */
+    Mono<PreviewTtsResponse> previewTts(PreviewTtsRequest request);
+
 }

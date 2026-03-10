@@ -361,4 +361,65 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
     }
+
+    /**
+     * TTS 音色试听
+     *
+     * @param request 试听请求
+     * @return 试听响应（含 base64 音频）
+     */
+    @Override
+    public Mono<PreviewTtsResponse> previewTts(PreviewTtsRequest request) {
+        log.info("开始调用 TTS 试听 - TTS类型: {}, 音色ID: {}", request.getTtsType(), request.getVoiceType());
+
+        // 构建后端请求，字段名使用 snake_case
+        var backendRequest = new PreviewTtsBackendRequest();
+        backendRequest.setTtsType(request.getTtsType());
+        backendRequest.setVoiceType(request.getVoiceType());
+        backendRequest.setText(request.getText());
+
+        return webClient.post()
+            .uri("/preview_tts")
+            .bodyValue(backendRequest)
+            .retrieve()
+            .bodyToMono(PreviewTtsResponse.class)
+            .doOnSuccess(response ->
+                log.info("TTS 试听调用完成 - TTS类型: {}, 音色ID: {}, 成功: {}",
+                    request.getTtsType(), request.getVoiceType(), response.getSuccess()))
+            .doOnError(error ->
+                log.error("TTS 试听调用失败 - TTS类型: {}, 音色ID: {}, 错误: {}",
+                    request.getTtsType(), request.getVoiceType(), error.getMessage(), error))
+            .onErrorMap(WebClientResponseException.class, ex -> {
+                log.error("TTS 试听服务返回错误状态码: {} - 响应体: {}",
+                    ex.getStatusCode(), ex.getResponseBodyAsString());
+                return new RuntimeException("调用 TTS 试听服务失败: " + ex.getMessage(), ex);
+            })
+            .onErrorMap(Exception.class, ex -> {
+                if (!(ex instanceof RuntimeException)) {
+                    return new RuntimeException("TTS 试听时发生未知错误: " + ex.getMessage(), ex);
+                }
+                return ex;
+            });
+    }
+
+    /**
+     * TTS 试听后端请求（内部使用，字段名匹配 Python 后端的 snake_case 格式）
+     */
+    private static class PreviewTtsBackendRequest {
+        @com.fasterxml.jackson.annotation.JsonProperty("tts_type")
+        private String ttsType;
+
+        @com.fasterxml.jackson.annotation.JsonProperty("voice_type")
+        private String voiceType;
+
+        private String text;
+
+        public String getTtsType() { return ttsType; }
+        public void setTtsType(String ttsType) { this.ttsType = ttsType; }
+        public String getVoiceType() { return voiceType; }
+        public void setVoiceType(String voiceType) { this.voiceType = voiceType; }
+        public String getText() { return text; }
+        public void setText(String text) { this.text = text; }
+    }
 }
+

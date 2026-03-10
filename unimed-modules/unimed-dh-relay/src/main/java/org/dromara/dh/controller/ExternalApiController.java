@@ -397,6 +397,41 @@ public class ExternalApiController extends BaseController {
     }
 
     /**
+     * TTS 音色试听
+     */
+    @Operation(summary = "TTS 音色试听", description = "调用 TTS 服务生成指定音色的试听音频，返回 base64 编码的 MP3 数据")
+    @Parameter(name = "Authorization", description = "Bearer Token 认证", required = true,
+               in = ParameterIn.HEADER, schema = @Schema(type = "string", example = "Bearer your-api-key"))
+    @Log(title = "TTS音色试听", businessType = BusinessType.OTHER)
+    @PostMapping("/digital-humans/preview-tts")
+    public Mono<R<PreviewTtsResponse>> previewTts(
+        HttpServletRequest request,
+        @Valid @RequestBody PreviewTtsRequest previewTtsRequest
+    ) {
+        var apiKeyName = getApiKeyName(request);
+        log.info("外部接口调用 - TTS 音色试听, 调用方: {}, TTS类型: {}, 音色ID: {}",
+            apiKeyName, previewTtsRequest.getTtsType(), previewTtsRequest.getVoiceType());
+
+        return digitalHumanApiService.previewTts(previewTtsRequest)
+            .map(response -> {
+                if (Boolean.TRUE.equals(response.getSuccess())) {
+                    log.info("TTS 音色试听成功 - 调用方: {}, 音色ID: {}",
+                        apiKeyName, previewTtsRequest.getVoiceType());
+                    return R.ok(response);
+                } else {
+                    log.warn("TTS 音色试听失败 - 调用方: {}, 音色ID: {}, 错误: {}",
+                        apiKeyName, previewTtsRequest.getVoiceType(), response.getMessage());
+                    return R.<PreviewTtsResponse>fail(response.getMessage());
+                }
+            })
+            .onErrorResume(throwable -> {
+                log.error("TTS 音色试听失败 - 调用方: {}, 音色ID: {}, 错误: {}",
+                    apiKeyName, previewTtsRequest.getVoiceType(), throwable.getMessage(), throwable);
+                return Mono.just(R.fail("TTS 音色试听失败: " + throwable.getMessage()));
+            });
+    }
+
+    /**
      * 获取 API Key 名称
      */
     private String getApiKeyName(HttpServletRequest request) {
