@@ -43,9 +43,11 @@ public class WebRtcServiceImpl implements IWebRtcService {
      */
     @Override
     public Mono<WebRtcOfferResponse> establishConnection(WebRtcOfferRequest request) {
-        log.info("开始建立 WebRTC 连接 - 会话ID: {}, SDP类型: {}, SDP长度: {}",
+        log.info("开始建立 WebRTC 连接 - 会话ID: {}, SDP类型: {}, SDP长度: {}, 形象: {}, 音色: {}, TTS: {}, LLM: {}/{}",
             request.getSessionid(), request.getType(),
-            request.getSdp() != null ? request.getSdp().length() : 0);
+            request.getSdp() != null ? request.getSdp().length() : 0,
+            request.getAvatarId(), request.getRefFile(), request.getTts(),
+            request.getLlmProvider(), request.getLlmModel());
 
         return webClient.post()
             .uri("/offer")

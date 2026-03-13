@@ -18,6 +18,9 @@ import lombok.Data;
 @Schema(description = "数字人配置请求")
 public class DhConfigRequest {
 
+    @Schema(description = "会话ID，不传则对全局配置生效", example = "123456")
+    private String sessionid;
+
     @Schema(description = "配置信息", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "配置信息不能为空")
     @Valid

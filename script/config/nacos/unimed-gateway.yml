@@ -96,6 +96,11 @@ spring:
                 - Path=/test-mq/**
               filters:
                 - StripPrefix=1
+            # C端门户接口 —— 必须在 dh-relay 通配之前，确保 /dh/portal/** 优先匹配到业务服务
+            - id: unimed-dh-portal
+              uri: lb://unimed-dh
+              predicates:
+                - Path=/dh/portal/**
             # 数字人中转服务
             - id: unimed-dh-relay
               uri: lb://unimed-dh-relay

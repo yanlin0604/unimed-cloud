@@ -66,8 +66,9 @@ public class ExternalApiController extends BaseController {
         @Valid @RequestBody DhConfigRequest configRequest
     ) {
         var apiKeyName = getApiKeyName(request);
-        log.info("外部接口调用 - 保存数字人配置, 调用方: {}, 数字人ID: {}, 声音类型: {}",
+        log.info("外部接口调用 - 保存数字人配置, 调用方: {}, 会话ID: {}, 数字人ID: {}, 声音类型: {}",
             apiKeyName,
+            configRequest.getSessionid(),
             configRequest.getConfigs().getAvatarId(),
             configRequest.getConfigs().getRefFile());
 
@@ -97,10 +98,14 @@ public class ExternalApiController extends BaseController {
         @Valid @RequestBody WebRtcOfferRequest offerRequest
     ) {
         var apiKeyName = getApiKeyName(request);
-        log.info("外部接口调用 - 建立 WebRTC 连接, 调用方: {}, 会话ID: {}, SDP类型: {}",
+        log.info("外部接口调用 - 建立 WebRTC 连接, 调用方: {}, 会话ID: {}, SDP类型: {}, 形象: {}, TTS: {}, LLM: {}/{}",
             apiKeyName,
             offerRequest.getSessionid(),
-            offerRequest.getType());
+            offerRequest.getType(),
+            offerRequest.getAvatarId(),
+            offerRequest.getTts(),
+            offerRequest.getLlmProvider(),
+            offerRequest.getLlmModel());
 
         return webRtcService.establishConnection(offerRequest)
             .map(response -> {

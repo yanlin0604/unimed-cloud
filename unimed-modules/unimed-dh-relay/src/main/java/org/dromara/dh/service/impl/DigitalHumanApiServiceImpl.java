@@ -54,8 +54,8 @@ public class DigitalHumanApiServiceImpl implements IDigitalHumanApiService {
      */
     @Override
     public Mono<DhConfigResponse> saveDigitalHumanConfig(DhConfigRequest request) {
-        log.info("开始调用数字人服务保存配置 - 数字人ID: {}, 声音类型: {}",
-            request.getConfigs().getAvatarId(), request.getConfigs().getRefFile());
+        log.info("开始调用数字人服务保存配置 - 会话ID: {}, 数字人ID: {}, 声音类型: {}",
+            request.getSessionid(), request.getConfigs().getAvatarId(), request.getConfigs().getRefFile());
 
         // 转换为数字人服务需要的格式
         var serviceRequest = DhServiceRequest.from(request);
