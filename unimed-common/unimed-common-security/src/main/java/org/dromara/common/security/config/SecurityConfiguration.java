@@ -50,6 +50,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                 "/api/v1/dh/external/**",
                 // C端门户公开接口（无需登录）
                 "/dh/portal/creation/templates",
+                // C端门户认证接口（无需登录）
+                "/dh/portal/auth/**",
                 // 健康检查
                 "/health", "/info"
             )
