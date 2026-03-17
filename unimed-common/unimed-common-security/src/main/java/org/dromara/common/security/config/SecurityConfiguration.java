@@ -48,6 +48,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
                 "/public-api-token/**",
                 // 数字人外部接口（使用自定义认证）
                 "/api/v1/dh/external/**",
+                // C端门户公开接口（无需登录）
+                "/dh/portal/creation/templates",
                 // 健康检查
                 "/health", "/info"
             )

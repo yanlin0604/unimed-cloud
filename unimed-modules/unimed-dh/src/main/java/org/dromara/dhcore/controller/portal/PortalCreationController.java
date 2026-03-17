@@ -28,7 +28,6 @@ import java.util.List;
  * @author AI
  */
 @Tag(name = "C端-创作资产")
-@SaCheckLogin
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -41,6 +40,7 @@ public class PortalCreationController extends BaseController {
      * TODO: 待 dh_avatar 表和实体创建后，查询 系统预设 + 用户上传 的形象
      */
     @Operation(summary = "获取数字人形象列表")
+    @SaCheckLogin
     @GetMapping("/avatars")
     public R<List<PortalAvatarVo>> getAvatars() {
         // 骨架：Avatar 实体未建立，返回空列表
@@ -53,6 +53,7 @@ public class PortalCreationController extends BaseController {
      * TODO: 待 dh_voice 表和实体创建后，查询 系统预设 + 用户克隆 的音色
      */
     @Operation(summary = "获取音色列表")
+    @SaCheckLogin
     @GetMapping("/voices")
     public R<List<PortalVoiceVo>> getVoices() {
         // 骨架：Voice 实体未建立，返回空列表
@@ -65,6 +66,7 @@ public class PortalCreationController extends BaseController {
      * TODO: 待 dh_user_material 表和实体创建后，查询用户上传的素材
      */
     @Operation(summary = "获取素材列表")
+    @SaCheckLogin
     @GetMapping("/materials")
     public R<List<PortalMaterialVo>> getMaterials() {
         Long userId = LoginHelper.getUserId();

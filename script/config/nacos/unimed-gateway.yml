@@ -25,6 +25,8 @@ security:
       - /warm-flow-ui/**
       # 数字人外部接口（使用自定义认证，不走 Sa-Token）
       - /dh/api/v1/dh/external/**
+      # C端门户公开接口（无需登录）
+      - /dh/portal/creation/templates
       # 健康检查和监控
       - /actuator/**
 
