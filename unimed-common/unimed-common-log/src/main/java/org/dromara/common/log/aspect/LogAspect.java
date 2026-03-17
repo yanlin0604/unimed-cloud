@@ -86,7 +86,7 @@ public class LogAspect {
 
             // *========数据库日志=========*//
             OperLogEvent operLog = new OperLogEvent();
-            
+
             // 尝试获取租户ID，如果获取失败则使用默认值
             try {
                 operLog.setTenantId(LoginHelper.getTenantId());
@@ -94,13 +94,13 @@ public class LogAspect {
                 log.debug("获取租户ID失败，使用默认值: {}", tenantException.getMessage());
                 operLog.setTenantId("000000"); // 默认租户ID
             }
-            
+
             operLog.setStatus(BusinessStatus.SUCCESS.ordinal());
             // 请求的地址
             String ip = ServletUtils.getClientIP();
             operLog.setOperIp(ip);
             operLog.setOperUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-            
+
             // 尝试获取登录用户信息，如果获取失败（如API Key认证），则使用默认值
             try {
                 LoginUser loginUser = LoginHelper.getLoginUser();
@@ -180,11 +180,11 @@ public class LogAspect {
         String requestMethod = operLog.getRequestMethod();
         if (MapUtil.isEmpty(paramsMap) && StringUtils.equalsAny(requestMethod, HttpMethod.PUT.name(), HttpMethod.POST.name(), HttpMethod.DELETE.name())) {
             String params = argsArrayToString(joinPoint.getArgs(), excludeParamNames);
-            operLog.setOperParam(StringUtils.substring(params, 0, 3800));
+            operLog.setOperParam(StringUtils.substring(params, 0, 20000));
         } else {
             MapUtil.removeAny(paramsMap, EXCLUDE_PROPERTIES);
             MapUtil.removeAny(paramsMap, excludeParamNames);
-            operLog.setOperParam(StringUtils.substring(JsonUtils.toJsonString(paramsMap), 0, 3800));
+            operLog.setOperParam(StringUtils.substring(JsonUtils.toJsonString(paramsMap), 0, 20000));
         }
     }
 
@@ -231,7 +231,7 @@ public class LogAspect {
      */
     private void setDefaultOperatorInfo(OperLogEvent operLog) {
         HttpServletRequest request = ServletUtils.getRequest();
-        
+
         // 尝试从请求中获取API Key相关信息
         String apiKeyName = (String) request.getAttribute("apiKeyName");
         if (StringUtils.isNotBlank(apiKeyName)) {
