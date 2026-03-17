@@ -10,7 +10,7 @@ import org.dromara.common.tenant.core.TenantEntity;
 import java.math.BigDecimal;
 
 /**
- * 数字人口播会员配置对�?dh_member_config
+ * 数字人口播会员配置对象 dh_member_config
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -44,15 +44,18 @@ public class DhMemberConfig extends TenantEntity {
     private Integer monthlyLimit;
 
     /**
-     * 速度优先�?     */
+     * 速度优先级
+     */
     private Integer speedPriority;
 
     /**
-     * 最低充值要�?     */
+     * 最低充值要求
+     */
     private BigDecimal minTopupAmount;
 
     /**
-     * 有效期天�?     */
+     * 有效期天数
+     */
     private Integer validityDays;
 
     /**
@@ -66,7 +69,8 @@ public class DhMemberConfig extends TenantEntity {
     private Integer redoLimit;
 
     /**
-     * 状态（0启用 1停用�?     */
+     * 状态（0启用 1停用）
+     */
     private String status;
 
     /**

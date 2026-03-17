@@ -22,7 +22,8 @@ public class DhWalletLogQueryBo extends BaseEntity {
     private String type;
 
     /**
-     * 开始时�?     */
+     * 开始时间
+     */
     private String beginTime;
 
     /**

@@ -27,22 +27,22 @@ public class DhOrderQcSnapshot extends TenantEntity {
     private Long orderId;
 
     /**
-     * 口型同步�?�?1是）
+     * 口型同步（0否 1是）
      */
     private Integer lipSync;
 
     /**
-     * 画面无瑕疵（0�?1是）
+     * 画面无瑕疵（0否 1是）
      */
     private Integer noVisualDefect;
 
     /**
-     * 文案匹配�?�?1是）
+     * 文案匹配（0否 1是）
      */
     private Integer scriptMatched;
 
     /**
-     * 时长达标�?�?1是）
+     * 时长达标（0否 1是）
      */
     private Integer durationOk;
 

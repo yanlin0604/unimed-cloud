@@ -28,7 +28,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 数字人口播举报管理服务实�? */
+ * 数字人口播举报管理服务实现
+ */
 @RequiredArgsConstructor
 @Service
 public class DhReportServiceImpl implements IDhReportService {
@@ -63,7 +64,7 @@ public class DhReportServiceImpl implements IDhReportService {
     public DhReportItemVo handleReport(DhReportHandleBo bo) {
         DhReportTicket reportTicket = requireReport(bo.getReportId());
         if (!StringUtils.equals("PENDING", reportTicket.getStatus())) {
-            throw new ServiceException("当前状态不可执行该操作，请刷新后重�?);
+            throw new ServiceException("当前状态不可执行该操作，请刷新后重试");
         }
         String operatorName = resolveOperatorName();
         Date now = new Date();
@@ -97,10 +98,10 @@ public class DhReportServiceImpl implements IDhReportService {
             }
         }
 
-        String detail = String.format("处罚用户 %s�?s%s，原因：%s",
+        String detail = String.format("处罚用户 %s：%s%s，原因：%s",
             user.getUserName(),
             bo.getPunishType(),
-            bo.getRestrictDays() == null ? "" : " " + bo.getRestrictDays() + "�?,
+            bo.getRestrictDays() == null ? "" : " " + bo.getRestrictDays() + "天",
             bo.getReason()
         );
         insertAuditLog("USER_PUNISH", operatorName, "USER", String.valueOf(user.getUserId()), detail);
@@ -110,7 +111,7 @@ public class DhReportServiceImpl implements IDhReportService {
     private DhReportTicket requireReport(Long reportId) {
         DhReportTicket reportTicket = reportTicketMapper.selectById(reportId);
         if (reportTicket == null) {
-            throw new ServiceException("举报记录不存�?);
+            throw new ServiceException("举报记录不存在");
         }
         return reportTicket;
     }
@@ -118,7 +119,7 @@ public class DhReportServiceImpl implements IDhReportService {
     private DhUserProfile requireUser(Long userId) {
         DhUserProfile user = userProfileMapper.selectById(userId);
         if (user == null) {
-            throw new ServiceException("用户不存�?);
+            throw new ServiceException("用户不存在");
         }
         return user;
     }
@@ -149,7 +150,7 @@ public class DhReportServiceImpl implements IDhReportService {
         if (LoginHelper.isLogin() && StringUtils.isNotBlank(LoginHelper.getUsername())) {
             return LoginHelper.getUsername();
         }
-        return "当前管理�?;
+        return "当前管理员";
     }
 
     private DhReportItemVo toReportItemVo(DhReportTicket reportTicket) {

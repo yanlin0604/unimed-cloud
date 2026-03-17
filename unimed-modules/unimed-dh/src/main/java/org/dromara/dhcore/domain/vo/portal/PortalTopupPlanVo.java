@@ -39,17 +39,17 @@ public class PortalTopupPlanVo implements Serializable {
     private String payType;
 
     /**
-     * 充值金�?
+     * 充值金额
      */
     private BigDecimal amount;
 
     /**
-     * 赠送金�?
+     * 赠送金额
      */
     private BigDecimal bonusAmount;
 
     /**
-     * 排序�?
+     * 排序号
      */
     private Integer sort;
 }

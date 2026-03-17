@@ -7,7 +7,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * 财务趋势点视图对�? */
+ * 财务趋势点视图对象
+ */
 @Data
 public class DhFinanceTrendVo implements Serializable {
 
@@ -20,7 +21,8 @@ public class DhFinanceTrendVo implements Serializable {
     private String date;
 
     /**
-     * 充值金�?     */
+     * 充值金额
+     */
     private BigDecimal topup;
 
     /**
@@ -29,6 +31,7 @@ public class DhFinanceTrendVo implements Serializable {
     private BigDecimal consume;
 
     /**
-     * 退款金�?     */
+     * 退款金额
+     */
     private BigDecimal refund;
 }

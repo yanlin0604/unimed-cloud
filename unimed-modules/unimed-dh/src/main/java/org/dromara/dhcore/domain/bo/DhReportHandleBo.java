@@ -17,7 +17,8 @@ public class DhReportHandleBo {
     private Long reportId;
 
     /**
-     * 处理结果（CONFIRMED/DISMISSED�?     */
+     * 处理结果（CONFIRMED/DISMISSED）
+     */
     @NotBlank(message = "处理结果不能为空")
     private String result;
 

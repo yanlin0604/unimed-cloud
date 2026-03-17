@@ -9,11 +9,13 @@ import org.dromara.dhcore.domain.bo.DhTopupRejectBo;
 import org.dromara.dhcore.domain.vo.DhTopupTicketVo;
 
 /**
- * 数字人口播充值审核服务接�? */
+ * 数字人口播充值审核服务接口
+ */
 public interface IDhTopupService {
 
     /**
-     * 分页查询充值工�?     */
+     * 分页查询充值工单
+     */
     TableDataInfo<DhTopupTicketVo> queryTopupPage(DhTopupQueryBo bo, PageQuery pageQuery);
 
     /**
@@ -22,7 +24,8 @@ public interface IDhTopupService {
     DhTopupTicketVo approveTopup(DhTopupApproveBo bo);
 
     /**
-     * 标记待补�?     */
+     * 标记待补充
+     */
     DhTopupTicketVo markTopupNeedMore(DhTopupNeedMoreBo bo);
 
     /**

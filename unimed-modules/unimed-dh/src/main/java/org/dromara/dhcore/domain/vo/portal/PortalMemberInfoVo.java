@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * C端当前用户会员信息视图对�?
+ * C端当前用户会员信息视图对象
  *
  * @author unimed
  */
@@ -19,7 +19,7 @@ public class PortalMemberInfoVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 会员等级（NORMAL/VIP/SVIP�?
+     * 会员等级（NORMAL/VIP/SVIP）
      */
     private String level;
 
@@ -44,7 +44,7 @@ public class PortalMemberInfoVo implements Serializable {
     private Integer monthlyLimit;
 
     /**
-     * 速度优先�?
+     * 速度优先级
      */
     private Integer speedPriority;
 

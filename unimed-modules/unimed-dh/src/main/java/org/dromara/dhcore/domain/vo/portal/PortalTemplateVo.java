@@ -27,7 +27,7 @@ public class PortalTemplateVo implements Serializable {
     private String name;
 
     /**
-     * 模板类型（VIDEO/AUDIO/IMAGE�?
+     * 模板类型（VIDEO/AUDIO/IMAGE）
      */
     private String type;
 

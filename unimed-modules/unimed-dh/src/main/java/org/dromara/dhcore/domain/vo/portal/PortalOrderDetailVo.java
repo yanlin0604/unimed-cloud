@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * C端订单详情视图对�?
+ * C端订单详情视图对象
  *
  * @author unimed
  */
@@ -41,7 +41,7 @@ public class PortalOrderDetailVo extends PortalOrderVo {
     private String resultVideoUrl;
 
     /**
-     * 制作人名�?
+     * 制作人名称
      */
     private String assigneeName;
 
@@ -120,12 +120,12 @@ public class PortalOrderDetailVo extends PortalOrderVo {
         private String label;
 
         /**
-         * 节点状态（pending/active/completed�?
+         * 节点状态（pending/active/completed）
          */
         private String status;
 
         /**
-         * 时间�?
+         * 时间戳
          */
         private Date timestamp;
 

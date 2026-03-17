@@ -8,7 +8,8 @@ import org.dromara.dhcore.domain.vo.*;
 import java.util.Map;
 
 /**
- * 数字人口播配置中心服务接�? */
+ * 数字人口播配置中心服务接口
+ */
 public interface IDhConfigService {
 
     TableDataInfo<DhMemberConfigVo> queryMemberConfigPage(DhMemberConfigQueryBo bo, PageQuery pageQuery);

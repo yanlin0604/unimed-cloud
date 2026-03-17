@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * C端钱包余额视图对�?
+ * C端钱包余额视图对象
  *
  * @author unimed
  */
@@ -23,7 +23,7 @@ public class PortalWalletBalanceVo implements Serializable {
     private BigDecimal balance;
 
     /**
-     * 累计充�?
+     * 累计充值
      */
     private BigDecimal totalTopup;
 
@@ -33,7 +33,7 @@ public class PortalWalletBalanceVo implements Serializable {
     private BigDecimal totalConsume;
 
     /**
-     * 累计退�?
+     * 累计退款
      */
     private BigDecimal totalRefund;
 }

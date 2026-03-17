@@ -12,7 +12,8 @@ import org.dromara.common.mybatis.core.domain.BaseEntity;
 public class DhNotifyTemplateQueryBo extends BaseEntity {
 
     /**
-     * 关键�?     */
+     * 关键字
+     */
     private String keyword;
 
     /**
@@ -21,6 +22,7 @@ public class DhNotifyTemplateQueryBo extends BaseEntity {
     private String scene;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 }

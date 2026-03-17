@@ -7,13 +7,15 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * 上传成品元数据请�? */
+ * 上传成品元数据请求
+ */
 @Data
 public class DhProductionVideoBo {
 
     /**
-     * 成片文件�?     */
-    @NotBlank(message = "视频文件名不能为�?)
+     * 成片文件名
+     */
+    @NotBlank(message = "视频文件名不能为空")
     private String outputVideoName;
 
     /**
@@ -23,17 +25,20 @@ public class DhProductionVideoBo {
     private String outputVideoUrl;
 
     /**
-     * 成片时长（秒�?     */
+     * 成片时长（秒）
+     */
     @NotNull(message = "视频时长不能为空")
     private Integer outputVideoDurationSec;
 
     /**
-     * 成片大小（MB�?     */
+     * 成片大小（MB）
+     */
     @NotNull(message = "视频大小不能为空")
     private BigDecimal outputVideoSizeMb;
 
     /**
-     * 操作人姓�?     */
-    @NotBlank(message = "操作人不能为�?)
+     * 操作人姓名
+     */
+    @NotBlank(message = "操作人不能为空")
     private String operatorName;
 }

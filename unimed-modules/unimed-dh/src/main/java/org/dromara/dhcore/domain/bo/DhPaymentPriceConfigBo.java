@@ -7,7 +7,8 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * 充值档位配置提交对�? */
+ * 充值档位配置提交对象
+ */
 @Data
 public class DhPaymentPriceConfigBo {
 
@@ -35,13 +36,15 @@ public class DhPaymentPriceConfigBo {
     private String payType;
 
     /**
-     * 充值金�?     */
-    @NotNull(message = "充值金额不能为�?)
+     * 充值金额
+     */
+    @NotNull(message = "充值金额不能为空")
     private BigDecimal amount;
 
     /**
-     * 赠送金�?     */
-    @NotNull(message = "赠送金额不能为�?)
+     * 赠送金额
+     */
+    @NotNull(message = "赠送金额不能为空")
     private BigDecimal bonusAmount;
 
     /**
@@ -51,8 +54,9 @@ public class DhPaymentPriceConfigBo {
     private Integer sort;
 
     /**
-     * 状�?     */
-    @NotBlank(message = "状态不能为�?)
+     * 状态
+     */
+    @NotBlank(message = "状态不能为空")
     private String status;
 
     /**

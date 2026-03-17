@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 数字人口播充值工单对�?dh_topup_ticket
+ * 数字人口播充值工单对象 dh_topup_ticket
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -30,15 +30,18 @@ public class DhTopupTicket extends TenantEntity {
     private Long userId;
 
     /**
-     * 用户名快�?     */
+     * 用户名快照
+     */
     private String userName;
 
     /**
-     * 申请充值金�?     */
+     * 申请充值金额
+     */
     private BigDecimal amount;
 
     /**
-     * 工单状�?     */
+     * 工单状态
+     */
     private String status;
 
     /**
@@ -57,7 +60,8 @@ public class DhTopupTicket extends TenantEntity {
     private BigDecimal actualAmount;
 
     /**
-     * 审核�?     */
+     * 审核人
+     */
     private String approvedBy;
 
     /**

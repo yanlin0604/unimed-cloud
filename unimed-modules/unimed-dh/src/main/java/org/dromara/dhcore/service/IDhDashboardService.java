@@ -3,7 +3,8 @@ package org.dromara.dhcore.service;
 import org.dromara.dhcore.domain.vo.DhDashboardMetricsVo;
 
 /**
- * 数字人口播看板服务接�? */
+ * 数字人口播看板服务接口
+ */
 public interface IDhDashboardService {
 
     /**

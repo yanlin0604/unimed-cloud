@@ -5,25 +5,30 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 
 /**
- * 收款码配置查询对�? */
+ * 收款码配置查询对象
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DhQrUploadConfigQueryBo extends BaseEntity {
 
     /**
-     * 关键�?     */
+     * 关键字
+     */
     private String keyword;
 
     /**
-     * 收款码类�?     */
+     * 收款码类型
+     */
     private String type;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 
     /**
-     * 开始时�?     */
+     * 开始时间
+     */
     private String beginTime;
 
     /**

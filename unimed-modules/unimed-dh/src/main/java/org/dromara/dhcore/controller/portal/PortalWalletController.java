@@ -25,12 +25,12 @@ import java.math.BigDecimal;
 /**
  * C端钱包控制器
  * <p>
- * 提供当前登录用户的钱包余额查询、流水分页查询等接口�?
- * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户�?
+ * 提供当前登录用户的钱包余额查询、流水分页查询等接口。
+ * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户。
  *
  * @author unimed
  */
-@Tag(name = "C�?钱包管理")
+@Tag(name = "C端-钱包管理")
 @SaCheckLogin
 @Validated
 @RequiredArgsConstructor
@@ -50,13 +50,13 @@ public class PortalWalletController extends BaseController {
         Long userId = LoginHelper.getUserId();
         DhUserProfile profile = userProfileMapper.selectById(userId);
         if (profile == null) {
-            return R.fail("用户信息不存�?);
+            return R.fail("用户信息不存在");
         }
         PortalWalletBalanceVo vo = new PortalWalletBalanceVo();
         vo.setBalance(profile.getWalletBalance() != null ? profile.getWalletBalance() : BigDecimal.ZERO);
         vo.setTotalTopup(profile.getTotalTopup() != null ? profile.getTotalTopup() : BigDecimal.ZERO);
         vo.setTotalConsume(profile.getTotalConsume() != null ? profile.getTotalConsume() : BigDecimal.ZERO);
-        // totalRefund 暂无对应字段，设默认�?
+        // totalRefund 暂无对应字段，设默认值
         vo.setTotalRefund(BigDecimal.ZERO);
         return R.ok(vo);
     }
@@ -67,7 +67,7 @@ public class PortalWalletController extends BaseController {
     @Operation(summary = "查询钱包流水")
     @GetMapping("/logs")
     public TableDataInfo<DhWalletLogVo> getWalletLogs(DhWalletLogQueryBo bo, PageQuery pageQuery) {
-        // 硬绑定当前用户ID，防止越权查�?
+        // 硬绑定当前用户ID，防止越权查询
         bo.setUserId(LoginHelper.getUserId());
         return dhUserService.queryWalletLogPage(bo, pageQuery);
     }

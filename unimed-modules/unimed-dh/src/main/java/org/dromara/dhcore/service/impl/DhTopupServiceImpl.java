@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 数字人口播充值审核服务实�? */
+ * 数字人口播充值审核服务实现
+ */
 @RequiredArgsConstructor
 @Service
 public class DhTopupServiceImpl implements IDhTopupService {
@@ -71,7 +72,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
     public DhTopupTicketVo approveTopup(DhTopupApproveBo bo) {
         DhTopupTicket ticket = requireTopupTicket(bo.getTicketId());
         if (!APPROVE_STATUS_SET.contains(ticket.getStatus())) {
-            throw new ServiceException("当前状态不可执行该操作，请刷新后重�?);
+            throw new ServiceException("当前状态不可执行该操作，请刷新后重试");
         }
 
         String operatorName = resolveOperatorName();
@@ -94,7 +95,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
 
         insertWalletLog(user, "TOPUP", actualAmount, null, operatorName, "充值审核通过");
         insertAuditLog("TOPUP_APPROVE", operatorName, "TOPUP", String.valueOf(ticket.getTicketId()),
-            String.format("确认充�?¥%s", actualAmount.toPlainString()));
+            String.format("确认充值 ¥%s", actualAmount.toPlainString()));
         return toTopupTicketVo(ticket);
     }
 
@@ -103,7 +104,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
     public DhTopupTicketVo markTopupNeedMore(DhTopupNeedMoreBo bo) {
         DhTopupTicket ticket = requireTopupTicket(bo.getTicketId());
         if (!NEED_MORE_STATUS_SET.contains(ticket.getStatus())) {
-            throw new ServiceException("当前状态不可执行该操作，请刷新后重�?);
+            throw new ServiceException("当前状态不可执行该操作，请刷新后重试");
         }
         String operatorName = resolveOperatorName();
         ticket.setStatus("NEED_MORE");
@@ -111,7 +112,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
         topupTicketMapper.updateById(ticket);
 
         insertAuditLog("TOPUP_NEED_MORE", operatorName, "TOPUP", String.valueOf(ticket.getTicketId()),
-            String.format("充值工单待补充�?s", bo.getReason()));
+            String.format("充值工单待补充：%s", bo.getReason()));
         return toTopupTicketVo(ticket);
     }
 
@@ -120,7 +121,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
     public DhTopupTicketVo rejectTopup(DhTopupRejectBo bo) {
         DhTopupTicket ticket = requireTopupTicket(bo.getTicketId());
         if (!REJECT_STATUS_SET.contains(ticket.getStatus())) {
-            throw new ServiceException("当前状态不可执行该操作，请刷新后重�?);
+            throw new ServiceException("当前状态不可执行该操作，请刷新后重试");
         }
         String operatorName = resolveOperatorName();
         ticket.setStatus("REJECTED");
@@ -143,7 +144,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
     private DhUserProfile requireUser(Long userId) {
         DhUserProfile user = userProfileMapper.selectById(userId);
         if (user == null) {
-            throw new ServiceException("用户不存�?);
+            throw new ServiceException("用户不存在");
         }
         return user;
     }
@@ -187,7 +188,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
         if (LoginHelper.isLogin() && StringUtils.isNotBlank(LoginHelper.getUsername())) {
             return LoginHelper.getUsername();
         }
-        return "当前管理�?;
+        return "当前管理员";
     }
 
     private BigDecimal nvl(BigDecimal value) {

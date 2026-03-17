@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * C端用户统计数据视图对�?
+ * C端用户统计数据视图对象
  *
  * @author unimed
  */
@@ -33,7 +33,7 @@ public class PortalUserStatsVo implements Serializable {
     private BigDecimal totalConsume;
 
     /**
-     * 累计充值金�?
+     * 累计充值金额
      */
     private BigDecimal totalTopup;
 

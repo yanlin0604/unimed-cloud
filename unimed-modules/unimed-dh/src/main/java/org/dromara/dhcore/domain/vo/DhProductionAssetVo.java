@@ -30,11 +30,13 @@ public class DhProductionAssetVo implements Serializable {
     private String generationChannel;
 
     /**
-     * 生成引用标识（如第三方任务ID�?     */
+     * 生成引用标识（如第三方任务ID）
+     */
     private String generationRef;
 
     /**
-     * 成片文件�?     */
+     * 成片文件名
+     */
     private String outputVideoName;
 
     /**
@@ -43,15 +45,18 @@ public class DhProductionAssetVo implements Serializable {
     private String outputVideoUrl;
 
     /**
-     * 成片时长（秒�?     */
+     * 成片时长（秒）
+     */
     private Integer outputVideoDurationSec;
 
     /**
-     * 成片大小（MB�?     */
+     * 成片大小（MB）
+     */
     private BigDecimal outputVideoSizeMb;
 
     /**
-     * 操作人姓�?     */
+     * 操作人姓名
+     */
     private String operatorName;
 
     /**

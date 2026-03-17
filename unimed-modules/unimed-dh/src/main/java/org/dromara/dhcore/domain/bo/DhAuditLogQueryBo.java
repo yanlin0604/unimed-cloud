@@ -17,11 +17,13 @@ public class DhAuditLogQueryBo extends BaseEntity {
     private String action;
 
     /**
-     * 操作�?     */
+     * 操作人
+     */
     private String operatorName;
 
     /**
-     * 开始时�?     */
+     * 开始时间
+     */
     private String beginTime;
 
     /**

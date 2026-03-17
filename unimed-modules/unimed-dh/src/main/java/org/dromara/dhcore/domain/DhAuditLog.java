@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.tenant.core.TenantEntity;
 
 /**
- * 数字人口播审计日志对�?dh_audit_log
+ * 数字人口播审计日志对象 dh_audit_log
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -27,7 +27,8 @@ public class DhAuditLog extends TenantEntity {
     private String action;
 
     /**
-     * 操作�?     */
+     * 操作人
+     */
     private String operatorName;
 
     /**

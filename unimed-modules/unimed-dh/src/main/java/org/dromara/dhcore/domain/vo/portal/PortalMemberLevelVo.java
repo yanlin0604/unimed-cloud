@@ -23,7 +23,7 @@ public class PortalMemberLevelVo implements Serializable {
     private Long id;
 
     /**
-     * 会员等级（NORMAL/VIP/SVIP�?
+     * 会员等级（NORMAL/VIP/SVIP）
      */
     private String level;
 
@@ -43,12 +43,12 @@ public class PortalMemberLevelVo implements Serializable {
     private Integer monthlyLimit;
 
     /**
-     * 速度优先�?
+     * 速度优先级
      */
     private Integer speedPriority;
 
     /**
-     * 最低充值金额要�?
+     * 最低充值金额要求
      */
     private BigDecimal minTopupAmount;
 

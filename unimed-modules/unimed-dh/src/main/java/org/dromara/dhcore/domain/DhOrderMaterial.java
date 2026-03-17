@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.tenant.core.TenantEntity;
 
 /**
- * 数字人口播订单素材对�?dh_order_material
+ * 数字人口播订单素材对象 dh_order_material
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -52,7 +52,8 @@ public class DhOrderMaterial extends TenantEntity {
     private String thumbnailUrl;
 
     /**
-     * 排序�?     */
+     * 排序号
+     */
     private Integer sort;
 
     /**

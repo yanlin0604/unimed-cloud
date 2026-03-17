@@ -10,7 +10,7 @@ import org.dromara.common.tenant.core.TenantEntity;
 import java.util.Date;
 
 /**
- * 数字人口播举报工单对�?dh_report_ticket
+ * 数字人口播举报工单对象 dh_report_ticket
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -24,7 +24,8 @@ public class DhReportTicket extends TenantEntity {
     private Long reportId;
 
     /**
-     * 举报�?     */
+     * 举报人
+     */
     private String reporterName;
 
     /**
@@ -43,7 +44,8 @@ public class DhReportTicket extends TenantEntity {
     private String targetContentId;
 
     /**
-     * 被举报内容类�?     */
+     * 被举报内容类型
+     */
     private String targetContentType;
 
     /**
@@ -57,11 +59,13 @@ public class DhReportTicket extends TenantEntity {
     private String description;
 
     /**
-     * 处理状�?     */
+     * 处理状态
+     */
     private String status;
 
     /**
-     * 处理�?     */
+     * 处理人
+     */
     private String handlerName;
 
     /**

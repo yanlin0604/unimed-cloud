@@ -34,17 +34,17 @@ public class PortalOrderVo implements Serializable {
     private String title;
 
     /**
-     * 订单状态（PENDING_PAYMENT/PENDING_ASSIGN/IN_PRODUCTION/QC_REVIEW/COMPLETED/CANCELLED/REJECTED�?
+     * 订单状态（PENDING_PAYMENT/PENDING_ASSIGN/IN_PRODUCTION/QC_REVIEW/COMPLETED/CANCELLED/REJECTED）
      */
     private String status;
 
     /**
-     * 用户端简化状态（PENDING/PROCESSING/COMPLETED/CANCELLED/REJECTED�?
+     * 用户端简化状态（PENDING/PROCESSING/COMPLETED/CANCELLED/REJECTED）
      */
     private String userStatus;
 
     /**
-     * 是否返工订单�?�?1是）
+     * 是否返工订单（0否 1是）
      */
     private Integer isRedo;
 

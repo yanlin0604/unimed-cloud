@@ -57,7 +57,8 @@ public class DhOrderDetailVo extends DhOrderItemVo {
     private String sceneType;
 
     /**
-     * 语�?     */
+     * 语速
+     */
     private String speechSpeed;
 
     /**
@@ -66,7 +67,8 @@ public class DhOrderDetailVo extends DhOrderItemVo {
     private java.math.BigDecimal orderAmount;
 
     /**
-     * 折扣�?     */
+     * 折扣率
+     */
     private java.math.BigDecimal discountRate;
 
     /**

@@ -41,11 +41,13 @@ public class DhNotifyTemplateVo implements Serializable {
     private String content;
 
     /**
-     * 超时阈值（小时�?     */
+     * 超时阈值（小时）
+     */
     private Integer timeoutHours;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 
     /**

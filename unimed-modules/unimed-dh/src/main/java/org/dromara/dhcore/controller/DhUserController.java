@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 数字人口播用户管理控制器
  */
-@Tag(name = "数字人口�?用户管理")
+@Tag(name = "数字人口播-用户管理")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -51,7 +51,7 @@ public class DhUserController extends BaseController {
         return R.ok(dhUserService.queryUserDetail(userId));
     }
 
-    @Operation(summary = "切换用户状�?)
+    @Operation(summary = "切换用户状态")
     @SaCheckPermission("dh:user:status")
     @PostMapping("/status")
     public R<DhUserItemVo> changeStatus(@Validated @RequestBody DhUserStatusBo bo) {

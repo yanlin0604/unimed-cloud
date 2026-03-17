@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 数字人口播看板控制器
  */
-@Tag(name = "数字人口�?看板")
+@Tag(name = "数字人口播-看板")
 @Validated
 @RequiredArgsConstructor
 @RestController

@@ -26,7 +26,8 @@ public class DhAuditLogVo implements Serializable {
     private String action;
 
     /**
-     * 操作�?     */
+     * 操作人
+     */
     private String operatorName;
 
     /**

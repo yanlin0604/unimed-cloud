@@ -17,7 +17,8 @@ public class DhDashboardMetricsVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 新增订单�?     */
+     * 新增订单数
+     */
     private Integer newOrders;
 
     /**
@@ -31,11 +32,13 @@ public class DhDashboardMetricsVo implements Serializable {
     private BigDecimal avgDeliveryHours;
 
     /**
-     * 待确认充值单�?     */
+     * 待确认充值单数
+     */
     private Integer pendingTopups;
 
     /**
-     * 超时订单�?     */
+     * 超时订单数
+     */
     private Integer timeoutOrders;
 
     /**

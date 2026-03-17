@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * C端音色视图对�?
+ * C端音色视图对象
  *
  * @author unimed
  */
@@ -38,7 +38,7 @@ public class PortalVoiceVo implements Serializable {
     private Boolean isSystem;
 
     /**
-     * 来源（clone/upload/system�?
+     * 来源（clone/upload/system）
      */
     private String source;
 

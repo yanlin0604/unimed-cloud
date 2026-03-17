@@ -27,12 +27,12 @@ import java.util.List;
 /**
  * C端会员信息控制器
  * <p>
- * 提供当前登录用户的会员信息查询、公开会员等级列表查询等接口�?
- * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户�?
+ * 提供当前登录用户的会员信息查询、公开会员等级列表查询等接口。
+ * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户。
  *
  * @author unimed
  */
-@Tag(name = "C�?会员信息")
+@Tag(name = "C端-会员信息")
 @SaCheckLogin
 @Validated
 @RequiredArgsConstructor
@@ -52,7 +52,7 @@ public class PortalMemberController extends BaseController {
         Long userId = LoginHelper.getUserId();
         DhUserProfile profile = userProfileMapper.selectById(userId);
         if (profile == null) {
-            return R.fail("用户信息不存�?);
+            return R.fail("用户信息不存在");
         }
         PortalMemberInfoVo vo = new PortalMemberInfoVo();
         vo.setLevel(profile.getMemberLevel());
@@ -83,7 +83,7 @@ public class PortalMemberController extends BaseController {
         queryBo.setStatus("0"); // 0=启用
         PageQuery pageQuery = new PageQuery();
         pageQuery.setPageNum(1);
-        pageQuery.setPageSize(100); // 会员等级数量有限，一次取�?
+        pageQuery.setPageSize(100); // 会员等级数量有限，一次取完
         TableDataInfo<DhMemberConfigVo> configPage = queryMemberConfigList(queryBo, pageQuery);
 
         List<PortalMemberLevelVo> levels = new ArrayList<>();

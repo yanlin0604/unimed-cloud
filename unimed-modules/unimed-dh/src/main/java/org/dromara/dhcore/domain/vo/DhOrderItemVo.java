@@ -7,7 +7,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 订单列表项视图对�? */
+ * 订单列表项视图对象
+ */
 @Data
 public class DhOrderItemVo implements Serializable {
 
@@ -30,7 +31,8 @@ public class DhOrderItemVo implements Serializable {
     private String title;
 
     /**
-     * 申请人姓�?     */
+     * 申请人姓名
+     */
     private String applicantName;
 
     /**
@@ -39,19 +41,23 @@ public class DhOrderItemVo implements Serializable {
     private String memberLevel;
 
     /**
-     * 订单状�?     */
+     * 订单状态
+     */
     private String status;
 
     /**
-     * 是否返工�?     */
+     * 是否返工单
+     */
     private Boolean isRedo;
 
     /**
-     * 优先�?     */
+     * 优先级
+     */
     private Integer priority;
 
     /**
-     * 当前处理�?     */
+     * 当前处理人
+     */
     private String assigneeName;
 
     /**

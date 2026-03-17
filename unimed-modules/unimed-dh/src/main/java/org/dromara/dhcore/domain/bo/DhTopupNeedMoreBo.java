@@ -5,7 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 充值工单补充材料对�? */
+ * 充值工单补充材料对象
+ */
 @Data
 public class DhTopupNeedMoreBo {
 

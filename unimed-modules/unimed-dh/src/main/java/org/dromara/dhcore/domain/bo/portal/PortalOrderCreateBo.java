@@ -8,7 +8,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * C端订单创建业务对�?
+ * C端订单创建业务对象
  *
  * @author unimed
  */
@@ -19,14 +19,14 @@ public class PortalOrderCreateBo {
      * 订单标题
      */
     @NotBlank(message = "订单标题不能为空")
-    @Size(max = 100, message = "订单标题不能超过100个字�?)
+    @Size(max = 100, message = "订单标题不能超过100个字符")
     private String title;
 
     /**
      * 脚本文案
      */
     @NotBlank(message = "脚本文案不能为空")
-    @Size(max = 5000, message = "脚本文案不能超过5000个字�?)
+    @Size(max = 5000, message = "脚本文案不能超过5000个字符")
     private String scriptText;
 
     /**
@@ -60,7 +60,7 @@ public class PortalOrderCreateBo {
     private String sceneType;
 
     /**
-     * 语�?
+     * 语速
      */
     private String speechSpeed;
 
@@ -70,8 +70,8 @@ public class PortalOrderCreateBo {
     private String contactInfo;
 
     /**
-     * 版权声明�?未声�?1已声明）
+     * 版权声明（0未声明 1已声明）
      */
-    @NotNull(message = "请确认版权声�?)
+    @NotNull(message = "请确认版权声明")
     private Integer copyrightDeclared;
 }

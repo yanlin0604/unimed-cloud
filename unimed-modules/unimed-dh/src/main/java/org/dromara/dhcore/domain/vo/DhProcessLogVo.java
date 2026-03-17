@@ -26,6 +26,7 @@ public class DhProcessLogVo implements Serializable {
     private String action;
 
     /**
-     * 操作�?     */
+     * 操作人
+     */
     private String operator;
 }

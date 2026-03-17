@@ -8,7 +8,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 充值档位配置视图对�? */
+ * 充值档位配置视图对象
+ */
 @Data
 public class DhPaymentPriceConfigVo implements Serializable {
 
@@ -36,11 +37,13 @@ public class DhPaymentPriceConfigVo implements Serializable {
     private String payType;
 
     /**
-     * 充值金�?     */
+     * 充值金额
+     */
     private BigDecimal amount;
 
     /**
-     * 赠送金�?     */
+     * 赠送金额
+     */
     private BigDecimal bonusAmount;
 
     /**
@@ -49,7 +52,8 @@ public class DhPaymentPriceConfigVo implements Serializable {
     private Integer sort;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 
     /**

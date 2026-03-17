@@ -42,15 +42,18 @@ public class DhMemberConfigVo implements Serializable {
     private Integer monthlyLimit;
 
     /**
-     * 速度优先�?     */
+     * 速度优先级
+     */
     private Integer speedPriority;
 
     /**
-     * 最低充值要�?     */
+     * 最低充值要求
+     */
     private BigDecimal minTopupAmount;
 
     /**
-     * 有效期天�?     */
+     * 有效期天数
+     */
     private Integer validityDays;
 
     /**
@@ -64,7 +67,8 @@ public class DhMemberConfigVo implements Serializable {
     private Integer redoLimit;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 
     /**

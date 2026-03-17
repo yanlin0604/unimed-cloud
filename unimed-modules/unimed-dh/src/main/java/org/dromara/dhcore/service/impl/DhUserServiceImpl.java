@@ -37,7 +37,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 数字人口播用户管理服务实�? */
+ * 数字人口播用户管理服务实现
+ */
 @RequiredArgsConstructor
 @Service
 public class DhUserServiceImpl implements IDhUserService {
@@ -87,7 +88,7 @@ public class DhUserServiceImpl implements IDhUserService {
     public DhUserItemVo changeUserStatus(DhUserStatusBo bo) {
         DhUserProfile user = requireUser(bo.getUserId());
         if (StringUtils.equals(user.getStatus(), bo.getStatus())) {
-            throw new ServiceException("当前状态不可执行该操作，请刷新后重�?);
+            throw new ServiceException("当前状态不可执行该操作，请刷新后重试");
         }
         user.setStatus(bo.getStatus());
         userProfileMapper.updateById(user);
@@ -107,7 +108,7 @@ public class DhUserServiceImpl implements IDhUserService {
         DhUserProfile user = requireUser(bo.getUserId());
         BigDecimal newBalance = nvl(user.getWalletBalance()).add(bo.getAmount());
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new ServiceException("余额不足，无法扣�?);
+            throw new ServiceException("余额不足，无法扣减");
         }
         user.setWalletBalance(newBalance);
         userProfileMapper.updateById(user);
@@ -136,7 +137,7 @@ public class DhUserServiceImpl implements IDhUserService {
     private DhUserProfile requireUser(Long userId) {
         DhUserProfile user = userProfileMapper.selectById(userId);
         if (user == null) {
-            throw new ServiceException("用户不存�?);
+            throw new ServiceException("用户不存在");
         }
         return user;
     }
@@ -199,7 +200,7 @@ public class DhUserServiceImpl implements IDhUserService {
         if (LoginHelper.isLogin() && StringUtils.isNotBlank(LoginHelper.getUsername())) {
             return LoginHelper.getUsername();
         }
-        return "当前管理�?;
+        return "当前管理员";
     }
 
     private BigDecimal nvl(BigDecimal value) {

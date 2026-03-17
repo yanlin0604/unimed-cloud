@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 数字人口播订单控制器
  */
-@Tag(name = "数字人口�?订单")
+@Tag(name = "数字人口播-订单")
 @Validated
 @RequiredArgsConstructor
 @RestController

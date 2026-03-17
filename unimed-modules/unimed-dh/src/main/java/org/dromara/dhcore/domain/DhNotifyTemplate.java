@@ -42,11 +42,13 @@ public class DhNotifyTemplate extends TenantEntity {
     private String content;
 
     /**
-     * 超时阈值（小时�?     */
+     * 超时阈值（小时）
+     */
     private Integer timeoutHours;
 
     /**
-     * 状态（0启用 1停用�?     */
+     * 状态（0启用 1停用）
+     */
     private String status;
 
     /**

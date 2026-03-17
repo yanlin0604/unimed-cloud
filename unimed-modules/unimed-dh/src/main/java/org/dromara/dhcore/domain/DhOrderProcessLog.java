@@ -10,7 +10,7 @@ import org.dromara.common.tenant.core.TenantEntity;
 import java.util.Date;
 
 /**
- * 数字人口播订单处理日志对�?dh_order_process_log
+ * 数字人口播订单处理日志对象 dh_order_process_log
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -34,7 +34,8 @@ public class DhOrderProcessLog extends TenantEntity {
     private String actionText;
 
     /**
-     * 操作�?     */
+     * 操作人
+     */
     private String operatorName;
 
     /**

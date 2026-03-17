@@ -10,7 +10,7 @@ import org.dromara.common.tenant.core.TenantEntity;
 import java.math.BigDecimal;
 
 /**
- * 数字人口播钱包流水对�?dh_wallet_log
+ * 数字人口播钱包流水对象 dh_wallet_log
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -29,7 +29,8 @@ public class DhWalletLog extends TenantEntity {
     private Long userId;
 
     /**
-     * 用户名快�?     */
+     * 用户名快照
+     */
     private String userName;
 
     /**
@@ -43,7 +44,8 @@ public class DhWalletLog extends TenantEntity {
     private BigDecimal amount;
 
     /**
-     * 变动后余�?     */
+     * 变动后余额
+     */
     private BigDecimal balanceAfter;
 
     /**
@@ -52,7 +54,8 @@ public class DhWalletLog extends TenantEntity {
     private Long relatedOrderId;
 
     /**
-     * 操作�?     */
+     * 操作人
+     */
     private String operatorName;
 
     /**

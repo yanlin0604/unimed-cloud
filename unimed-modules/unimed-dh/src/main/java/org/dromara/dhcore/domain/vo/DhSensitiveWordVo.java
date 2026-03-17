@@ -7,7 +7,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 敏感词配置视图对�? */
+ * 敏感词配置视图对象
+ */
 @Data
 public class DhSensitiveWordVo implements Serializable {
 
@@ -20,7 +21,8 @@ public class DhSensitiveWordVo implements Serializable {
     private Long id;
 
     /**
-     * 敏感�?     */
+     * 敏感词
+     */
     private String word;
 
     /**
@@ -34,7 +36,8 @@ public class DhSensitiveWordVo implements Serializable {
     private String category;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 
     /**

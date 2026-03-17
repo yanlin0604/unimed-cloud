@@ -11,7 +11,8 @@ import org.dromara.dhcore.domain.vo.DhUserItemVo;
 import org.dromara.dhcore.domain.vo.DhWalletLogVo;
 
 /**
- * 数字人口播用户管理服务接�? */
+ * 数字人口播用户管理服务接口
+ */
 public interface IDhUserService {
 
     /**
@@ -25,7 +26,8 @@ public interface IDhUserService {
     DhUserDetailVo queryUserDetail(Long userId);
 
     /**
-     * 切换用户状�?     */
+     * 切换用户状态
+     */
     DhUserItemVo changeUserStatus(DhUserStatusBo bo);
 
     /**

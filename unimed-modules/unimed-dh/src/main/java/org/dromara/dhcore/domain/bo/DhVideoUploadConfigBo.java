@@ -45,8 +45,9 @@ public class DhVideoUploadConfigBo {
     private String formatDesc;
 
     /**
-     * 状�?     */
-    @NotBlank(message = "状态不能为�?)
+     * 状态
+     */
+    @NotBlank(message = "状态不能为空")
     private String status;
 
     /**

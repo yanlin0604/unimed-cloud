@@ -46,7 +46,8 @@ public class DhVideoUploadConfigVo implements Serializable {
     private String formatDesc;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 
     /**

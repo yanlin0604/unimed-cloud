@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 数字人口播用户画像对�?dh_user_profile
+ * 数字人口播用户画像对象 dh_user_profile
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -25,11 +25,13 @@ public class DhUserProfile extends TenantEntity {
     private Long userId;
 
     /**
-     * 用户�?     */
+     * 用户名
+     */
     private String userName;
 
     /**
-     * 手机�?     */
+     * 手机号
+     */
     private String phone;
 
     /**
@@ -48,7 +50,8 @@ public class DhUserProfile extends TenantEntity {
     private BigDecimal walletBalance;
 
     /**
-     * 累计充�?     */
+     * 累计充值
+     */
     private BigDecimal totalTopup;
 
     /**
@@ -57,16 +60,13 @@ public class DhUserProfile extends TenantEntity {
     private BigDecimal totalConsume;
 
     /**
-     * 订单�?     */
+     * 订单数
+     */
     private Integer orderCount;
 
     /**
-     * 密码
+     * 状态（0启用 1停用）
      */
-    private String password;
-
-    /**
-     * 状态（0启用 1停用�?     */
     private String status;
 
     /**

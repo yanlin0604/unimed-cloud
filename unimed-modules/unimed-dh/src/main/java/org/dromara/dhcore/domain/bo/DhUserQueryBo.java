@@ -12,7 +12,7 @@ import org.dromara.common.mybatis.core.domain.BaseEntity;
 public class DhUserQueryBo extends BaseEntity {
 
     /**
-     * 关键字（用户�?手机号）
+     * 关键字（用户名/手机号）
      */
     private String keyword;
 
@@ -22,6 +22,7 @@ public class DhUserQueryBo extends BaseEntity {
     private String memberLevel;
 
     /**
-     * 状态（0启用 1停用�?     */
+     * 状态（0启用 1停用）
+     */
     private String status;
 }

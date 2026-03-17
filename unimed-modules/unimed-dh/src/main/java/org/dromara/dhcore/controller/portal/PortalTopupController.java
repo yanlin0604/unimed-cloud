@@ -34,12 +34,12 @@ import java.util.List;
 /**
  * C端充值控制器
  * <p>
- * 提供充值档位查询、支付渠道查询、充值申请提交、充值记录查询等接口�?
- * 充值申请创建后状态为 PENDING，需后台管理员审核�?
+ * 提供充值档位查询、支付渠道查询、充值申请提交、充值记录查询等接口。
+ * 充值申请创建后状态为 PENDING，需后台管理员审核。
  *
  * @author unimed
  */
-@Tag(name = "C�?充值管�?)
+@Tag(name = "C端-充值管理")
 @SaCheckLogin
 @Validated
 @RequiredArgsConstructor
@@ -52,9 +52,9 @@ public class PortalTopupController extends BaseController {
     private final DhTopupTicketMapper topupTicketMapper;
 
     /**
-     * 获取充值档位列�?
+     * 获取充值档位列表
      */
-    @Operation(summary = "获取充值档位列�?)
+    @Operation(summary = "获取充值档位列表")
     @GetMapping("/plans")
     public R<List<PortalTopupPlanVo>> getPlans() {
         LambdaQueryWrapper<DhPaymentPriceConfig> lqw = Wrappers.lambdaQuery();
@@ -66,7 +66,7 @@ public class PortalTopupController extends BaseController {
     }
 
     /**
-     * 获取支付渠道（收款码配置�?
+     * 获取支付渠道（收款码配置）
      */
     @Operation(summary = "获取支付渠道")
     @GetMapping("/payment-channels")
@@ -79,9 +79,9 @@ public class PortalTopupController extends BaseController {
     }
 
     /**
-     * 提交充值申�?
+     * 提交充值申请
      */
-    @Operation(summary = "提交充值申�?)
+    @Operation(summary = "提交充值申请")
     @PostMapping("/apply")
     public R<PortalTopupRecordVo> apply(@Validated @RequestBody PortalTopupApplyBo bo) {
         Long userId = LoginHelper.getUserId();
@@ -100,9 +100,9 @@ public class PortalTopupController extends BaseController {
     }
 
     /**
-     * 分页查询当前用户充值记�?
+     * 分页查询当前用户充值记录
      */
-    @Operation(summary = "查询充值记�?)
+    @Operation(summary = "查询充值记录")
     @GetMapping("/records")
     public TableDataInfo<PortalTopupRecordVo> getRecords(
         @RequestParam(required = false) String status,
@@ -119,7 +119,7 @@ public class PortalTopupController extends BaseController {
     }
 
     /**
-     * 补充凭证（针�?NEED_MORE 状态的工单�?
+     * 补充凭证（针对 NEED_MORE 状态的工单）
      */
     @Operation(summary = "补充凭证")
     @PostMapping("/{ticketId}/supplement")
@@ -131,10 +131,10 @@ public class PortalTopupController extends BaseController {
             throw new ServiceException("充值工单不存在");
         }
         if (!userId.equals(ticket.getUserId())) {
-            throw new ServiceException("无权操作该工�?);
+            throw new ServiceException("无权操作该工单");
         }
         if (!"NEED_MORE".equals(ticket.getStatus())) {
-            throw new ServiceException("�?需补充凭证'状态的工单可补�?);
+            throw new ServiceException("仅'需补充凭证'状态的工单可补充");
         }
         // 追加凭证图片
         String existingIds = ticket.getVoucherImageIds() != null ? ticket.getVoucherImageIds() : "";
@@ -192,7 +192,7 @@ public class PortalTopupController extends BaseController {
     }
 
     /**
-     * 支付渠道视图对象（内嵌类�?
+     * 支付渠道视图对象（内嵌类）
      */
     @Data
     public static class PaymentChannelVo implements Serializable {

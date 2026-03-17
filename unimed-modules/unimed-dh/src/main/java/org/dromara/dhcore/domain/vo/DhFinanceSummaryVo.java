@@ -8,7 +8,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 财务汇总视图对�? */
+ * 财务汇总视图对象
+ */
 @Data
 public class DhFinanceSummaryVo implements Serializable {
 
@@ -16,7 +17,8 @@ public class DhFinanceSummaryVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 累计充�?     */
+     * 累计充值
+     */
     private BigDecimal totalTopup;
 
     /**
@@ -25,11 +27,13 @@ public class DhFinanceSummaryVo implements Serializable {
     private BigDecimal totalConsume;
 
     /**
-     * 总余�?     */
+     * 总余额
+     */
     private BigDecimal totalBalance;
 
     /**
-     * 累计退�?     */
+     * 累计退款
+     */
     private BigDecimal totalRefund;
 
     /**

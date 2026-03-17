@@ -5,13 +5,15 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 
 /**
- * 充值档位配置查询对�? */
+ * 充值档位配置查询对象
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DhPaymentPriceQueryBo extends BaseEntity {
 
     /**
-     * 关键�?     */
+     * 关键字
+     */
     private String keyword;
 
     /**
@@ -25,11 +27,13 @@ public class DhPaymentPriceQueryBo extends BaseEntity {
     private String payType;
 
     /**
-     * 状�?     */
+     * 状态
+     */
     private String status;
 
     /**
-     * 开始时�?     */
+     * 开始时间
+     */
     private String beginTime;
 
     /**

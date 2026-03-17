@@ -38,7 +38,8 @@ public interface IDhOrderService {
     DhOrderDetailVo rejectOrder(DhOrderRejectBo bo);
 
     /**
-     * 开始制�?     */
+     * 开始制作
+     */
     DhProductionAssetVo startProduction(Long orderId, DhProductionStartBo bo);
 
     /**
@@ -47,11 +48,13 @@ public interface IDhOrderService {
     DhProductionAssetVo getProductionAsset(Long orderId);
 
     /**
-     * 保存生成元数�?     */
+     * 保存生成元数据
+     */
     DhProductionAssetVo saveGenerationMeta(Long orderId, DhProductionMetaBo bo);
 
     /**
-     * 上传成品元数�?     */
+     * 上传成品元数据
+     */
     DhProductionAssetVo uploadResultVideo(Long orderId, DhProductionVideoBo bo);
 
     /**
