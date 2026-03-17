@@ -18,12 +18,10 @@ public class DhUserDetailVo extends DhUserItemVo {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 距离下一会员等级所需充值差额
-     */
+     * 距离下一会员等级所需充值差�?     */
     private BigDecimal nextLevelGap;
 
     /**
-     * 最近订单
-     */
+     * 最近订�?     */
     private List<DhOrderItemVo> recentOrders;
 }

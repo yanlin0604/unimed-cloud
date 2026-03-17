@@ -9,7 +9,6 @@ import lombok.Data;
 public class DhOrderClaimBo {
 
     /**
-     * 处理人姓名
-     */
+     * 处理人姓�?     */
     private String operatorName;
 }

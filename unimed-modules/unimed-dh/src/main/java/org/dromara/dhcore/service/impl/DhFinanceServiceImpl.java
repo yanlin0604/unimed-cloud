@@ -28,8 +28,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 数字人口播财务报表服务实现
- */
+ * 数字人口播财务报表服务实�? */
 @RequiredArgsConstructor
 @Service
 public class DhFinanceServiceImpl implements IDhFinanceService {
@@ -94,7 +93,7 @@ public class DhFinanceServiceImpl implements IDhFinanceService {
         }
         if ("custom".equals(range)) {
             if (StringUtils.isBlank(bo.getBeginTime()) || StringUtils.isBlank(bo.getEndTime())) {
-                throw new ServiceException("自定义时间范围不能为空");
+                throw new ServiceException("自定义时间范围不能为�?);
             }
             return new Date[]{parseDateTime(bo.getBeginTime()), parseDateTime(bo.getEndTime())};
         }

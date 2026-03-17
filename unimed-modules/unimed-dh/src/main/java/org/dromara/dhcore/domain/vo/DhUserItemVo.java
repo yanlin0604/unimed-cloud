@@ -22,13 +22,11 @@ public class DhUserItemVo implements Serializable {
     private Long id;
 
     /**
-     * 用户名
-     */
+     * 用户�?     */
     private String userName;
 
     /**
-     * 手机号
-     */
+     * 手机�?     */
     private String phone;
 
     /**
@@ -47,8 +45,7 @@ public class DhUserItemVo implements Serializable {
     private BigDecimal walletBalance;
 
     /**
-     * 累计充值
-     */
+     * 累计充�?     */
     private BigDecimal totalTopup;
 
     /**
@@ -57,13 +54,11 @@ public class DhUserItemVo implements Serializable {
     private BigDecimal totalConsume;
 
     /**
-     * 订单数
-     */
+     * 订单�?     */
     private Integer orderCount;
 
     /**
-     * 状态（0启用 1停用）
-     */
+     * 状态（0启用 1停用�?     */
     private String status;
 
     /**

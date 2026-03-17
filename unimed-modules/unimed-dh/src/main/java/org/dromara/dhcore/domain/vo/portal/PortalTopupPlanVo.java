@@ -10,7 +10,7 @@ import java.util.Date;
 /**
  * C端充值档位视图对象（对应 DhPaymentPriceConfig，只读）
  *
- * @author AI
+ * @author unimed
  */
 @Data
 public class PortalTopupPlanVo implements Serializable {
@@ -39,17 +39,17 @@ public class PortalTopupPlanVo implements Serializable {
     private String payType;
 
     /**
-     * 充值金额
+     * 充值金�?
      */
     private BigDecimal amount;
 
     /**
-     * 赠送金额
+     * 赠送金�?
      */
     private BigDecimal bonusAmount;
 
     /**
-     * 排序号
+     * 排序�?
      */
     private Integer sort;
 }

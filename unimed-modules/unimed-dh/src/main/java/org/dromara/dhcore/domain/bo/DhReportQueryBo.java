@@ -12,8 +12,7 @@ import org.dromara.common.mybatis.core.domain.BaseEntity;
 public class DhReportQueryBo extends BaseEntity {
 
     /**
-     * 关键字
-     */
+     * 关键�?     */
     private String keyword;
 
     /**
@@ -22,13 +21,11 @@ public class DhReportQueryBo extends BaseEntity {
     private String type;
 
     /**
-     * 处理状态
-     */
+     * 处理状�?     */
     private String status;
 
     /**
-     * 开始时间
-     */
+     * 开始时�?     */
     private String beginTime;
 
     /**

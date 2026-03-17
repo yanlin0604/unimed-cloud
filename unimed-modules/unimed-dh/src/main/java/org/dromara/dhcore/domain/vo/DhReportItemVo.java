@@ -21,8 +21,7 @@ public class DhReportItemVo implements Serializable {
     private Long id;
 
     /**
-     * 举报人
-     */
+     * 举报�?     */
     private String reporterName;
 
     /**
@@ -41,8 +40,7 @@ public class DhReportItemVo implements Serializable {
     private String targetContentId;
 
     /**
-     * 被举报内容类型
-     */
+     * 被举报内容类�?     */
     private String targetContentType;
 
     /**
@@ -56,13 +54,11 @@ public class DhReportItemVo implements Serializable {
     private String description;
 
     /**
-     * 处理状态
-     */
+     * 处理状�?     */
     private String status;
 
     /**
-     * 处理人
-     */
+     * 处理�?     */
     private String handlerName;
 
     /**

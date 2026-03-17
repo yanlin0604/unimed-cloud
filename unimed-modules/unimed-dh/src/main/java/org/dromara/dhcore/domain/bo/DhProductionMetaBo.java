@@ -4,8 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 保存生成元信息请求
- */
+ * 保存生成元信息请�? */
 @Data
 public class DhProductionMetaBo {
 
@@ -16,14 +15,12 @@ public class DhProductionMetaBo {
     private String generationChannel;
 
     /**
-     * 生成引用标识（如第三方任务ID）
-     */
+     * 生成引用标识（如第三方任务ID�?     */
     private String generationRef;
 
     /**
-     * 操作人姓名
-     */
-    @NotBlank(message = "操作人不能为空")
+     * 操作人姓�?     */
+    @NotBlank(message = "操作人不能为�?)
     private String operatorName;
 
     /**

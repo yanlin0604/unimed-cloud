@@ -8,13 +8,11 @@ import org.dromara.dhcore.domain.bo.DhReportQueryBo;
 import org.dromara.dhcore.domain.vo.DhReportItemVo;
 
 /**
- * 数字人口播举报管理服务接口
- */
+ * 数字人口播举报管理服务接�? */
 public interface IDhReportService {
 
     /**
-     * 分页查询举报单
-     */
+     * 分页查询举报�?     */
     TableDataInfo<DhReportItemVo> queryReportPage(DhReportQueryBo bo, PageQuery pageQuery);
 
     /**

@@ -8,9 +8,9 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * C端用户个人资料视图对象
+ * C端用户个人资料视图对�?
  *
- * @author AI
+ * @author unimed
  */
 @Data
 public class PortalUserProfileVo implements Serializable {
@@ -24,7 +24,7 @@ public class PortalUserProfileVo implements Serializable {
     private Long userId;
 
     /**
-     * 用户名
+     * 用户�?
      */
     private String userName;
 
@@ -34,7 +34,7 @@ public class PortalUserProfileVo implements Serializable {
     private String nickName;
 
     /**
-     * 手机号
+     * 手机�?
      */
     private String phone;
 
@@ -44,7 +44,7 @@ public class PortalUserProfileVo implements Serializable {
     private String avatar;
 
     /**
-     * 会员等级（NORMAL/VIP/SVIP）
+     * 会员等级（NORMAL/VIP/SVIP�?
      */
     private String memberLevel;
 
@@ -64,7 +64,7 @@ public class PortalUserProfileVo implements Serializable {
     private Date registerTime;
 
     /**
-     * 状态
+     * 状�?
      */
     private String status;
 }

@@ -1,8 +1,7 @@
 package org.dromara.dhcore.service.support;
 
 /**
- * 数字人口播订单状态常量
- *
+ * 数字人口播订单状态常�? *
  * <p>状态说明：</p>
  * <ul>
  *     <li>PENDING：待处理</li>
@@ -16,19 +15,19 @@ package org.dromara.dhcore.service.support;
  */
 public final class DhOrderStatus {
 
-    /** 待处理 */
+    /** 待处�?*/
     public static final String PENDING = "PENDING";
-    /** 制作中 */
+    /** 制作�?*/
     public static final String PROCESSING = "PROCESSING";
-    /** 待上传结果 */
+    /** 待上传结�?*/
     public static final String TO_UPLOAD = "TO_UPLOAD";
-    /** 已完成 */
+    /** 已完�?*/
     public static final String COMPLETED = "COMPLETED";
-    /** 返工中 */
+    /** 返工�?*/
     public static final String REDO = "REDO";
-    /** 已取消 */
+    /** 已取�?*/
     public static final String CANCELLED = "CANCELLED";
-    /** 已驳回 */
+    /** 已驳�?*/
     public static final String REJECTED = "REJECTED";
 
     private DhOrderStatus() {

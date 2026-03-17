@@ -7,9 +7,9 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * C端用户素材视图对象
+ * C端用户素材视图对�?
  *
- * @author AI
+ * @author unimed
  */
 @Data
 public class PortalMaterialVo implements Serializable {
@@ -23,12 +23,12 @@ public class PortalMaterialVo implements Serializable {
     private Long id;
 
     /**
-     * 素材类型（IMAGE/VIDEO/AUDIO）
+     * 素材类型（IMAGE/VIDEO/AUDIO�?
      */
     private String materialType;
 
     /**
-     * 文件名
+     * 文件�?
      */
     private String fileName;
 
@@ -48,12 +48,12 @@ public class PortalMaterialVo implements Serializable {
     private Long fileSize;
 
     /**
-     * 分辨率（如 1920x1080）
+     * 分辨率（�?1920x1080�?
      */
     private String resolution;
 
     /**
-     * 时长（秒，视频/音频适用）
+     * 时长（秒，视�?音频适用�?
      */
     private Integer duration;
 

@@ -17,13 +17,11 @@ public class DhFinanceDetailQueryBo extends BaseEntity {
     private String type;
 
     /**
-     * 关键字
-     */
+     * 关键�?     */
     private String keyword;
 
     /**
-     * 开始时间
-     */
+     * 开始时�?     */
     private String beginTime;
 
     /**

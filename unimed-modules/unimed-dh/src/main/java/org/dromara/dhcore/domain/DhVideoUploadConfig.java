@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.tenant.core.TenantEntity;
 
 /**
- * 数字人口播视频上传配置对象 dh_video_upload_config
+ * 数字人口播视频上传配置对�?dh_video_upload_config
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -47,8 +47,7 @@ public class DhVideoUploadConfig extends TenantEntity {
     private String formatDesc;
 
     /**
-     * 状态（0启用 1停用）
-     */
+     * 状态（0启用 1停用�?     */
     private String status;
 
     /**

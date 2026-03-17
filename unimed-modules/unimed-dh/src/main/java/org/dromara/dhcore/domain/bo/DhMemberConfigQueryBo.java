@@ -12,8 +12,7 @@ import org.dromara.common.mybatis.core.domain.BaseEntity;
 public class DhMemberConfigQueryBo extends BaseEntity {
 
     /**
-     * 关键字
-     */
+     * 关键�?     */
     private String keyword;
 
     /**
@@ -22,13 +21,11 @@ public class DhMemberConfigQueryBo extends BaseEntity {
     private String level;
 
     /**
-     * 状态
-     */
+     * 状�?     */
     private String status;
 
     /**
-     * 开始时间
-     */
+     * 开始时�?     */
     private String beginTime;
 
     /**

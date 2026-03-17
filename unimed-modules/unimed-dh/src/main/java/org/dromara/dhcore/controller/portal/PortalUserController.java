@@ -22,12 +22,12 @@ import java.math.BigDecimal;
 /**
  * C端用户信息控制器
  * <p>
- * 提供当前登录用户的个人资料查询/修改、统计概览等接口。
- * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户，不接受外部 userId 参数。
+ * 提供当前登录用户的个人资料查�?修改、统计概览等接口�?
+ * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户，不接受外�?userId 参数�?
  *
- * @author AI
+ * @author unimed
  */
-@Tag(name = "C端-用户信息")
+@Tag(name = "C�?用户信息")
 @SaCheckLogin
 @Validated
 @RequiredArgsConstructor
@@ -47,12 +47,12 @@ public class PortalUserController extends BaseController {
         Long userId = LoginHelper.getUserId();
         DhUserDetailVo detail = dhUserService.queryUserDetail(userId);
         if (detail == null) {
-            return R.fail("用户信息不存在");
+            return R.fail("用户信息不存�?);
         }
         PortalUserProfileVo vo = new PortalUserProfileVo();
         vo.setUserId(detail.getId());
         vo.setUserName(detail.getUserName());
-        vo.setNickName(detail.getUserName()); // DhUserProfile 暂无 nickName，使用 userName 替代
+        vo.setNickName(detail.getUserName()); // DhUserProfile 暂无 nickName，使�?userName 替代
         vo.setPhone(detail.getPhone());
         vo.setAvatar(detail.getAvatar());
         vo.setMemberLevel(detail.getMemberLevel());
@@ -71,9 +71,9 @@ public class PortalUserController extends BaseController {
         Long userId = LoginHelper.getUserId();
         DhUserProfile profile = userProfileMapper.selectById(userId);
         if (profile == null) {
-            return R.fail("用户信息不存在");
+            return R.fail("用户信息不存�?);
         }
-        // 仅允许修改安全字段
+        // 仅允许修改安全字�?
         if (bo.getAvatar() != null) {
             profile.setAvatar(bo.getAvatar());
         }
@@ -93,13 +93,13 @@ public class PortalUserController extends BaseController {
         Long userId = LoginHelper.getUserId();
         DhUserDetailVo detail = dhUserService.queryUserDetail(userId);
         if (detail == null) {
-            return R.fail("用户信息不存在");
+            return R.fail("用户信息不存�?);
         }
         PortalUserStatsVo stats = new PortalUserStatsVo();
         stats.setOrderCount(detail.getOrderCount() != null ? detail.getOrderCount() : 0);
         stats.setTotalConsume(detail.getTotalConsume() != null ? detail.getTotalConsume() : BigDecimal.ZERO);
         stats.setTotalTopup(detail.getTotalTopup() != null ? detail.getTotalTopup() : BigDecimal.ZERO);
-        // completedCount 和 worksCount 需要从订单统计获取，暂设默认值
+        // completedCount �?worksCount 需要从订单统计获取，暂设默认�?
         stats.setCompletedCount(0);
         stats.setWorksCount(0);
         return R.ok(stats);

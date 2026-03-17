@@ -22,8 +22,7 @@ public class DhPunishBo {
     private Long reportId;
 
     /**
-     * 处罚类型（WARNING/RESTRICT/BAN）
-     */
+     * 处罚类型（WARNING/RESTRICT/BAN�?     */
     @NotBlank(message = "处罚类型不能为空")
     private String punishType;
 

@@ -5,8 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 充值工单驳回对象
- */
+ * 充值工单驳回对�? */
 @Data
 public class DhTopupRejectBo {
 

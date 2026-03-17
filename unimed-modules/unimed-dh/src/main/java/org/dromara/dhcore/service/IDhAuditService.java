@@ -6,8 +6,7 @@ import org.dromara.dhcore.domain.bo.DhAuditLogQueryBo;
 import org.dromara.dhcore.domain.vo.DhAuditLogVo;
 
 /**
- * 数字人口播审计日志服务接口
- */
+ * 数字人口播审计日志服务接�? */
 public interface IDhAuditService {
 
     /**

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 数字人口播订单对象 dh_order
+ * 数字人口播订单对�?dh_order
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -35,8 +35,7 @@ public class DhOrder extends TenantEntity {
     private String title;
 
     /**
-     * 申请人姓名
-     */
+     * 申请人姓�?     */
     private String applicantName;
 
     /**
@@ -45,23 +44,20 @@ public class DhOrder extends TenantEntity {
     private String memberLevel;
 
     /**
-     * 订单状态
-     */
+     * 订单状�?     */
     private String status;
 
     /**
-     * 是否返工单（0否 1是）
+     * 是否返工单（0�?1是）
      */
     private Integer isRedo;
 
     /**
-     * 优先级
-     */
+     * 优先�?     */
     private Integer priority;
 
     /**
-     * 当前处理人
-     */
+     * 当前处理�?     */
     private String assigneeName;
 
     /**
@@ -95,8 +91,7 @@ public class DhOrder extends TenantEntity {
     private String sceneType;
 
     /**
-     * 语速
-     */
+     * 语�?     */
     private String speechSpeed;
 
     /**
@@ -105,8 +100,7 @@ public class DhOrder extends TenantEntity {
     private BigDecimal orderAmount;
 
     /**
-     * 折扣率
-     */
+     * 折扣�?     */
     private BigDecimal discountRate;
 
     /**
@@ -115,7 +109,7 @@ public class DhOrder extends TenantEntity {
     private BigDecimal actualAmount;
 
     /**
-     * 是否版权声明（0否 1是）
+     * 是否版权声明�?�?1是）
      */
     private Integer copyrightDeclared;
 

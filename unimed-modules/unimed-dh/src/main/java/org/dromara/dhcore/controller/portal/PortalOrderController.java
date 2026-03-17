@@ -45,13 +45,13 @@ import java.util.*;
 /**
  * C端订单控制器
  * <p>
- * 提供当前登录用户的订单创建、列表查询、详情查看、取消订单、统计等接口。
- * 创建和取消操作涉及余额变动，使用事务保证一致性。
- * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户，并验证订单归属权。
+ * 提供当前登录用户的订单创建、列表查询、详情查看、取消订单、统计等接口�?
+ * 创建和取消操作涉及余额变动，使用事务保证一致性�?
+ * 所有接口通过 LoginHelper.getUserId() 硬绑定当前用户，并验证订单归属权�?
  *
- * @author AI
+ * @author unimed
  */
-@Tag(name = "C端-订单管理")
+@Tag(name = "C�?订单管理")
 @SaCheckLogin
 @Validated
 @RequiredArgsConstructor
@@ -72,8 +72,8 @@ public class PortalOrderController extends BaseController {
     /**
      * 分页查询当前用户订单列表
      *
-     * @param status    可选状态筛选
-     * @param keyword   可选关键词搜索（订单号/标题）
+     * @param status    可选状态筛�?
+     * @param keyword   可选关键词搜索（订单号/标题�?
      * @param pageQuery 分页参数
      */
     @Operation(summary = "查询订单列表")
@@ -84,7 +84,7 @@ public class PortalOrderController extends BaseController {
         PageQuery pageQuery) {
         Long userId = LoginHelper.getUserId();
         LambdaQueryWrapper<DhOrder> lqw = Wrappers.lambdaQuery();
-        // 硬绑定当前用户（通过 createBy 审计字段）
+        // 硬绑定当前用户（通过 createBy 审计字段�?
         lqw.eq(DhOrder::getCreateBy, userId);
         lqw.eq(StringUtils.isNotBlank(status), DhOrder::getStatus, status);
         if (StringUtils.isNotBlank(keyword)) {
@@ -98,7 +98,7 @@ public class PortalOrderController extends BaseController {
     }
 
     /**
-     * 查询订单详情（验证归属权）
+     * 查询订单详情（验证归属权�?
      */
     @Operation(summary = "查询订单详情")
     @GetMapping("/{orderId}")
@@ -106,13 +106,13 @@ public class PortalOrderController extends BaseController {
         Long userId = LoginHelper.getUserId();
         DhOrder order = orderMapper.selectById(orderId);
         if (order == null) {
-            return R.fail("订单不存在");
+            return R.fail("订单不存�?);
         }
-        // 归属权校验
+        // 归属权校�?
         if (!userId.equals(order.getCreateBy())) {
-            return R.fail("无权查看该订单");
+            return R.fail("无权查看该订�?);
         }
-        // 复用 B端 详情查询获取完整关联数据
+        // 复用 B�?详情查询获取完整关联数据
         DhOrderDetailVo detailVo = dhOrderService.queryOrderDetail(orderId);
         return R.ok(toPortalOrderDetailVo(order, detailVo));
     }
@@ -139,9 +139,9 @@ public class PortalOrderController extends BaseController {
     // ==================== 写入端点 ====================
 
     /**
-     * C端用户创建订单
+     * C端用户创建订�?
      * <p>
-     * 流程：校验余额 → 创建订单 → 关联素材 → 扣减余额 → 记录流水 → 记录日志
+     * 流程：校验余�?�?创建订单 �?关联素材 �?扣减余额 �?记录流水 �?记录日志
      */
     @Operation(summary = "创建订单")
     @PostMapping("/create")
@@ -153,7 +153,7 @@ public class PortalOrderController extends BaseController {
         // 1. 获取用户画像
         DhUserProfile profile = userProfileMapper.selectById(userId);
         if (profile == null) {
-            throw new ServiceException("用户信息不存在");
+            throw new ServiceException("用户信息不存�?);
         }
 
         // 2. 查询会员等级定价
@@ -214,11 +214,11 @@ public class PortalOrderController extends BaseController {
         walletLog.setUserId(userId);
         walletLog.setUserName(userName);
         walletLog.setType("CONSUME");
-        walletLog.setAmount(orderPrice.negate()); // 消费为负数
+        walletLog.setAmount(orderPrice.negate()); // 消费为负�?
         walletLog.setBalanceAfter(newBalance);
         walletLog.setRelatedOrderId(order.getOrderId());
         walletLog.setOperatorName(userName);
-        walletLog.setRemark("创建订单：" + order.getOrderNo());
+        walletLog.setRemark("创建订单�? + order.getOrderNo());
         walletLogMapper.insert(walletLog);
 
         // 8. 记录处理日志
@@ -233,9 +233,9 @@ public class PortalOrderController extends BaseController {
     }
 
     /**
-     * C端用户取消订单
+     * C端用户取消订�?
      * <p>
-     * 仅 PENDING 状态可取消，取消后退还余额。
+     * �?PENDING 状态可取消，取消后退还余额�?
      */
     @Operation(summary = "取消订单")
     @PostMapping("/{orderId}/cancel")
@@ -245,18 +245,18 @@ public class PortalOrderController extends BaseController {
         Long userId = LoginHelper.getUserId();
         String userName = LoginHelper.getUsername();
 
-        // 1. 验证订单存在且归属当前用户
+        // 1. 验证订单存在且归属当前用�?
         DhOrder order = orderMapper.selectById(orderId);
         if (order == null) {
-            throw new ServiceException("订单不存在");
+            throw new ServiceException("订单不存�?);
         }
         if (!userId.equals(order.getCreateBy())) {
-            throw new ServiceException("无权操作该订单");
+            throw new ServiceException("无权操作该订�?);
         }
 
-        // 2. 校验状态
+        // 2. 校验状�?
         if (!DhOrderStatus.PENDING.equals(order.getStatus())) {
-            throw new ServiceException("仅待处理状态的订单可取消");
+            throw new ServiceException("仅待处理状态的订单可取�?);
         }
 
         // 3. 取消订单
@@ -265,7 +265,7 @@ public class PortalOrderController extends BaseController {
         order.setCancelReason(StringUtils.isNotBlank(reason) ? reason : "用户主动取消");
         orderMapper.updateById(order);
 
-        // 4. 退还余额
+        // 4. 退还余�?
         BigDecimal refundAmount = order.getActualAmount() != null ? order.getActualAmount() : BigDecimal.ZERO;
         if (refundAmount.compareTo(BigDecimal.ZERO) > 0) {
             DhUserProfile profile = userProfileMapper.selectById(userId);
@@ -278,7 +278,7 @@ public class PortalOrderController extends BaseController {
                 );
                 userProfileMapper.updateById(profile);
 
-                // 5. 记录退款流水
+                // 5. 记录退款流�?
                 DhWalletLog walletLog = new DhWalletLog();
                 walletLog.setUserId(userId);
                 walletLog.setUserName(userName);
@@ -295,7 +295,7 @@ public class PortalOrderController extends BaseController {
         // 6. 记录处理日志
         DhOrderProcessLog processLog = new DhOrderProcessLog();
         processLog.setOrderId(orderId);
-        processLog.setActionText("用户取消订单" + (StringUtils.isNotBlank(reason) ? "：" + reason : ""));
+        processLog.setActionText("用户取消订单" + (StringUtils.isNotBlank(reason) ? "�? + reason : ""));
         processLog.setOperatorName(userName);
         processLog.setOperateTime(now);
         orderProcessLogMapper.insert(processLog);
@@ -306,7 +306,7 @@ public class PortalOrderController extends BaseController {
     // ==================== 私有辅助方法 ====================
 
     /**
-     * 将 DhOrder 映射为 C端 PortalOrderVo
+     * �?DhOrder 映射�?C�?PortalOrderVo
      */
     private PortalOrderVo toPortalOrderVo(DhOrder order) {
         PortalOrderVo vo = new PortalOrderVo();
@@ -318,15 +318,15 @@ public class PortalOrderController extends BaseController {
         vo.setIsRedo(order.getIsRedo());
         vo.setCreateTime(order.getCreateTime());
         vo.setOrderAmount(order.getOrderAmount());
-        // 预计交付：根据 expectDeliveryHours 计算
+        // 预计交付：根�?expectDeliveryHours 计算
         if (order.getExpectDeliveryHours() != null && order.getExpectDeliveryHours() > 0) {
-            vo.setExpectedDelivery(order.getExpectDeliveryHours() + "小时内");
+            vo.setExpectedDelivery(order.getExpectDeliveryHours() + "小时�?);
         }
         return vo;
     }
 
     /**
-     * 将 B端 DhOrderDetailVo 映射为 C端 PortalOrderDetailVo
+     * �?B�?DhOrderDetailVo 映射�?C�?PortalOrderDetailVo
      */
     private PortalOrderDetailVo toPortalOrderDetailVo(DhOrder order, DhOrderDetailVo detailVo) {
         PortalOrderDetailVo vo = new PortalOrderDetailVo();
@@ -340,7 +340,7 @@ public class PortalOrderController extends BaseController {
         vo.setCreateTime(order.getCreateTime());
         vo.setOrderAmount(order.getOrderAmount());
         if (order.getExpectDeliveryHours() != null && order.getExpectDeliveryHours() > 0) {
-            vo.setExpectedDelivery(order.getExpectDeliveryHours() + "小时内");
+            vo.setExpectedDelivery(order.getExpectDeliveryHours() + "小时�?);
         }
 
         // 详情字段
@@ -365,7 +365,7 @@ public class PortalOrderController extends BaseController {
             }).toList());
         }
 
-        // 进度节点（从 processLogs 映射）
+        // 进度节点（从 processLogs 映射�?
         if (detailVo.getProcessLogs() != null) {
             vo.setProgressNodes(detailVo.getProcessLogs().stream().map(log -> {
                 PortalOrderDetailVo.PortalProgressNodeVo node = new PortalOrderDetailVo.PortalProgressNodeVo();
@@ -380,7 +380,7 @@ public class PortalOrderController extends BaseController {
     }
 
     /**
-     * 后端状态 → 用户端简化状态
+     * 后端状�?�?用户端简化状�?
      */
     private String mapUserStatus(String status) {
         if (status == null) {
@@ -397,7 +397,7 @@ public class PortalOrderController extends BaseController {
     }
 
     /**
-     * 统计指定状态的订单数
+     * 统计指定状态的订单�?
      */
     private long countByUserAndStatus(Long userId, String status) {
         LambdaQueryWrapper<DhOrder> lqw = Wrappers.lambdaQuery();
@@ -407,7 +407,7 @@ public class PortalOrderController extends BaseController {
     }
 
     /**
-     * 查询会员等级对应的订单单价
+     * 查询会员等级对应的订单单�?
      */
     private BigDecimal resolveMemberPrice(String memberLevel) {
         if (StringUtils.isBlank(memberLevel)) {
@@ -421,7 +421,7 @@ public class PortalOrderController extends BaseController {
         pq.setPageSize(1);
         TableDataInfo<DhMemberConfigVo> result = configService.queryMemberConfigPage(queryBo, pq);
         if (result == null || result.getRows() == null || result.getRows().isEmpty()) {
-            throw new ServiceException("未找到会员等级定价配置");
+            throw new ServiceException("未找到会员等级定价配�?);
         }
         BigDecimal price = result.getRows().get(0).getOrderPrice();
         if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {

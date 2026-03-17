@@ -10,7 +10,7 @@ import org.dromara.common.tenant.core.TenantEntity;
 import java.math.BigDecimal;
 
 /**
- * 数字人口播充值档位配置对象 dh_payment_price_config
+ * 数字人口播充值档位配置对�?dh_payment_price_config
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -39,13 +39,11 @@ public class DhPaymentPriceConfig extends TenantEntity {
     private String payType;
 
     /**
-     * 充值金额
-     */
+     * 充值金�?     */
     private BigDecimal amount;
 
     /**
-     * 赠送金额
-     */
+     * 赠送金�?     */
     private BigDecimal bonusAmount;
 
     /**
@@ -54,8 +52,7 @@ public class DhPaymentPriceConfig extends TenantEntity {
     private Integer sort;
 
     /**
-     * 状态（0启用 1停用）
-     */
+     * 状态（0启用 1停用�?     */
     private String status;
 
     /**

@@ -5,8 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 用户状态变更对象
- */
+ * 用户状态变更对�? */
 @Data
 public class DhUserStatusBo {
 
@@ -17,8 +16,7 @@ public class DhUserStatusBo {
     private Long userId;
 
     /**
-     * 用户状态（0启用 1停用）
-     */
-    @NotBlank(message = "用户状态不能为空")
+     * 用户状态（0启用 1停用�?     */
+    @NotBlank(message = "用户状态不能为�?)
     private String status;
 }

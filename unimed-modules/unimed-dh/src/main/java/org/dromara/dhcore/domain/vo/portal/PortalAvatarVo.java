@@ -9,7 +9,7 @@ import java.util.Date;
 /**
  * C端数字人形象视图对象
  *
- * @author AI
+ * @author unimed
  */
 @Data
 public class PortalAvatarVo implements Serializable {

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 数字人口播生产控制器
  */
-@Tag(name = "数字人口播-生产")
+@Tag(name = "数字人口�?生产")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -26,7 +26,7 @@ public class DhProductionController extends BaseController {
 
     private final IDhOrderService dhOrderService;
 
-    @Operation(summary = "开始制作")
+    @Operation(summary = "开始制�?)
     @SaCheckPermission("dh:order:produce")
     @PostMapping("/{orderId}/start")
     public R<DhProductionAssetVo> start(@NotNull(message = "订单ID不能为空") @PathVariable Long orderId,
@@ -41,7 +41,7 @@ public class DhProductionController extends BaseController {
         return R.ok(dhOrderService.getProductionAsset(orderId));
     }
 
-    @Operation(summary = "保存生成元信息")
+    @Operation(summary = "保存生成元信�?)
     @SaCheckPermission("dh:order:produce")
     @PostMapping("/{orderId}/meta")
     public R<DhProductionAssetVo> meta(@NotNull(message = "订单ID不能为空") @PathVariable Long orderId,
@@ -49,7 +49,7 @@ public class DhProductionController extends BaseController {
         return R.ok(dhOrderService.saveGenerationMeta(orderId, bo));
     }
 
-    @Operation(summary = "上传成品视频元数据")
+    @Operation(summary = "上传成品视频元数�?)
     @SaCheckPermission("dh:order:produce")
     @PostMapping("/{orderId}/video")
     public R<DhProductionAssetVo> video(@NotNull(message = "订单ID不能为空") @PathVariable Long orderId,

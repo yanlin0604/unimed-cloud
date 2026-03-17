@@ -4,8 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 敏感词配置提交对象
- */
+ * 敏感词配置提交对�? */
 @Data
 public class DhSensitiveWordBo {
 
@@ -15,9 +14,8 @@ public class DhSensitiveWordBo {
     private Long id;
 
     /**
-     * 敏感词
-     */
-    @NotBlank(message = "敏感词不能为空")
+     * 敏感�?     */
+    @NotBlank(message = "敏感词不能为�?)
     private String word;
 
     /**
@@ -33,8 +31,7 @@ public class DhSensitiveWordBo {
     private String category;
 
     /**
-     * 状态
-     */
-    @NotBlank(message = "状态不能为空")
+     * 状�?     */
+    @NotBlank(message = "状态不能为�?)
     private String status;
 }

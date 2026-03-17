@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 数字人口播举报管理控制器
  */
-@Tag(name = "数字人口播-举报管理")
+@Tag(name = "数字人口�?举报管理")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -32,7 +32,7 @@ public class DhReportController extends BaseController {
 
     private final IDhReportService dhReportService;
 
-    @Operation(summary = "分页查询举报单")
+    @Operation(summary = "分页查询举报�?)
     @SaCheckPermission("dh:report:list")
     @GetMapping("/list")
     public TableDataInfo<DhReportItemVo> list(DhReportQueryBo bo, PageQuery pageQuery) {

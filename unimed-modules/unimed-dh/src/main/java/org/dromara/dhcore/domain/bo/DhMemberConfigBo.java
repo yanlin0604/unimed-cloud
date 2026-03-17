@@ -42,21 +42,18 @@ public class DhMemberConfigBo {
     private Integer monthlyLimit;
 
     /**
-     * 速度优先级
-     */
-    @NotNull(message = "速度优先级不能为空")
+     * 速度优先�?     */
+    @NotNull(message = "速度优先级不能为�?)
     private Integer speedPriority;
 
     /**
-     * 最低充值要求
-     */
-    @NotNull(message = "最低充值要求不能为空")
+     * 最低充值要�?     */
+    @NotNull(message = "最低充值要求不能为�?)
     private BigDecimal minTopupAmount;
 
     /**
-     * 有效期天数
-     */
-    @NotNull(message = "有效期天数不能为空")
+     * 有效期天�?     */
+    @NotNull(message = "有效期天数不能为�?)
     private Integer validityDays;
 
     /**
@@ -72,9 +69,8 @@ public class DhMemberConfigBo {
     private Integer redoLimit;
 
     /**
-     * 状态（0启用 1停用）
-     */
-    @NotBlank(message = "状态不能为空")
+     * 状态（0启用 1停用�?     */
+    @NotBlank(message = "状态不能为�?)
     private String status;
 
     /**

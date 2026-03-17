@@ -4,9 +4,9 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * C端个人资料更新业务对象
+ * C端个人资料更新业务对�?
  *
- * @author AI
+ * @author unimed
  */
 @Data
 public class PortalProfileUpdateBo {
@@ -14,7 +14,7 @@ public class PortalProfileUpdateBo {
     /**
      * 昵称
      */
-    @Size(max = 30, message = "昵称不能超过30个字符")
+    @Size(max = 30, message = "昵称不能超过30个字�?)
     private String nickName;
 
     /**
@@ -25,6 +25,6 @@ public class PortalProfileUpdateBo {
     /**
      * 联系方式
      */
-    @Size(max = 20, message = "联系方式不能超过20个字符")
+    @Size(max = 20, message = "联系方式不能超过20个字�?)
     private String phone;
 }

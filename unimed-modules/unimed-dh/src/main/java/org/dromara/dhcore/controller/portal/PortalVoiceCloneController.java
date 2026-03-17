@@ -21,13 +21,13 @@ import java.util.List;
 /**
  * C端声音克隆控制器
  * <p>
- * 提供声音克隆训练提交、训练进度查询、克隆音色列表等接口。
- * 当前为骨架实现——声音克隆训练任务表尚未建立，接口返回占位数据。
- * 待与 unimed-dh-relay 训练接口集成后补充完整逻辑。
+ * 提供声音克隆训练提交、训练进度查询、克隆音色列表等接口�?
+ * 当前为骨架实现——声音克隆训练任务表尚未建立，接口返回占位数据�?
+ * 待与 unimed-dh-relay 训练接口集成后补充完整逻辑�?
  *
- * @author AI
+ * @author unimed
  */
-@Tag(name = "C端-声音克隆")
+@Tag(name = "C�?声音克隆")
 @SaCheckLogin
 @Validated
 @RequiredArgsConstructor
@@ -38,7 +38,7 @@ public class PortalVoiceCloneController extends BaseController {
     /**
      * 提交声音克隆训练
      * <p>
-     * TODO: 集成 unimed-dh-relay 训练 API，创建训练任务记录
+     * TODO: 集成 unimed-dh-relay 训练 API，创建训练任务记�?
      */
     @Operation(summary = "提交声音克隆训练")
     @PostMapping("/train")
@@ -55,12 +55,12 @@ public class PortalVoiceCloneController extends BaseController {
     /**
      * 查询训练进度
      * <p>
-     * TODO: 从训练任务表或 relay 服务查询实际进度
+     * TODO: 从训练任务表�?relay 服务查询实际进度
      */
     @Operation(summary = "查询训练进度")
     @GetMapping("/progress/{taskId}")
     public R<VoiceCloneTaskVo> getProgress(@PathVariable String taskId) {
-        // 骨架：返回占位进度
+        // 骨架：返回占位进�?
         VoiceCloneTaskVo taskVo = new VoiceCloneTaskVo();
         taskVo.setTaskId(taskId);
         taskVo.setStatus("PENDING");
@@ -72,13 +72,13 @@ public class PortalVoiceCloneController extends BaseController {
     /**
      * 获取当前用户克隆音色列表
      * <p>
-     * TODO: 待声音克隆完成记录表建立后，查询用户的克隆音色
+     * TODO: 待声音克隆完成记录表建立后，查询用户的克隆音�?
      */
     @Operation(summary = "获取克隆音色列表")
     @GetMapping("/list")
     public R<List<PortalVoiceVo>> getClonedVoices() {
         Long userId = LoginHelper.getUserId();
-        // 骨架：克隆音色表未建立，返回空列表
+        // 骨架：克隆音色表未建立，返回空列�?
         return R.ok(Collections.emptyList());
     }
 
@@ -115,13 +115,13 @@ public class PortalVoiceCloneController extends BaseController {
         /** 任务ID */
         private String taskId;
 
-        /** 任务状态（PENDING/TRAINING/COMPLETED/FAILED） */
+        /** 任务状态（PENDING/TRAINING/COMPLETED/FAILED�?*/
         private String status;
 
-        /** 训练进度百分比（0-100） */
+        /** 训练进度百分比（0-100�?*/
         private Integer progress;
 
-        /** 状态说明 */
+        /** 状态说�?*/
         private String message;
     }
 }

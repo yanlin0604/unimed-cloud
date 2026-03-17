@@ -20,8 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 /**
- * 数字人口播配置中心服务实现
- */
+ * 数字人口播配置中心服务实�? */
 @RequiredArgsConstructor
 @Service
 public class DhConfigServiceImpl implements IDhConfigService {
@@ -410,13 +409,13 @@ public class DhConfigServiceImpl implements IDhConfigService {
                 .ne(id != null, DhSensitiveWord::getWordId, id)
         );
         if (exists != null) {
-            throw new ServiceException("该敏感词已存在");
+            throw new ServiceException("该敏感词已存�?);
         }
     }
 
     private void assertStatusChanged(String current, String next) {
         if (StringUtils.equals(current, next)) {
-            throw new ServiceException("当前已是目标状态");
+            throw new ServiceException("当前已是目标状�?);
         }
     }
 
@@ -434,7 +433,7 @@ public class DhConfigServiceImpl implements IDhConfigService {
     private DhMemberConfig requireMemberConfig(Long id) {
         DhMemberConfig entity = memberConfigMapper.selectById(id);
         if (entity == null) {
-            throw new ServiceException("会员配置不存在");
+            throw new ServiceException("会员配置不存�?);
         }
         return entity;
     }
@@ -450,7 +449,7 @@ public class DhConfigServiceImpl implements IDhConfigService {
     private DhVideoUploadConfig requireVideoUploadConfig(Long id) {
         DhVideoUploadConfig entity = videoUploadConfigMapper.selectById(id);
         if (entity == null) {
-            throw new ServiceException("视频上传配置不存在");
+            throw new ServiceException("视频上传配置不存�?);
         }
         return entity;
     }
@@ -474,7 +473,7 @@ public class DhConfigServiceImpl implements IDhConfigService {
     private DhNotifyTemplate requireNotifyTemplate(Long id) {
         DhNotifyTemplate entity = notifyTemplateMapper.selectById(id);
         if (entity == null) {
-            throw new ServiceException("通知模板不存在");
+            throw new ServiceException("通知模板不存�?);
         }
         return entity;
     }

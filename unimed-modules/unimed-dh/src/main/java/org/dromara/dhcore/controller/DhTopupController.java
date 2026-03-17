@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 数字人口播充值审核控制器
  */
-@Tag(name = "数字人口播-充值审核")
+@Tag(name = "数字人口�?充值审�?)
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -33,14 +33,14 @@ public class DhTopupController extends BaseController {
 
     private final IDhTopupService dhTopupService;
 
-    @Operation(summary = "分页查询充值工单")
+    @Operation(summary = "分页查询充值工�?)
     @SaCheckPermission("dh:topup:list")
     @GetMapping("/list")
     public TableDataInfo<DhTopupTicketVo> list(DhTopupQueryBo bo, PageQuery pageQuery) {
         return dhTopupService.queryTopupPage(bo, pageQuery);
     }
 
-    @Operation(summary = "确认充值到账")
+    @Operation(summary = "确认充值到�?)
     @SaCheckPermission("dh:topup:approve")
     @PostMapping("/approve")
     public R<DhTopupTicketVo> approve(@Validated @RequestBody DhTopupApproveBo bo) {
@@ -54,7 +54,7 @@ public class DhTopupController extends BaseController {
         return R.ok(dhTopupService.markTopupNeedMore(bo));
     }
 
-    @Operation(summary = "驳回充值工单")
+    @Operation(summary = "驳回充值工�?)
     @SaCheckPermission("dh:topup:reject")
     @PostMapping("/reject")
     public R<DhTopupTicketVo> reject(@Validated @RequestBody DhTopupRejectBo bo) {

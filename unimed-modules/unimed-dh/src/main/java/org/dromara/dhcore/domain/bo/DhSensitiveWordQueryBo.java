@@ -5,15 +5,13 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 
 /**
- * 敏感词查询对象
- */
+ * 敏感词查询对�? */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class DhSensitiveWordQueryBo extends BaseEntity {
 
     /**
-     * 关键字
-     */
+     * 关键�?     */
     private String keyword;
 
     /**
@@ -27,7 +25,6 @@ public class DhSensitiveWordQueryBo extends BaseEntity {
     private String category;
 
     /**
-     * 状态
-     */
+     * 状�?     */
     private String status;
 }

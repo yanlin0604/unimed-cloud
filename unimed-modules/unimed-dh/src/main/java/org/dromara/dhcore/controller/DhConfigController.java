@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * 数字人口播配置中心控制器
  */
-@Tag(name = "数字人口播-配置中心")
+@Tag(name = "数字人口�?配置中心")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -82,42 +82,42 @@ public class DhConfigController extends BaseController {
         return R.ok(dhConfigService.deleteMemberConfig(id));
     }
 
-    @Operation(summary = "切换会员等级配置状态")
+    @Operation(summary = "切换会员等级配置状�?)
     @SaCheckPermission("dh:config:member:status")
     @PostMapping("/member/status")
     public R<DhMemberConfigVo> memberStatus(@Validated @RequestBody DhConfigStatusBo bo) {
         return R.ok(dhConfigService.changeMemberConfigStatus(bo));
     }
 
-    @Operation(summary = "分页查询充值档位配置")
+    @Operation(summary = "分页查询充值档位配�?)
     @SaCheckPermission("dh:config:price:list")
     @GetMapping("/price/list")
     public TableDataInfo<DhPaymentPriceConfigVo> priceList(DhPaymentPriceQueryBo bo, PageQuery pageQuery) {
         return dhConfigService.queryPaymentPricePage(bo, pageQuery);
     }
 
-    @Operation(summary = "新增充值档位配置")
+    @Operation(summary = "新增充值档位配�?)
     @SaCheckPermission("dh:config:price:add")
     @PostMapping("/price")
     public R<DhPaymentPriceConfigVo> addPrice(@Validated @RequestBody DhPaymentPriceConfigBo bo) {
         return R.ok(dhConfigService.savePaymentPriceConfig(bo));
     }
 
-    @Operation(summary = "修改充值档位配置")
+    @Operation(summary = "修改充值档位配�?)
     @SaCheckPermission("dh:config:price:edit")
     @PutMapping("/price")
     public R<DhPaymentPriceConfigVo> editPrice(@Validated @RequestBody DhPaymentPriceConfigBo bo) {
         return R.ok(dhConfigService.savePaymentPriceConfig(bo));
     }
 
-    @Operation(summary = "删除充值档位配置")
+    @Operation(summary = "删除充值档位配�?)
     @SaCheckPermission("dh:config:price:remove")
     @DeleteMapping("/price/{id}")
     public R<Boolean> removePrice(@NotNull(message = "配置ID不能为空") @PathVariable Long id) {
         return R.ok(dhConfigService.deletePaymentPriceConfig(id));
     }
 
-    @Operation(summary = "切换充值档位配置状态")
+    @Operation(summary = "切换充值档位配置状�?)
     @SaCheckPermission("dh:config:price:status")
     @PostMapping("/price/status")
     public R<DhPaymentPriceConfigVo> priceStatus(@Validated @RequestBody DhConfigStatusBo bo) {
@@ -152,84 +152,84 @@ public class DhConfigController extends BaseController {
         return R.ok(dhConfigService.deleteVideoUploadConfig(id));
     }
 
-    @Operation(summary = "切换视频上传配置状态")
+    @Operation(summary = "切换视频上传配置状�?)
     @SaCheckPermission("dh:config:video:status")
     @PostMapping("/video/status")
     public R<DhVideoUploadConfigVo> videoStatus(@Validated @RequestBody DhConfigStatusBo bo) {
         return R.ok(dhConfigService.changeVideoUploadConfigStatus(bo));
     }
 
-    @Operation(summary = "分页查询二维码上传配置")
+    @Operation(summary = "分页查询二维码上传配�?)
     @SaCheckPermission("dh:config:qr:list")
     @GetMapping("/qr/list")
     public TableDataInfo<DhQrUploadConfigVo> qrList(DhQrUploadConfigQueryBo bo, PageQuery pageQuery) {
         return dhConfigService.queryQrUploadConfigPage(bo, pageQuery);
     }
 
-    @Operation(summary = "新增二维码上传配置")
+    @Operation(summary = "新增二维码上传配�?)
     @SaCheckPermission("dh:config:qr:add")
     @PostMapping("/qr")
     public R<DhQrUploadConfigVo> addQr(@Validated @RequestBody DhQrUploadConfigBo bo) {
         return R.ok(dhConfigService.saveQrUploadConfig(bo));
     }
 
-    @Operation(summary = "修改二维码上传配置")
+    @Operation(summary = "修改二维码上传配�?)
     @SaCheckPermission("dh:config:qr:edit")
     @PutMapping("/qr")
     public R<DhQrUploadConfigVo> editQr(@Validated @RequestBody DhQrUploadConfigBo bo) {
         return R.ok(dhConfigService.saveQrUploadConfig(bo));
     }
 
-    @Operation(summary = "删除二维码上传配置")
+    @Operation(summary = "删除二维码上传配�?)
     @SaCheckPermission("dh:config:qr:remove")
     @DeleteMapping("/qr/{id}")
     public R<Boolean> removeQr(@NotNull(message = "配置ID不能为空") @PathVariable Long id) {
         return R.ok(dhConfigService.deleteQrUploadConfig(id));
     }
 
-    @Operation(summary = "切换二维码上传配置状态")
+    @Operation(summary = "切换二维码上传配置状�?)
     @SaCheckPermission("dh:config:qr:status")
     @PostMapping("/qr/status")
     public R<DhQrUploadConfigVo> qrStatus(@Validated @RequestBody DhConfigStatusBo bo) {
         return R.ok(dhConfigService.changeQrUploadConfigStatus(bo));
     }
 
-    @Operation(summary = "分页查询敏感词")
+    @Operation(summary = "分页查询敏感�?)
     @SaCheckPermission("dh:config:sensitive:list")
     @GetMapping("/sensitive/list")
     public TableDataInfo<DhSensitiveWordVo> sensitiveList(DhSensitiveWordQueryBo bo, PageQuery pageQuery) {
         return dhConfigService.querySensitiveWordPage(bo, pageQuery);
     }
 
-    @Operation(summary = "新增敏感词")
+    @Operation(summary = "新增敏感�?)
     @SaCheckPermission("dh:config:sensitive:add")
     @PostMapping("/sensitive")
     public R<DhSensitiveWordVo> addSensitive(@Validated @RequestBody DhSensitiveWordBo bo) {
         return R.ok(dhConfigService.saveSensitiveWord(bo));
     }
 
-    @Operation(summary = "修改敏感词")
+    @Operation(summary = "修改敏感�?)
     @SaCheckPermission("dh:config:sensitive:edit")
     @PutMapping("/sensitive")
     public R<DhSensitiveWordVo> editSensitive(@Validated @RequestBody DhSensitiveWordBo bo) {
         return R.ok(dhConfigService.saveSensitiveWord(bo));
     }
 
-    @Operation(summary = "删除敏感词")
+    @Operation(summary = "删除敏感�?)
     @SaCheckPermission("dh:config:sensitive:remove")
     @DeleteMapping("/sensitive/{id}")
     public R<Boolean> removeSensitive(@NotNull(message = "敏感词ID不能为空") @PathVariable Long id) {
         return R.ok(dhConfigService.deleteSensitiveWord(id));
     }
 
-    @Operation(summary = "切换敏感词状态")
+    @Operation(summary = "切换敏感词状�?)
     @SaCheckPermission("dh:config:sensitive:status")
     @PostMapping("/sensitive/status")
     public R<DhSensitiveWordVo> sensitiveStatus(@Validated @RequestBody DhConfigStatusBo bo) {
         return R.ok(dhConfigService.changeSensitiveWordStatus(bo));
     }
 
-    @Operation(summary = "批量导入敏感词")
+    @Operation(summary = "批量导入敏感�?)
     @SaCheckPermission("dh:config:sensitive:import")
     @PostMapping("/sensitive/import")
     public R<Map<String, Integer>> importSensitive(@Validated @RequestBody DhSensitiveWordImportBo bo) {
@@ -257,7 +257,7 @@ public class DhConfigController extends BaseController {
         return R.ok(dhConfigService.saveNotifyTemplate(bo));
     }
 
-    @Operation(summary = "切换通知模板状态")
+    @Operation(summary = "切换通知模板状�?)
     @SaCheckPermission("dh:config:notify:status")
     @PostMapping("/notify/status")
     public R<DhNotifyTemplateVo> notifyStatus(@Validated @RequestBody DhConfigStatusBo bo) {

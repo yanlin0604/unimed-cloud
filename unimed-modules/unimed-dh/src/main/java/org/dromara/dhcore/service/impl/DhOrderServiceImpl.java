@@ -120,7 +120,7 @@ public class DhOrderServiceImpl implements IDhOrderService {
         order.setRejectReason(bo.getReason());
         orderMapper.updateById(order);
 
-        insertProcessLog(order.getOrderId(), String.format("订单已拒绝(%s)：%s", bo.getViolationType(), bo.getReason()), operatorName, now);
+        insertProcessLog(order.getOrderId(), String.format("订单已拒�?%s)�?s", bo.getViolationType(), bo.getReason()), operatorName, now);
         return queryOrderDetail(order.getOrderId());
     }
 
@@ -139,7 +139,7 @@ public class DhOrderServiceImpl implements IDhOrderService {
             orderMapper.updateById(order);
             insertProcessLog(orderId, "运营领取订单", operatorName, now);
         } else if (!Objects.equals(order.getStatus(), DhOrderStatus.PROCESSING)) {
-            throw new ServiceException("当前状态不可执行该操作，请刷新后重试");
+            throw new ServiceException("当前状态不可执行该操作，请刷新后重�?);
         }
 
         DhOrderProductionAsset asset = getOrCreateAsset(orderId);
@@ -148,7 +148,7 @@ public class DhOrderServiceImpl implements IDhOrderService {
             orderProductionAssetMapper.updateById(asset);
         }
 
-        insertProcessLog(orderId, "开始视频制作", operatorName, now);
+        insertProcessLog(orderId, "开始视频制�?, operatorName, now);
         return toAssetVo(asset);
     }
 
@@ -258,7 +258,7 @@ public class DhOrderServiceImpl implements IDhOrderService {
     private DhOrder requireOrder(Long orderId) {
         DhOrder order = orderMapper.selectById(orderId);
         if (order == null) {
-            throw new ServiceException("订单不存在");
+            throw new ServiceException("订单不存�?);
         }
         return order;
     }

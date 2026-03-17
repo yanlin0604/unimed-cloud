@@ -5,8 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 配置状态变更对象
- */
+ * 配置状态变更对�? */
 @Data
 public class DhConfigStatusBo {
 
@@ -17,8 +16,7 @@ public class DhConfigStatusBo {
     private Long id;
 
     /**
-     * 配置状态（0启用 1停用）
-     */
-    @NotBlank(message = "配置状态不能为空")
+     * 配置状态（0启用 1停用�?     */
+    @NotBlank(message = "配置状态不能为�?)
     private String status;
 }

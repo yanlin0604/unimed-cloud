@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 /**
  * C端会员等级配置视图对象（用于权益对比表）
  *
- * @author AI
+ * @author unimed
  */
 @Data
 public class PortalMemberLevelVo implements Serializable {
@@ -23,7 +23,7 @@ public class PortalMemberLevelVo implements Serializable {
     private Long id;
 
     /**
-     * 会员等级（NORMAL/VIP/SVIP）
+     * 会员等级（NORMAL/VIP/SVIP�?
      */
     private String level;
 
@@ -43,12 +43,12 @@ public class PortalMemberLevelVo implements Serializable {
     private Integer monthlyLimit;
 
     /**
-     * 速度优先级
+     * 速度优先�?
      */
     private Integer speedPriority;
 
     /**
-     * 最低充值金额要求
+     * 最低充值金额要�?
      */
     private BigDecimal minTopupAmount;
 

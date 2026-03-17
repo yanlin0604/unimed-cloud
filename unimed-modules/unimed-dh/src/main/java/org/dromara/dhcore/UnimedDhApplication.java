@@ -5,8 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
 
 /**
- * 数字人业务服务
- *
+ * 数字人业务服�? *
  * @author unimed
  */
 @SpringBootApplication
@@ -15,6 +14,6 @@ public class UnimedDhApplication {
         SpringApplication application = new SpringApplication(UnimedDhApplication.class);
         application.setApplicationStartup(new BufferingApplicationStartup(2048));
         application.run(args);
-        System.out.println("(♥◠‿◠)ﾉﾞ  数字人业务服务模块启动成功   ლ(´ڡ`ლ)ﾞ");
+        System.out.println("(♥◠‿◠)ﾉﾞ  数字人业务服务模块启动成�?  �?´ڡ`�?�?);
     }
 }

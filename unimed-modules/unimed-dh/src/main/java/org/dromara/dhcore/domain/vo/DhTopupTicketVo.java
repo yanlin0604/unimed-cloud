@@ -8,8 +8,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 充值工单视图对象
- */
+ * 充值工单视图对�? */
 @Data
 public class DhTopupTicketVo implements Serializable {
 
@@ -27,18 +26,15 @@ public class DhTopupTicketVo implements Serializable {
     private Long userId;
 
     /**
-     * 用户名
-     */
+     * 用户�?     */
     private String userName;
 
     /**
-     * 申请充值金额
-     */
+     * 申请充值金�?     */
     private BigDecimal amount;
 
     /**
-     * 工单状态
-     */
+     * 工单状�?     */
     private String status;
 
     /**
@@ -57,8 +53,7 @@ public class DhTopupTicketVo implements Serializable {
     private BigDecimal actualAmount;
 
     /**
-     * 审核人
-     */
+     * 审核�?     */
     private String approvedBy;
 
     /**

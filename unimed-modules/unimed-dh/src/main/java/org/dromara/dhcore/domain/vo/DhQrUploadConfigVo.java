@@ -7,8 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 收款码配置视图对象
- */
+ * 收款码配置视图对�? */
 @Data
 public class DhQrUploadConfigVo implements Serializable {
 
@@ -26,8 +25,7 @@ public class DhQrUploadConfigVo implements Serializable {
     private String configName;
 
     /**
-     * 收款码类型
-     */
+     * 收款码类�?     */
     private String type;
 
     /**
@@ -36,8 +34,7 @@ public class DhQrUploadConfigVo implements Serializable {
     private String qrImageIds;
 
     /**
-     * 收款账户名
-     */
+     * 收款账户�?     */
     private String accountName;
 
     /**
@@ -51,8 +48,7 @@ public class DhQrUploadConfigVo implements Serializable {
     private String bankName;
 
     /**
-     * 状态
-     */
+     * 状�?     */
     private String status;
 
     /**

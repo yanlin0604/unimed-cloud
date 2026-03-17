@@ -39,13 +39,11 @@ public class DhNotifyTemplateBo {
     private String content;
 
     /**
-     * 超时阈值（小时）
-     */
+     * 超时阈值（小时�?     */
     private Integer timeoutHours;
 
     /**
-     * 状态
-     */
-    @NotBlank(message = "状态不能为空")
+     * 状�?     */
+    @NotBlank(message = "状态不能为�?)
     private String status;
 }

@@ -10,7 +10,7 @@ import java.util.Date;
 /**
  * C端充值记录视图对象（对应 DhTopupTicket，精简版）
  *
- * @author AI
+ * @author unimed
  */
 @Data
 public class PortalTopupRecordVo implements Serializable {
@@ -24,17 +24,17 @@ public class PortalTopupRecordVo implements Serializable {
     private Long id;
 
     /**
-     * 申请充值金额
+     * 申请充值金�?
      */
     private BigDecimal amount;
 
     /**
-     * 实际到账金额（审核后填入）
+     * 实际到账金额（审核后填入�?
      */
     private BigDecimal actualAmount;
 
     /**
-     * 工单状态（PENDING/APPROVED/NEED_MORE/REJECTED）
+     * 工单状态（PENDING/APPROVED/NEED_MORE/REJECTED�?
      */
     private String status;
 

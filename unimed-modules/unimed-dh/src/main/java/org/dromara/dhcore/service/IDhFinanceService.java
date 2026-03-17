@@ -8,13 +8,11 @@ import org.dromara.dhcore.domain.vo.DhFinanceSummaryVo;
 import org.dromara.dhcore.domain.vo.DhWalletLogVo;
 
 /**
- * 数字人口播财务报表服务接口
- */
+ * 数字人口播财务报表服务接�? */
 public interface IDhFinanceService {
 
     /**
-     * 查询财务汇总
-     */
+     * 查询财务汇�?     */
     DhFinanceSummaryVo querySummary(DhFinanceSummaryQueryBo bo);
 
     /**

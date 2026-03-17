@@ -27,8 +27,7 @@ public class DhQrUploadConfig extends TenantEntity {
     private String configName;
 
     /**
-     * 收款码类型
-     */
+     * 收款码类�?     */
     private String type;
 
     /**
@@ -37,8 +36,7 @@ public class DhQrUploadConfig extends TenantEntity {
     private String qrImageIds;
 
     /**
-     * 收款账户名
-     */
+     * 收款账户�?     */
     private String accountName;
 
     /**
@@ -52,8 +50,7 @@ public class DhQrUploadConfig extends TenantEntity {
     private String bankName;
 
     /**
-     * 状态（0启用 1停用）
-     */
+     * 状态（0启用 1停用�?     */
     private String status;
 
     /**

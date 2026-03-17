@@ -22,8 +22,7 @@ public class DhSensitiveWord extends TenantEntity {
     private Long wordId;
 
     /**
-     * 敏感词
-     */
+     * 敏感�?     */
     private String word;
 
     /**
@@ -37,8 +36,7 @@ public class DhSensitiveWord extends TenantEntity {
     private String category;
 
     /**
-     * 状态（0启用 1停用）
-     */
+     * 状态（0启用 1停用�?     */
     private String status;
 
     /**

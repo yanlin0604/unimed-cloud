@@ -10,8 +10,7 @@ import lombok.Data;
 public class DhDashboardQueryBo {
 
     /**
-     * 统计时间范围（today/7d/30d）
-     */
+     * 统计时间范围（today/7d/30d�?     */
     @NotBlank(message = "时间范围不能为空")
     private String range;
 }

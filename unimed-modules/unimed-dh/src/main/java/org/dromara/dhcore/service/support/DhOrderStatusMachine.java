@@ -13,7 +13,7 @@ public final class DhOrderStatusMachine {
     /**
      * 状态流转规则：
      * PENDING -> PROCESSING/CANCELLED
-     * PROCESSING 或 TO_UPLOAD -> COMPLETED/REDO/CANCELLED/REJECTED
+     * PROCESSING �?TO_UPLOAD -> COMPLETED/REDO/CANCELLED/REJECTED
      * REDO -> PROCESSING/COMPLETED/CANCELLED
      * COMPLETED/CANCELLED/REJECTED 为终态，不可继续流转
      */
@@ -33,7 +33,7 @@ public final class DhOrderStatusMachine {
     public static void assertTransition(String currentStatus, String targetStatus) {
         Set<String> targetSet = TRANSITION_MAP.get(currentStatus);
         if (targetSet == null || !targetSet.contains(targetStatus)) {
-            throw new ServiceException("当前状态不可执行该操作，请刷新后重试");
+            throw new ServiceException("当前状态不可执行该操作，请刷新后重�?);
         }
     }
 }

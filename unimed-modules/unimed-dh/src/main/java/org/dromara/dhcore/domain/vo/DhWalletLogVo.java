@@ -27,8 +27,7 @@ public class DhWalletLogVo implements Serializable {
     private Long userId;
 
     /**
-     * 用户名
-     */
+     * 用户�?     */
     private String userName;
 
     /**
@@ -42,8 +41,7 @@ public class DhWalletLogVo implements Serializable {
     private BigDecimal amount;
 
     /**
-     * 变动后余额
-     */
+     * 变动后余�?     */
     private BigDecimal balanceAfter;
 
     /**
@@ -52,8 +50,7 @@ public class DhWalletLogVo implements Serializable {
     private Long relatedOrderId;
 
     /**
-     * 操作人
-     */
+     * 操作�?     */
     private String operatorName;
 
     /**

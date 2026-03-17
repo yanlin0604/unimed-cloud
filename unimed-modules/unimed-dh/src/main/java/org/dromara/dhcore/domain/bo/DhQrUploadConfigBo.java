@@ -4,8 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * 收款码配置提交对象
- */
+ * 收款码配置提交对�? */
 @Data
 public class DhQrUploadConfigBo {
 
@@ -21,9 +20,8 @@ public class DhQrUploadConfigBo {
     private String configName;
 
     /**
-     * 收款码类型
-     */
-    @NotBlank(message = "收款码类型不能为空")
+     * 收款码类�?     */
+    @NotBlank(message = "收款码类型不能为�?)
     private String type;
 
     /**
@@ -32,9 +30,8 @@ public class DhQrUploadConfigBo {
     private String qrImageIds;
 
     /**
-     * 收款账户名
-     */
-    @NotBlank(message = "收款账户名不能为空")
+     * 收款账户�?     */
+    @NotBlank(message = "收款账户名不能为�?)
     private String accountName;
 
     /**
@@ -49,9 +46,8 @@ public class DhQrUploadConfigBo {
     private String bankName;
 
     /**
-     * 状态
-     */
-    @NotBlank(message = "状态不能为空")
+     * 状�?     */
+    @NotBlank(message = "状态不能为�?)
     private String status;
 
     /**

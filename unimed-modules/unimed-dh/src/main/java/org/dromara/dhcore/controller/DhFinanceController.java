@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 数字人口播财务报表控制器
  */
-@Tag(name = "数字人口播-财务报表")
+@Tag(name = "数字人口�?财务报表")
 @Validated
 @RequiredArgsConstructor
 @RestController
@@ -30,7 +30,7 @@ public class DhFinanceController extends BaseController {
 
     private final IDhFinanceService dhFinanceService;
 
-    @Operation(summary = "查询财务汇总")
+    @Operation(summary = "查询财务汇�?)
     @SaCheckPermission("dh:finance:list")
     @GetMapping("/summary")
     public R<DhFinanceSummaryVo> summary(DhFinanceSummaryQueryBo bo) {

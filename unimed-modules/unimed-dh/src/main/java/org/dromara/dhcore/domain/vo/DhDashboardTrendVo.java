@@ -7,8 +7,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * 看板趋势项视图对象
- */
+ * 看板趋势项视图对�? */
 @Data
 public class DhDashboardTrendVo implements Serializable {
 
@@ -21,13 +20,11 @@ public class DhDashboardTrendVo implements Serializable {
     private String date;
 
     /**
-     * 订单量
-     */
+     * 订单�?     */
     private Integer orders;
 
     /**
-     * 完成量
-     */
+     * 完成�?     */
     private Integer completed;
 
     /**
