@@ -39,7 +39,6 @@ import java.util.Set;
 public class PortalAuthServiceImpl implements IPortalAuthService {
 
     private static final String SMS_CODE_KEY_PREFIX = "portal:sms:code:";
-    private static final String TEST_CODE = "123456";
     private static final int CODE_EXPIRE_MINUTES = 5;
     private static final String USER_TYPE_PORTAL = "portal";
     /**
@@ -54,12 +53,12 @@ public class PortalAuthServiceImpl implements IPortalAuthService {
         String phone = bo.getPhone();
         String cacheKey = SMS_CODE_KEY_PREFIX + phone;
 
-        // 开发环境返回测试验证码
-        String code = TEST_CODE;
+        // 生成随机6位数字验证码
+        String code = cn.hutool.core.util.RandomUtil.randomNumbers(6);
         RedisUtils.setCacheObject(cacheKey, code, Duration.ofMinutes(CODE_EXPIRE_MINUTES));
         log.info("发送短信验证码到手机: {}, 验证码: {}", phone, code);
 
-        // 返回测试验证码供前端使用（生产环境应返回 null）
+        // 返回验证码供前端使用（生产环境应返回 null）
         return code;
     }
 
