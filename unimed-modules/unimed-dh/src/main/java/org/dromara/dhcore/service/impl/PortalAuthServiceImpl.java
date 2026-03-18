@@ -229,7 +229,8 @@ public class PortalAuthServiceImpl implements IPortalAuthService {
         loginUser.setUsername(user.getUserName());
         loginUser.setNickname(user.getUserName());
         loginUser.setUserType(USER_TYPE_PORTAL);
-        loginUser.setMenuPermission(Set.of());
+        // C端用户基础权限：文件上传、文件下载
+        loginUser.setMenuPermission(Set.of("system:oss:upload", "system:oss:download"));
         loginUser.setRolePermission(Set.of());
 
         // 使用 LoginHelper 登录（正确设置扩展信息）

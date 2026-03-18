@@ -40,6 +40,13 @@ public class SaPermissionImpl implements StpInterface {
         if (userType == UserType.APP_USER) {
             // 其他端 自行根据业务编写
         }
+        if (userType == UserType.PORTAL_USER) {
+            // C端门户用户：返回登录时设置的权限
+            if (CollUtil.isNotEmpty(loginUser.getMenuPermission())) {
+                return new ArrayList<>(loginUser.getMenuPermission());
+            }
+            return new ArrayList<>();
+        }
         if (CollUtil.isNotEmpty(loginUser.getMenuPermission())) {
             // SYS_USER 默认返回权限
             return new ArrayList<>(loginUser.getMenuPermission());
@@ -66,6 +73,13 @@ public class SaPermissionImpl implements StpInterface {
         UserType userType = UserType.getUserType(loginUser.getUserType());
         if (userType == UserType.APP_USER) {
             // 其他端 自行根据业务编写
+        }
+        if (userType == UserType.PORTAL_USER) {
+            // C端门户用户：返回登录时设置的角色
+            if (CollUtil.isNotEmpty(loginUser.getRolePermission())) {
+                return new ArrayList<>(loginUser.getRolePermission());
+            }
+            return new ArrayList<>();
         }
         if (CollUtil.isNotEmpty(loginUser.getRolePermission())) {
             // SYS_USER 默认返回权限
