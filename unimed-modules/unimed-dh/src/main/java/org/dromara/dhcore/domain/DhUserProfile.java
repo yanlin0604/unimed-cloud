@@ -35,6 +35,11 @@ public class DhUserProfile extends TenantEntity {
     private String phone;
 
     /**
+     * 密码
+     */
+    private String password;
+
+    /**
      * 头像URL
      */
     private String avatar;

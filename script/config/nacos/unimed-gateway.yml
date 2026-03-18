@@ -27,6 +27,8 @@ security:
       - /dh/api/v1/dh/external/**
       # C端门户公开接口（无需登录）
       - /dh/portal/creation/templates
+      # C端门户认证接口
+      - /dh/portal/auth/**
       # 健康检查和监控
       - /actuator/**
 
