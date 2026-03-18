@@ -11,6 +11,7 @@ import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.redis.utils.RedisUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.dhcore.domain.DhUserProfile;
+import org.dromara.dhcore.domain.bo.portal.PasswordUpdateBo;
 import org.dromara.dhcore.domain.bo.portal.PasswordLoginBo;
 import org.dromara.dhcore.domain.bo.portal.PortalRegisterBo;
 import org.dromara.dhcore.domain.bo.portal.SmsCodeBo;
@@ -125,6 +126,32 @@ public class PortalAuthServiceImpl implements IPortalAuthService {
     @Override
     public void logout() {
         StpUtil.logout();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePassword(PasswordUpdateBo bo) {
+        Long userId = LoginHelper.getUserId();
+
+        // 查询用户
+        DhUserProfile user = userProfileMapper.selectById(userId);
+        if (user == null) {
+            throw new ServiceException("用户不存在");
+        }
+
+        // 验证旧密码
+        if (user.getPassword() == null) {
+            // 用户未设置密码（可能是短信登录创建的），允许直接设置密码
+            log.info("用户未设置密码，直接设置新密码: userId={}", userId);
+        } else if (!BCrypt.checkpw(bo.getOldPassword(), user.getPassword())) {
+            throw new ServiceException("旧密码错误");
+        }
+
+        // 更新密码
+        user.setPassword(BCrypt.hashpw(bo.getNewPassword()));
+        userProfileMapper.updateById(user);
+
+        log.info("用户修改密码成功: userId={}", userId);
     }
 
     @Override

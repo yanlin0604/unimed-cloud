@@ -1,6 +1,7 @@
 package org.dromara.dhcore.service;
 
 import org.dromara.dhcore.domain.bo.portal.PasswordLoginBo;
+import org.dromara.dhcore.domain.bo.portal.PasswordUpdateBo;
 import org.dromara.dhcore.domain.bo.portal.PortalRegisterBo;
 import org.dromara.dhcore.domain.bo.portal.SmsCodeBo;
 import org.dromara.dhcore.domain.bo.portal.SmsLoginBo;
@@ -49,4 +50,9 @@ public interface IPortalAuthService {
      * 登出
      */
     void logout();
+
+    /**
+     * 修改密码
+     */
+    void updatePassword(PasswordUpdateBo bo);
 }

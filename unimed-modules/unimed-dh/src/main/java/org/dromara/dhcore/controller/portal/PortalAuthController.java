@@ -1,11 +1,13 @@
 package org.dromara.dhcore.controller.portal;
 
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.dhcore.domain.bo.portal.PasswordLoginBo;
+import org.dromara.dhcore.domain.bo.portal.PasswordUpdateBo;
 import org.dromara.dhcore.domain.bo.portal.PortalRegisterBo;
 import org.dromara.dhcore.domain.bo.portal.SmsCodeBo;
 import org.dromara.dhcore.domain.bo.portal.SmsLoginBo;
@@ -13,6 +15,7 @@ import org.dromara.dhcore.domain.vo.portal.PortalLoginVo;
 import org.dromara.dhcore.service.IPortalAuthService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -79,5 +82,16 @@ public class PortalAuthController extends BaseController {
     public R<PortalLoginVo> register(@Validated @RequestBody PortalRegisterBo bo) {
         PortalLoginVo vo = portalAuthService.register(bo);
         return R.ok(vo);
+    }
+
+    /**
+     * 修改密码
+     */
+    @Operation(summary = "修改密码")
+    @SaCheckLogin
+    @PutMapping("/password")
+    public R<Void> updatePassword(@Validated @RequestBody PasswordUpdateBo bo) {
+        portalAuthService.updatePassword(bo);
+        return R.ok();
     }
 }
