@@ -12,10 +12,10 @@ import lombok.Data;
 public class PortalProfileUpdateBo {
 
     /**
-     * 昵称
+     * 用户名/昵称
      */
-    @Size(max = 30, message = "昵称不能超过30个字符")
-    private String nickName;
+    @Size(max = 30, message = "用户名不能超过30个字符")
+    private String userName;
 
     /**
      * 头像URL

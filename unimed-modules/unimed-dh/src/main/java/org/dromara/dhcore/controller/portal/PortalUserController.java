@@ -52,7 +52,6 @@ public class PortalUserController extends BaseController {
         PortalUserProfileVo vo = new PortalUserProfileVo();
         vo.setUserId(detail.getId());
         vo.setUserName(detail.getUserName());
-        vo.setNickName(detail.getUserName()); // DhUserProfile 暂无 nickName，使用 userName 替代
         vo.setPhone(detail.getPhone());
         vo.setAvatar(detail.getAvatar());
         vo.setMemberLevel(detail.getMemberLevel());
@@ -74,6 +73,9 @@ public class PortalUserController extends BaseController {
             return R.fail("用户信息不存在");
         }
         // 仅允许修改安全字段
+        if (bo.getUserName() != null) {
+            profile.setUserName(bo.getUserName());
+        }
         if (bo.getAvatar() != null) {
             profile.setAvatar(bo.getAvatar());
         }

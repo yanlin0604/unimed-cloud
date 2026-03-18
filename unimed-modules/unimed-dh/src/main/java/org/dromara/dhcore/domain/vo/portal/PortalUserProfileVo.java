@@ -29,11 +29,6 @@ public class PortalUserProfileVo implements Serializable {
     private String userName;
 
     /**
-     * 昵称
-     */
-    private String nickName;
-
-    /**
      * 手机号
      */
     private String phone;
