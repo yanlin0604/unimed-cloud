@@ -80,6 +80,23 @@ public class PortalOrderCreateBo {
     private String speechSpeed;
 
     /**
+     * 视频比例（如 16:9、9:16、1:1）
+     */
+    @Size(max = 16, message = "视频比例不能超过16个字符")
+    private String videoRatio;
+
+    /**
+     * 视频规格（如 1920x1080、1080x1920）
+     */
+    @Size(max = 32, message = "视频规格不能超过32个字符")
+    private String videoResolution;
+
+    /**
+     * 视频时长（秒）
+     */
+    private Integer videoDuration;
+
+    /**
      * 联系方式
      */
     private String contactInfo;

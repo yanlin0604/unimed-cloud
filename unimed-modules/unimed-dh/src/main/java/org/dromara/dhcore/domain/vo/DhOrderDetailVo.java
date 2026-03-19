@@ -64,6 +64,21 @@ public class DhOrderDetailVo extends DhOrderItemVo {
     private String speechSpeed;
 
     /**
+     * 视频比例（如 16:9、9:16、1:1）
+     */
+    private String videoRatio;
+
+    /**
+     * 视频规格（如 1920x1080、1080x1920）
+     */
+    private String videoResolution;
+
+    /**
+     * 视频时长（秒）
+     */
+    private Integer videoDuration;
+
+    /**
      * 订单金额
      */
     private java.math.BigDecimal orderAmount;
