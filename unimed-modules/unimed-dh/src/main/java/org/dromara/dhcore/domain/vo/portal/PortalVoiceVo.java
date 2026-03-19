@@ -1,5 +1,7 @@
 package org.dromara.dhcore.domain.vo.portal;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.io.Serial;
@@ -20,6 +22,7 @@ public class PortalVoiceVo implements Serializable {
     /**
      * 音色ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
