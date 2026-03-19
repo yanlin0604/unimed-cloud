@@ -250,7 +250,7 @@ public class DhUserServiceImpl implements IDhUserService {
         vo.setTitle(order.getTitle());
         vo.setApplicantName(order.getApplicantName());
         vo.setMemberLevel(order.getMemberLevel());
-        vo.setStatus(order.getStatus());
+        vo.setStatus(order.getStatus() != null ? order.getStatus().getValue() : null);
         vo.setIsRedo(order.getIsRedo() != null && order.getIsRedo() == 1);
         vo.setPriority(order.getPriority());
         vo.setAssigneeName(order.getAssigneeName());

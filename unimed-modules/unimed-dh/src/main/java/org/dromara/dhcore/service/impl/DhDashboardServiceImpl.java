@@ -10,7 +10,7 @@ import org.dromara.dhcore.domain.vo.DhDashboardMetricsVo;
 import org.dromara.dhcore.domain.vo.DhDashboardTrendVo;
 import org.dromara.dhcore.mapper.DhOrderMapper;
 import org.dromara.dhcore.service.IDhDashboardService;
-import org.dromara.dhcore.service.support.DhOrderStatus;
+import org.dromara.dhcore.support.enums.DhOrderStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
