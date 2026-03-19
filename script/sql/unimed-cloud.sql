@@ -1044,3 +1044,84 @@ CREATE TABLE IF NOT EXISTS undo_log
     log_modified  DATETIME(6)  NOT NULL COMMENT 'modify datetime',
     UNIQUE KEY ux_undo_log (xid, branch_id)
 ) ENGINE = InnoDB COMMENT ='AT transaction mode undo table';
+
+-- ----------------------------
+-- 数字人形象表
+-- ----------------------------
+CREATE TABLE dh_avatar (
+    avatar_id       BIGINT(20)      NOT NULL AUTO_INCREMENT COMMENT '形象ID',
+    tenant_id       VARCHAR(20)     DEFAULT '000000' COMMENT '租户编号',
+    user_id         BIGINT(20)      NULL COMMENT '用户ID（系统预设为空）',
+    name            VARCHAR(100)    NOT NULL COMMENT '形象名称',
+    oss_id          VARCHAR(64)     NULL COMMENT 'OSS文件ID',
+    image_url       VARCHAR(500)    NULL COMMENT '图片URL',
+    is_system       TINYINT(1)      DEFAULT 0 COMMENT '是否系统预设 0否 1是',
+    status          CHAR(1)         DEFAULT '0' COMMENT '状态 0正常 1禁用',
+    sort_order      INT(11)         DEFAULT 0 COMMENT '排序号',
+    remark          VARCHAR(500)    NULL COMMENT '备注',
+    create_dept     BIGINT(20)      NULL COMMENT '创建部门',
+    create_by       BIGINT(20)      NULL COMMENT '创建者',
+    create_time     DATETIME        NULL COMMENT '创建时间',
+    update_by       BIGINT(20)      NULL COMMENT '更新者',
+    update_time     DATETIME        NULL COMMENT '更新时间',
+    del_flag        CHAR(1)         DEFAULT '0' COMMENT '删除标志（0代表存在 1代表删除）',
+    PRIMARY KEY (avatar_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_tenant_id (tenant_id)
+) ENGINE = InnoDB COMMENT = '数字人形象表';
+
+-- ----------------------------
+-- 音色表
+-- ----------------------------
+CREATE TABLE dh_voice (
+    voice_id        BIGINT(20)      NOT NULL AUTO_INCREMENT COMMENT '音色ID',
+    tenant_id       VARCHAR(20)     DEFAULT '000000' COMMENT '租户编号',
+    user_id         BIGINT(20)      NULL COMMENT '用户ID（系统预设为空）',
+    name            VARCHAR(100)    NOT NULL COMMENT '音色名称',
+    oss_id          VARCHAR(64)     NULL COMMENT 'OSS文件ID',
+    sample_url      VARCHAR(500)    NULL COMMENT '试听音频URL',
+    source          VARCHAR(20)     DEFAULT 'system' COMMENT '来源 system/clone/upload',
+    is_system       TINYINT(1)      DEFAULT 0 COMMENT '是否系统预设 0否 1是',
+    status          CHAR(1)         DEFAULT '0' COMMENT '状态 0正常 1禁用',
+    sort_order      INT(11)         DEFAULT 0 COMMENT '排序号',
+    remark          VARCHAR(500)    NULL COMMENT '备注',
+    create_dept     BIGINT(20)      NULL COMMENT '创建部门',
+    create_by       BIGINT(20)      NULL COMMENT '创建者',
+    create_time     DATETIME        NULL COMMENT '创建时间',
+    update_by       BIGINT(20)      NULL COMMENT '更新者',
+    update_time     DATETIME        NULL COMMENT '更新时间',
+    del_flag        CHAR(1)         DEFAULT '0' COMMENT '删除标志（0代表存在 1代表删除）',
+    PRIMARY KEY (voice_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_tenant_id (tenant_id)
+) ENGINE = InnoDB COMMENT = '音色表';
+
+-- ----------------------------
+-- 用户素材表
+-- ----------------------------
+CREATE TABLE dh_material (
+    material_id     BIGINT(20)      NOT NULL AUTO_INCREMENT COMMENT '素材ID',
+    tenant_id       VARCHAR(20)     DEFAULT '000000' COMMENT '租户编号',
+    user_id         BIGINT(20)      NOT NULL COMMENT '用户ID',
+    material_type   VARCHAR(20)     NOT NULL COMMENT '类型 IMAGE/VIDEO/AUDIO',
+    name            VARCHAR(200)    NULL COMMENT '素材名称',
+    file_name       VARCHAR(200)    NULL COMMENT '原始文件名',
+    oss_id          VARCHAR(64)     NULL COMMENT 'OSS文件ID',
+    file_url        VARCHAR(500)    NULL COMMENT '文件URL',
+    thumbnail_url   VARCHAR(500)    NULL COMMENT '缩略图URL',
+    file_size       BIGINT(20)      NULL COMMENT '文件大小(字节)',
+    resolution      VARCHAR(50)     NULL COMMENT '分辨率',
+    duration        INT(11)         NULL COMMENT '时长(秒)',
+    status          CHAR(1)         DEFAULT '0' COMMENT '状态 0正常 1禁用',
+    remark          VARCHAR(500)    NULL COMMENT '备注',
+    create_dept     BIGINT(20)      NULL COMMENT '创建部门',
+    create_by       BIGINT(20)      NULL COMMENT '创建者',
+    create_time     DATETIME        NULL COMMENT '创建时间',
+    update_by       BIGINT(20)      NULL COMMENT '更新者',
+    update_time     DATETIME        NULL COMMENT '更新时间',
+    del_flag        CHAR(1)         DEFAULT '0' COMMENT '删除标志（0代表存在 1代表删除）',
+    PRIMARY KEY (material_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_tenant_id (tenant_id),
+    INDEX idx_material_type (material_type)
+) ENGINE = InnoDB COMMENT = '用户素材表';
