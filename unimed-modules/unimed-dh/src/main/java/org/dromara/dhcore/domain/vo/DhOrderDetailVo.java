@@ -1,5 +1,7 @@
 package org.dromara.dhcore.domain.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -94,6 +96,7 @@ public class DhOrderDetailVo extends DhOrderItemVo {
     /**
      * 原订单ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long originalOrderId;
 
     /**

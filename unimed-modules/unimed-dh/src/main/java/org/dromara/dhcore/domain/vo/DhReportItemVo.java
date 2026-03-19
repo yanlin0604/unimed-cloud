@@ -1,5 +1,7 @@
 package org.dromara.dhcore.domain.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.io.Serial;
@@ -18,6 +20,7 @@ public class DhReportItemVo implements Serializable {
     /**
      * 举报单ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
@@ -28,6 +31,7 @@ public class DhReportItemVo implements Serializable {
     /**
      * 被举报用户ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long targetUserId;
 
     /**

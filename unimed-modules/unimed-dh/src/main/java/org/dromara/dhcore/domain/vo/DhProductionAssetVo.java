@@ -1,5 +1,7 @@
 package org.dromara.dhcore.domain.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
 import org.dromara.dhcore.domain.DhOrderProductionAsset;
@@ -22,6 +24,7 @@ public class DhProductionAssetVo implements Serializable {
     /**
      * 订单ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long orderId;
 
     /**
