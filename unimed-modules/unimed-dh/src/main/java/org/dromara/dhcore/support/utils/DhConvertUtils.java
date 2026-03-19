@@ -32,6 +32,7 @@ public final class DhConvertUtils {
         vo.setAvatarId(avatar.getAvatarId());
         vo.setName(avatar.getName());
         vo.setImageUrl(avatar.getImageUrl());
+        vo.setOssId(avatar.getOssId());
         vo.setIsSystem(avatar.getIsSystem() != null && avatar.getIsSystem() == 1);
         vo.setCreateTime(avatar.getCreateTime());
         return vo;
@@ -51,6 +52,7 @@ public final class DhConvertUtils {
         vo.setVoiceId(voice.getVoiceId());
         vo.setName(voice.getName());
         vo.setSampleUrl(voice.getSampleUrl());
+        vo.setOssId(voice.getOssId());
         vo.setSource(voice.getSource());
         vo.setIsSystem(voice.getIsSystem() != null && voice.getIsSystem() == 1);
         vo.setCreateTime(voice.getCreateTime());

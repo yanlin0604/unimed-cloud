@@ -36,6 +36,16 @@ public class DhVoiceVo implements Serializable {
     private String sampleUrl;
 
     /**
+     * OSS文件ID
+     */
+    private String ossId;
+
+    /**
+     * 原始文件名
+     */
+    private String fileName;
+
+    /**
      * 来源 system/clone/upload
      */
     private String source;

@@ -77,7 +77,22 @@ public class OrderCreationHelper {
         if (StringUtils.isNotBlank(avatarUploadOssId)) {
             DhAvatar tempAvatar = new DhAvatar();
             tempAvatar.setUserId(userId);
-            tempAvatar.setName("临时形象-" + DateUtil.format(new Date(), "yyyyMMddHHmmss"));
+            
+            // 从 OSS 获取原文件名
+            String fileName = null;
+            try {
+                List<RemoteFile> files = remoteFileService.selectByIds(avatarUploadOssId);
+                if (files != null && !files.isEmpty()) {
+                    fileName = files.get(0).getOriginalName();
+                }
+            } catch (Exception e) {
+                log.warn("获取临时形象原文件名失败: {}", avatarUploadOssId, e);
+            }
+            if (StringUtils.isBlank(fileName)) {
+                fileName = "形象-" + DateUtil.format(new Date(), "yyyyMMddHHmmss");
+            }
+            
+            tempAvatar.setName(fileName);
             tempAvatar.setOssId(avatarUploadOssId);
             tempAvatar.setIsSystem(0);
             tempAvatar.setStatus("0");
@@ -95,7 +110,22 @@ public class OrderCreationHelper {
         if (StringUtils.isNotBlank(voiceUploadOssId)) {
             DhVoice tempVoice = new DhVoice();
             tempVoice.setUserId(userId);
-            tempVoice.setName("临时音色-" + DateUtil.format(new Date(), "yyyyMMddHHmmss"));
+            
+            // 从 OSS 获取原文件名
+            String fileName = null;
+            try {
+                List<RemoteFile> files = remoteFileService.selectByIds(voiceUploadOssId);
+                if (files != null && !files.isEmpty()) {
+                    fileName = files.get(0).getOriginalName();
+                }
+            } catch (Exception e) {
+                log.warn("获取临时音色原文件名失败: {}", voiceUploadOssId, e);
+            }
+            if (StringUtils.isBlank(fileName)) {
+                fileName = "音色-" + DateUtil.format(new Date(), "yyyyMMddHHmmss");
+            }
+            
+            tempVoice.setName(fileName);
             tempVoice.setOssId(voiceUploadOssId);
             tempVoice.setSource("upload");
             tempVoice.setIsSystem(0);
@@ -124,6 +154,9 @@ public class OrderCreationHelper {
         order.setToneStyle(bo.getToneStyle());
         order.setSceneType(bo.getSceneType());
         order.setSpeechSpeed(bo.getSpeechSpeed());
+        order.setVideoRatio(bo.getVideoRatio());
+        order.setVideoResolution(bo.getVideoResolution());
+        order.setVideoDuration(bo.getVideoDuration());
         order.setContactInfo(bo.getContactInfo());
         order.setCopyrightDeclared(bo.getCopyrightDeclared());
         order.setOrderAmount(orderPrice);

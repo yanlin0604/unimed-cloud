@@ -36,6 +36,16 @@ public class DhAvatarVo implements Serializable {
     private String imageUrl;
 
     /**
+     * OSS文件ID
+     */
+    private String ossId;
+
+    /**
+     * 原始文件名
+     */
+    private String fileName;
+
+    /**
      * 是否系统预设
      */
     private Boolean isSystem;
