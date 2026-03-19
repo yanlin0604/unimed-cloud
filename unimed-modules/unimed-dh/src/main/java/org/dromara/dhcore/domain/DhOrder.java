@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.dromara.common.tenant.core.TenantEntity;
+import org.dromara.dhcore.support.enums.DhOrderStatus;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -47,7 +48,7 @@ public class DhOrder extends TenantEntity {
     /**
      * 订单状态
      */
-    private String status;
+    private DhOrderStatus status;
 
     /**
      * 是否返工单（0否 1是）

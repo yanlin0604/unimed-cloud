@@ -15,7 +15,7 @@ import org.dromara.dhcore.domain.bo.*;
 import org.dromara.dhcore.domain.vo.*;
 import org.dromara.dhcore.mapper.*;
 import org.dromara.dhcore.service.IDhOrderService;
-import org.dromara.dhcore.service.support.DhOrderStatus;
+import org.dromara.dhcore.support.enums.DhOrderStatus;
 import org.dromara.dhcore.service.support.DhOrderStatusMachine;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -325,7 +325,7 @@ public class DhOrderServiceImpl implements IDhOrderService {
         vo.setTitle(order.getTitle());
         vo.setApplicantName(order.getApplicantName());
         vo.setMemberLevel(order.getMemberLevel());
-        vo.setStatus(order.getStatus());
+        vo.setStatus(order.getStatus() != null ? order.getStatus().getValue() : null);
         vo.setIsRedo(toBool(order.getIsRedo()));
         vo.setPriority(order.getPriority());
         vo.setAssigneeName(order.getAssigneeName());
@@ -342,7 +342,7 @@ public class DhOrderServiceImpl implements IDhOrderService {
         vo.setTitle(order.getTitle());
         vo.setApplicantName(order.getApplicantName());
         vo.setMemberLevel(order.getMemberLevel());
-        vo.setStatus(order.getStatus());
+        vo.setStatus(order.getStatus() != null ? order.getStatus().getValue() : null);
         vo.setIsRedo(toBool(order.getIsRedo()));
         vo.setPriority(order.getPriority());
         vo.setAssigneeName(order.getAssigneeName());
