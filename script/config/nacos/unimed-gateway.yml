@@ -33,6 +33,10 @@ security:
       - /actuator/**
 
 spring:
+  http:
+    codecs:
+      # 请求体最大大小（支持大文件上传）
+      max-in-memory-size: 500MB
   cloud:
     # 网关配置
     gateway:
