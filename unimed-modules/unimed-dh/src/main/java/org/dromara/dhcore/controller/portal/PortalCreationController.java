@@ -7,23 +7,21 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.web.core.BaseController;
-import org.dromara.dhcore.domain.vo.portal.PortalAvatarVo;
-import org.dromara.dhcore.domain.vo.portal.PortalMaterialVo;
+import org.dromara.dhcore.domain.vo.DhAvatarVo;
+import org.dromara.dhcore.domain.vo.DhMaterialVo;
+import org.dromara.dhcore.domain.vo.DhVoiceVo;
 import org.dromara.dhcore.domain.vo.portal.PortalTemplateVo;
-import org.dromara.dhcore.domain.vo.portal.PortalVoiceVo;
+import org.dromara.dhcore.service.IPortalCreationService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
  * C端创作资产控制器
  * <p>
- * 提供数字人形象、音色、素材、模板的查询接口。
- * 当前为骨架实现——Avatar、Voice、Material 实体尚未在后端建立，
- * 接口返回空列表作为占位，待实体和表结构完善后补充实际查询逻辑。
- * Template 复用现有 DhVideoUploadConfig（如有）或返回空列表。
+ * 提供数字人形象、音色、素材、模板的查询和保存接口。
+ * 支持系统预设资产和用户自定义资产的管理。
  *
  * @author unimed
  */
@@ -34,45 +32,150 @@ import java.util.List;
 @RequestMapping("/dh/portal/creation")
 public class PortalCreationController extends BaseController {
 
+    private final IPortalCreationService portalCreationService;
+
+    // ==================== 形象管理 ====================
+
     /**
      * 获取可用数字人形象列表
      * <p>
-     * TODO: 待 dh_avatar 表和实体创建后，查询 系统预设 + 用户上传 的形象
+     * 查询系统预设形象 + 当前用户上传的形象
      */
     @Operation(summary = "获取数字人形象列表")
     @SaCheckLogin
     @GetMapping("/avatars")
-    public R<List<PortalAvatarVo>> getAvatars() {
-        // 骨架：Avatar 实体未建立，返回空列表
-        return R.ok(Collections.emptyList());
+    public R<List<DhAvatarVo>> getAvatars() {
+        Long userId = LoginHelper.getUserId();
+        return R.ok(portalCreationService.listAvatars(userId));
     }
+
+    /**
+     * 保存用户上传的形象
+     *
+     * @param ossId  OSS 文件 ID
+     * @param name   形象名称（可选）
+     * @param imageUrl 图片 URL（可选，通过 OSS 服务获取）
+     */
+    @Operation(summary = "保存形象")
+    @SaCheckLogin
+    @PostMapping("/avatars/save")
+    public R<DhAvatarVo> saveAvatar(
+        @RequestParam String ossId,
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) String imageUrl) {
+        Long userId = LoginHelper.getUserId();
+        return R.ok(portalCreationService.saveAvatar(userId, ossId, name, imageUrl));
+    }
+
+    /**
+     * 删除用户自定义形象
+     *
+     * @param avatarId 形象 ID
+     */
+    @Operation(summary = "删除形象")
+    @SaCheckLogin
+    @DeleteMapping("/avatars/{avatarId}")
+    public R<Void> deleteAvatar(@PathVariable Long avatarId) {
+        Long userId = LoginHelper.getUserId();
+        portalCreationService.deleteAvatar(userId, avatarId);
+        return R.ok();
+    }
+
+    // ==================== 音色管理 ====================
 
     /**
      * 获取可用音色列表
      * <p>
-     * TODO: 待 dh_voice 表和实体创建后，查询 系统预设 + 用户克隆 的音色
+     * 查询系统预设音色 + 当前用户克隆的音色
      */
     @Operation(summary = "获取音色列表")
     @SaCheckLogin
     @GetMapping("/voices")
-    public R<List<PortalVoiceVo>> getVoices() {
-        // 骨架：Voice 实体未建立，返回空列表
-        return R.ok(Collections.emptyList());
+    public R<List<DhVoiceVo>> getVoices() {
+        Long userId = LoginHelper.getUserId();
+        return R.ok(portalCreationService.listVoices(userId));
     }
 
     /**
+     * 保存用户上传的音色
+     *
+     * @param ossId     OSS 文件 ID
+     * @param name      音色名称（可选）
+     * @param sampleUrl 音频 URL（可选，通过 OSS 服务获取）
+     */
+    @Operation(summary = "保存音色")
+    @SaCheckLogin
+    @PostMapping("/voices/save")
+    public R<DhVoiceVo> saveVoice(
+        @RequestParam String ossId,
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) String sampleUrl) {
+        Long userId = LoginHelper.getUserId();
+        return R.ok(portalCreationService.saveVoice(userId, ossId, name, sampleUrl));
+    }
+
+    /**
+     * 删除用户自定义音色
+     *
+     * @param voiceId 音色 ID
+     */
+    @Operation(summary = "删除音色")
+    @SaCheckLogin
+    @DeleteMapping("/voices/{voiceId}")
+    public R<Void> deleteVoice(@PathVariable Long voiceId) {
+        Long userId = LoginHelper.getUserId();
+        portalCreationService.deleteVoice(userId, voiceId);
+        return R.ok();
+    }
+
+    // ==================== 素材管理 ====================
+
+    /**
      * 获取当前用户素材列表
-     * <p>
-     * TODO: 待 dh_user_material 表和实体创建后，查询用户上传的素材
      */
     @Operation(summary = "获取素材列表")
     @SaCheckLogin
     @GetMapping("/materials")
-    public R<List<PortalMaterialVo>> getMaterials() {
+    public R<List<DhMaterialVo>> getMaterials() {
         Long userId = LoginHelper.getUserId();
-        // 骨架：Material 实体未建立，返回空列表
-        return R.ok(Collections.emptyList());
+        return R.ok(portalCreationService.listMaterials(userId));
     }
+
+    /**
+     * 保存用户上传的素材
+     *
+     * @param ossId         OSS 文件 ID
+     * @param materialType  素材类型（VIDEO/IMAGE/AUDIO）
+     * @param fileName      文件名（可选）
+     * @param fileUrl       文件 URL（可选）
+     */
+    @Operation(summary = "保存素材")
+    @SaCheckLogin
+    @PostMapping("/materials/save")
+    public R<DhMaterialVo> saveMaterial(
+        @RequestParam String ossId,
+        @RequestParam String materialType,
+        @RequestParam(required = false) String fileName,
+        @RequestParam(required = false) String fileUrl) {
+        Long userId = LoginHelper.getUserId();
+        return R.ok(portalCreationService.saveMaterial(userId, ossId, materialType, fileName, fileUrl));
+    }
+
+    /**
+     * 删除素材
+     *
+     * @param materialId 素材 ID
+     */
+    @Operation(summary = "删除素材")
+    @SaCheckLogin
+    @DeleteMapping("/materials/{materialId}")
+    public R<Void> deleteMaterial(@PathVariable Long materialId) {
+        Long userId = LoginHelper.getUserId();
+        portalCreationService.deleteMaterial(userId, materialId);
+        return R.ok();
+    }
+
+    // ==================== 模板管理 ====================
 
     /**
      * 获取公开模板列表
@@ -82,7 +185,6 @@ public class PortalCreationController extends BaseController {
     @Operation(summary = "获取模板列表")
     @GetMapping("/templates")
     public R<List<PortalTemplateVo>> getTemplates() {
-        // 骨架：Template 查询逻辑待完善
-        return R.ok(Collections.emptyList());
+        return R.ok(portalCreationService.listTemplates());
     }
 }

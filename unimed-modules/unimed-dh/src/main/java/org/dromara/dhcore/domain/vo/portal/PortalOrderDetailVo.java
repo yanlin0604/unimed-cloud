@@ -1,5 +1,7 @@
 package org.dromara.dhcore.domain.vo.portal;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,7 +30,7 @@ public class PortalOrderDetailVo extends PortalOrderVo {
     /**
      * 素材文件列表
      */
-    private List<PortalOrderMaterialVo> materials;
+    private List<PortalOrderMaterialVo> materialFiles;
 
     /**
      * 进度节点列表
@@ -71,6 +73,68 @@ public class PortalOrderDetailVo extends PortalOrderVo {
     private BigDecimal actualAmount;
 
     /**
+     * 形象信息
+     */
+    private PortalAvatarInfo avatarInfo;
+
+    /**
+     * 音色信息
+     */
+    private PortalVoiceInfo voiceInfo;
+
+    /**
+     * 形象信息内嵌视图对象
+     */
+    @Data
+    public static class PortalAvatarInfo implements java.io.Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * 形象ID
+         */
+        @JsonSerialize(using = ToStringSerializer.class)
+        private Long avatarId;
+
+        /**
+         * 形象名称
+         */
+        private String name;
+
+        /**
+         * 图片URL
+         */
+        private String imageUrl;
+    }
+
+    /**
+     * 音色信息内嵌视图对象
+     */
+    @Data
+    public static class PortalVoiceInfo implements java.io.Serializable {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * 音色ID
+         */
+        @JsonSerialize(using = ToStringSerializer.class)
+        private Long voiceId;
+
+        /**
+         * 音色名称
+         */
+        private String name;
+
+        /**
+         * 试听URL
+         */
+        private String sampleUrl;
+    }
+
+    /**
      * 订单素材内嵌视图对象
      */
     @Data
@@ -82,6 +146,7 @@ public class PortalOrderDetailVo extends PortalOrderVo {
         /**
          * 素材ID
          */
+        @JsonSerialize(using = ToStringSerializer.class)
         private Long materialId;
 
         /**

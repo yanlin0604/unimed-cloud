@@ -30,14 +30,24 @@ public class PortalOrderCreateBo {
     private String scriptText;
 
     /**
-     * 数字人形象ID
+     * 数字人形象ID（已保存的形象）
      */
     private Long avatarId;
 
     /**
-     * 音色ID
+     * 临时上传的形象OSS ID（优先于 avatarId）
+     */
+    private String avatarUploadOssId;
+
+    /**
+     * 音色ID（已保存的音色）
      */
     private Long voiceId;
+
+    /**
+     * 临时上传的音色OSS ID（优先于 voiceId）
+     */
+    private String voiceUploadOssId;
 
     /**
      * 素材文件ID列表
@@ -48,6 +58,11 @@ public class PortalOrderCreateBo {
      * 模板ID
      */
     private Long templateId;
+
+    /**
+     * 参考视频OSS ID
+     */
+    private String referenceVideoOssId;
 
     /**
      * 口播风格
