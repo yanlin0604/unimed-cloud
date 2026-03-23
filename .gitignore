@@ -52,7 +52,9 @@ nbdist/
 /.claude
 /.spec-workflow
 *.jar
-/_bmad
+# BMad Method V6
+_bmad/
+_bmad-output/
 /docs
 /.serena
 /node_modules
