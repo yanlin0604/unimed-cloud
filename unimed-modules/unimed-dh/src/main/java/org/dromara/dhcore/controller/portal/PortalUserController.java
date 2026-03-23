@@ -14,6 +14,7 @@ import org.dromara.dhcore.domain.vo.portal.PortalUserStatsVo;
 import org.dromara.dhcore.domain.DhUserProfile;
 import org.dromara.dhcore.mapper.DhUserProfileMapper;
 import org.dromara.dhcore.service.IDhUserService;
+import org.dromara.dhcore.service.IPortalOrderService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,7 @@ import java.math.BigDecimal;
 public class PortalUserController extends BaseController {
 
     private final IDhUserService dhUserService;
+    private final IPortalOrderService portalOrderService;
     private final DhUserProfileMapper userProfileMapper;
 
     /**
@@ -101,9 +103,10 @@ public class PortalUserController extends BaseController {
         stats.setOrderCount(detail.getOrderCount() != null ? detail.getOrderCount() : 0);
         stats.setTotalConsume(detail.getTotalConsume() != null ? detail.getTotalConsume() : BigDecimal.ZERO);
         stats.setTotalTopup(detail.getTotalTopup() != null ? detail.getTotalTopup() : BigDecimal.ZERO);
-        // completedCount 和 worksCount 需要从订单统计获取，暂设默认值
-        stats.setCompletedCount(0);
-        stats.setWorksCount(0);
+        Long completedOrders = portalOrderService.countCompletedOrders(userId);
+        int completedCount = completedOrders != null ? completedOrders.intValue() : 0;
+        stats.setCompletedCount(completedCount);
+        stats.setWorksCount(completedCount);
         return R.ok(stats);
     }
 }

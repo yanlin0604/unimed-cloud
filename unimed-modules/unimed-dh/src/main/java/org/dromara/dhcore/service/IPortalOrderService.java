@@ -4,6 +4,7 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.dhcore.domain.bo.portal.PortalOrderCreateBo;
 import org.dromara.dhcore.domain.vo.portal.PortalOrderDetailVo;
+import org.dromara.dhcore.domain.vo.portal.PortalOrderDownloadVo;
 import org.dromara.dhcore.domain.vo.portal.PortalOrderVo;
 
 import java.util.Map;
@@ -44,6 +45,14 @@ public interface IPortalOrderService {
     Map<String, Long> getOrderStats(Long userId);
 
     /**
+     * 获取用户已完成订单数
+     *
+     * @param userId 用户ID
+     * @return 已完成订单数
+     */
+    Long countCompletedOrders(Long userId);
+
+    /**
      * 创建订单
      *
      * @param userId   用户ID
@@ -62,4 +71,22 @@ public interface IPortalOrderService {
      * @param reason   取消原因（可选）
      */
     void cancelOrder(Long userId, String userName, Long orderId, String reason);
+
+    /**
+     * 获取作品下载信息
+     *
+     * @param userId  当前用户ID
+     * @param orderId 订单ID
+     * @return 下载信息
+     */
+    PortalOrderDownloadVo getDownloadInfo(Long userId, Long orderId);
+
+    /**
+     * 删除作品（软删除）
+     *
+     * @param userId   当前用户ID
+     * @param userName 当前用户名
+     * @param orderId  订单ID
+     */
+    void deleteOrder(Long userId, String userName, Long orderId);
 }

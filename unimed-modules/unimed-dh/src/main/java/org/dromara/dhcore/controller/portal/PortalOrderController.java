@@ -11,6 +11,7 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.dhcore.domain.bo.portal.PortalOrderCreateBo;
 import org.dromara.dhcore.domain.vo.portal.PortalOrderDetailVo;
+import org.dromara.dhcore.domain.vo.portal.PortalOrderDownloadVo;
 import org.dromara.dhcore.domain.vo.portal.PortalOrderVo;
 import org.dromara.dhcore.service.IPortalOrderService;
 import org.springframework.validation.annotation.Validated;
@@ -100,6 +101,32 @@ public class PortalOrderController extends BaseController {
         Long userId = LoginHelper.getUserId();
         String userName = LoginHelper.getUsername();
         portalOrderService.cancelOrder(userId, userName, orderId, reason);
+        return R.ok();
+    }
+
+    /**
+     * 获取作品下载信息
+     * <p>
+     * 仅 COMPLETED 状态的订单可下载。
+     */
+    @Operation(summary = "获取作品下载信息")
+    @GetMapping("/{orderId}/download")
+    public R<PortalOrderDownloadVo> download(@PathVariable Long orderId) {
+        Long userId = LoginHelper.getUserId();
+        return R.ok(portalOrderService.getDownloadInfo(userId, orderId));
+    }
+
+    /**
+     * 删除作品
+     * <p>
+     * 进行中的订单不可删除，请先取消。
+     */
+    @Operation(summary = "删除作品")
+    @DeleteMapping("/{orderId}")
+    public R<Void> delete(@PathVariable Long orderId) {
+        Long userId = LoginHelper.getUserId();
+        String userName = LoginHelper.getUsername();
+        portalOrderService.deleteOrder(userId, userName, orderId);
         return R.ok();
     }
 }

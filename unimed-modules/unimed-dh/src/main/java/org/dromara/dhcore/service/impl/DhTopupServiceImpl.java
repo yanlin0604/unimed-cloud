@@ -188,7 +188,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
         if (LoginHelper.isLogin() && StringUtils.isNotBlank(LoginHelper.getUsername())) {
             return LoginHelper.getUsername();
         }
-        return "当前管理员";
+        return "系统";
     }
 
     private BigDecimal nvl(BigDecimal value) {

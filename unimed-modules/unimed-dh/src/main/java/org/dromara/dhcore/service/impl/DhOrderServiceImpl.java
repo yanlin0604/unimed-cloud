@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -17,18 +18,23 @@ import org.dromara.dhcore.mapper.*;
 import org.dromara.dhcore.service.IDhOrderService;
 import org.dromara.dhcore.support.enums.DhOrderStatus;
 import org.dromara.dhcore.service.support.DhOrderStatusMachine;
+import org.dromara.resource.api.RemoteFileService;
+import org.dromara.resource.api.domain.RemoteFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
  * 数字人口播订单与生产服务实现
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class DhOrderServiceImpl implements IDhOrderService {
@@ -38,6 +44,7 @@ public class DhOrderServiceImpl implements IDhOrderService {
     private final DhOrderProcessLogMapper orderProcessLogMapper;
     private final DhOrderProductionAssetMapper orderProductionAssetMapper;
     private final DhOrderQcSnapshotMapper orderQcSnapshotMapper;
+    private final RemoteFileService remoteFileService;
 
     @Override
     public TableDataInfo<DhOrderItemVo> queryOrderPage(DhOrderQueryBo bo, PageQuery pageQuery) {
@@ -57,7 +64,28 @@ public class DhOrderServiceImpl implements IDhOrderService {
                 .eq(DhOrderMaterial::getOrderId, orderId)
                 .orderByAsc(DhOrderMaterial::getSort)
         );
-        detailVo.setMaterialFiles(materialList.stream().map(this::toMaterialFileVo).toList());
+        // 批量获取 OSS 预签名 URL
+        Map<String, RemoteFile> fileMap = new HashMap<>();
+        if (materialList != null && !materialList.isEmpty()) {
+            List<String> fileIds = materialList.stream()
+                .map(DhOrderMaterial::getFileId)
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+            if (!fileIds.isEmpty()) {
+                try {
+                    List<RemoteFile> files = remoteFileService.selectByIds(String.join(",", fileIds));
+                    if (files != null) {
+                        for (RemoteFile f : files) {
+                            fileMap.put(String.valueOf(f.getOssId()), f);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("批量获取OSS文件URL失败", e);
+                }
+            }
+        }
+        detailVo.setMaterialFiles(materialList.stream().map(m -> toMaterialFileVo(m, fileMap)).toList());
 
         List<DhOrderProcessLog> processLogs = orderProcessLogMapper.selectList(
             Wrappers.<DhOrderProcessLog>lambdaQuery()
@@ -309,13 +337,10 @@ public class DhOrderServiceImpl implements IDhOrderService {
     }
 
     private String resolveOperatorName(String operatorName) {
-        if (StringUtils.isNotBlank(operatorName)) {
-            return operatorName;
-        }
         if (LoginHelper.isLogin() && StringUtils.isNotBlank(LoginHelper.getUsername())) {
             return LoginHelper.getUsername();
         }
-        return "当前运营";
+        return "系统";
     }
 
     private DhOrderItemVo toOrderItemVo(DhOrder order) {
@@ -356,6 +381,9 @@ public class DhOrderServiceImpl implements IDhOrderService {
         vo.setToneStyle(order.getToneStyle());
         vo.setSceneType(order.getSceneType());
         vo.setSpeechSpeed(order.getSpeechSpeed());
+        vo.setVideoRatio(order.getVideoRatio());
+        vo.setVideoResolution(order.getVideoResolution());
+        vo.setVideoDuration(order.getVideoDuration());
         vo.setOrderAmount(order.getOrderAmount());
         vo.setDiscountRate(order.getDiscountRate());
         vo.setActualAmount(order.getActualAmount());
@@ -370,13 +398,18 @@ public class DhOrderServiceImpl implements IDhOrderService {
         return vo;
     }
 
-    private DhMaterialFileVo toMaterialFileVo(DhOrderMaterial material) {
+    private DhMaterialFileVo toMaterialFileVo(DhOrderMaterial material, Map<String, RemoteFile> fileMap) {
         DhMaterialFileVo vo = new DhMaterialFileVo();
         vo.setFileId(material.getFileId());
-        vo.setFileName(material.getFileName());
-        vo.setFileUrl(material.getFileUrl());
         vo.setFileType(material.getFileType());
         vo.setThumbnailUrl(material.getThumbnailUrl());
+        vo.setFileName(material.getFileName());
+        RemoteFile remoteFile = fileMap.get(material.getFileId());
+        if (remoteFile != null) {
+            vo.setFileUrl(remoteFile.getUrl());
+        } else {
+            vo.setFileUrl(material.getFileUrl());
+        }
         return vo;
     }
 

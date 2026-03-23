@@ -23,6 +23,16 @@ public class PortalOrderDetailVo extends PortalOrderVo {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 申请人名称
+     */
+    private String applicantName;
+
+    /**
+     * 申请人手机号
+     */
+    private String applicantPhone;
+
+    /**
      * 脚本文案
      */
     private String scriptText;
@@ -41,6 +51,21 @@ public class PortalOrderDetailVo extends PortalOrderVo {
      * 成品视频URL
      */
     private String resultVideoUrl;
+
+    /**
+     * 成品视频名称
+     */
+    private String resultVideoName;
+
+    /**
+     * 成品视频时长（秒）
+     */
+    private Integer resultVideoDuration;
+
+    /**
+     * 成品视频大小（MB）
+     */
+    private BigDecimal resultVideoSizeMb;
 
     /**
      * 制作人名称
@@ -86,6 +111,26 @@ public class PortalOrderDetailVo extends PortalOrderVo {
      * 实际金额
      */
     private BigDecimal actualAmount;
+
+    /**
+     * 联系方式
+     */
+    private String contactInfo;
+
+    /**
+     * 语气风格
+     */
+    private String toneStyle;
+
+    /**
+     * 场景类型
+     */
+    private String sceneType;
+
+    /**
+     * 语速
+     */
+    private String speechSpeed;
 
     /**
      * 形象信息
@@ -198,6 +243,21 @@ public class PortalOrderDetailVo extends PortalOrderVo {
          * 节点名称
          */
         private String label;
+
+        /**
+         * 操作人
+         */
+        private String operatorName;
+
+        /**
+         * 操作时间
+         */
+        private Date time;
+
+        /**
+         * 是否当前节点
+         */
+        private Boolean isCurrent;
 
         /**
          * 节点状态（pending/active/completed）

@@ -1,7 +1,6 @@
 package org.dromara.dhcore.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,8 +13,11 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.dhcore.domain.*;
 import org.dromara.dhcore.domain.bo.portal.PortalOrderCreateBo;
+import org.dromara.dhcore.domain.vo.DhProcessLogVo;
+import org.dromara.dhcore.domain.vo.DhProductionAssetVo;
 import org.dromara.dhcore.domain.vo.DhOrderDetailVo;
 import org.dromara.dhcore.domain.vo.portal.PortalOrderDetailVo;
+import org.dromara.dhcore.domain.vo.portal.PortalOrderDownloadVo;
 import org.dromara.dhcore.domain.vo.portal.PortalOrderVo;
 import org.dromara.dhcore.mapper.*;
 import org.dromara.dhcore.service.IDhOrderService;
@@ -45,6 +47,7 @@ public class PortalOrderServiceImpl implements IPortalOrderService {
     private final DhOrderMapper orderMapper;
     private final DhUserProfileMapper userProfileMapper;
     private final DhOrderMaterialMapper orderMaterialMapper;
+    private final DhOrderProductionAssetMapper productionAssetMapper;
     private final OrderCreationHelper orderCreationHelper;
 
     @DubboReference
@@ -75,7 +78,8 @@ public class PortalOrderServiceImpl implements IPortalOrderService {
             throw new ServiceException("无权查看该订单");
         }
         DhOrderDetailVo detailVo = dhOrderService.queryOrderDetail(orderId);
-        return toPortalOrderDetailVo(order, detailVo, orderId);
+        DhUserProfile userProfile = userProfileMapper.selectById(userId);
+        return toPortalOrderDetailVo(order, detailVo, orderId, userProfile);
     }
 
     @Override
@@ -90,6 +94,11 @@ public class PortalOrderServiceImpl implements IPortalOrderService {
         statsMap.put("cancelled", countByUserAndStatus(userId, DhOrderStatus.CANCELLED));
         statsMap.put("rejected", countByUserAndStatus(userId, DhOrderStatus.REJECTED));
         return statsMap;
+    }
+
+    @Override
+    public Long countCompletedOrders(Long userId) {
+        return countByUserAndStatus(userId, DhOrderStatus.COMPLETED);
     }
 
     @Override
@@ -195,19 +204,85 @@ public class PortalOrderServiceImpl implements IPortalOrderService {
         vo.setStatus(order.getStatus() != null ? order.getStatus().getValue() : null);
         vo.setOrderAmount(order.getActualAmount());
         vo.setCreateTime(order.getCreateTime());
+        vo.setExpectedDelivery(resolveExpectedDelivery(order));
+        vo.setCoverUrl(resolveCoverUrl(order));
         return vo;
     }
 
-    private PortalOrderDetailVo toPortalOrderDetailVo(DhOrder order, DhOrderDetailVo detailVo, Long orderId) {
+    private String resolveCoverUrl(DhOrder order) {
+        // 优先使用订单已记录的成片视频地址
+        if (StringUtils.isNotBlank(order.getResultVideoUrl())) {
+            return normalizePortalMediaUrl(order.getResultVideoUrl());
+        }
+        // 其次查询生产资产表
+        try {
+            LambdaQueryWrapper<DhOrderProductionAsset> assetQuery = Wrappers.lambdaQuery();
+            assetQuery.eq(DhOrderProductionAsset::getOrderId, order.getOrderId());
+            assetQuery.last("LIMIT 1");
+            DhOrderProductionAsset asset = productionAssetMapper.selectOne(assetQuery);
+            if (asset != null && StringUtils.isNotBlank(asset.getOutputVideoUrl())) {
+                return normalizePortalMediaUrl(asset.getOutputVideoUrl());
+            }
+        } catch (Exception e) {
+            log.warn("获取生产资产封面URL失败, orderId={}", order.getOrderId(), e);
+        }
+        // 最后使用第一条素材的缩略图
+        try {
+            LambdaQueryWrapper<DhOrderMaterial> materialQuery = Wrappers.lambdaQuery();
+            materialQuery.eq(DhOrderMaterial::getOrderId, order.getOrderId());
+            materialQuery.orderByAsc(DhOrderMaterial::getSort);
+            materialQuery.last("LIMIT 1");
+            DhOrderMaterial material = orderMaterialMapper.selectOne(materialQuery);
+            if (material != null && StringUtils.isNotBlank(material.getThumbnailUrl())) {
+                return material.getThumbnailUrl();
+            }
+        } catch (Exception e) {
+            log.warn("获取素材缩略图封面URL失败, orderId={}", order.getOrderId(), e);
+        }
+        return null;
+    }
+
+    private PortalOrderDetailVo toPortalOrderDetailVo(DhOrder order, DhOrderDetailVo detailVo, Long orderId, DhUserProfile userProfile) {
         PortalOrderDetailVo vo = new PortalOrderDetailVo();
         vo.setOrderId(order.getOrderId());
         vo.setOrderNo(order.getOrderNo());
         vo.setTitle(order.getTitle());
         vo.setStatus(order.getStatus() != null ? order.getStatus().getValue() : null);
+        vo.setIsRedo(order.getIsRedo());
         vo.setScriptText(order.getScriptText());
+        vo.setOrderAmount(order.getOrderAmount());
+        vo.setVideoRatio(order.getVideoRatio());
+        vo.setVideoResolution(order.getVideoResolution());
+        vo.setVideoDuration(order.getVideoDuration());
         vo.setActualAmount(order.getActualAmount());
-        vo.setResultVideoUrl(detailVo.getResultVideoUrl());
         vo.setCreateTime(order.getCreateTime());
+        vo.setExpectedDelivery(resolveExpectedDelivery(order));
+        vo.setCompletedTime(order.getCompletedTime());
+        vo.setAssigneeName(order.getAssigneeName());
+        vo.setContactInfo(order.getContactInfo());
+        if (userProfile != null) {
+            vo.setApplicantName(userProfile.getUserName());
+            vo.setApplicantPhone(userProfile.getPhone());
+        }
+        vo.setToneStyle(order.getToneStyle());
+        vo.setSceneType(order.getSceneType());
+        vo.setSpeechSpeed(order.getSpeechSpeed());
+        vo.setCancelReason(order.getCancelReason());
+        vo.setRejectReason(order.getRejectReason());
+        vo.setRedoReason(order.getRedoReason());
+
+        DhProductionAssetVo productionAsset = detailVo.getProductionAsset();
+        String resultVideoUrl = detailVo.getResultVideoUrl();
+        if (StringUtils.isBlank(resultVideoUrl) && productionAsset != null) {
+            resultVideoUrl = productionAsset.getOutputVideoUrl();
+        }
+        vo.setResultVideoUrl(normalizePortalMediaUrl(resultVideoUrl));
+        if (productionAsset != null) {
+            vo.setResultVideoName(productionAsset.getOutputVideoName());
+            vo.setResultVideoDuration(productionAsset.getOutputVideoDurationSec());
+            vo.setResultVideoSizeMb(productionAsset.getOutputVideoSizeMb());
+        }
+        vo.setProgressNodes(buildProgressNodes(detailVo.getProcessLogs(), order.getStatus()));
 
         // 查询订单素材
         LambdaQueryWrapper<DhOrderMaterial> materialQuery = Wrappers.lambdaQuery();
@@ -246,7 +321,7 @@ public class PortalOrderServiceImpl implements IPortalOrderService {
                 // 获取实时 URL
                 String fileId = om.getFileId();
                 RemoteFile file = fileMap.get(fileId);
-                String fileUrl = file != null ? file.getUrl() : om.getFileUrl();
+                String fileUrl = normalizePortalMediaUrl(file != null ? file.getUrl() : om.getFileUrl());
                 String fileName = om.getFileName();
                 if (StringUtils.isBlank(fileName) && file != null) {
                     fileName = file.getName();
@@ -291,5 +366,107 @@ public class PortalOrderServiceImpl implements IPortalOrderService {
         }
 
         return vo;
+    }
+
+    private String resolveExpectedDelivery(DhOrder order) {
+        if (order.getCreateTime() == null || order.getExpectDeliveryHours() == null) {
+            return null;
+        }
+        return DateUtil.formatDateTime(DateUtil.offsetHour(order.getCreateTime(), order.getExpectDeliveryHours()));
+    }
+
+    @Override
+    public PortalOrderDownloadVo getDownloadInfo(Long userId, Long orderId) {
+        DhOrder order = orderMapper.selectById(orderId);
+        if (order == null) {
+            throw new ServiceException("订单不存在: " + orderId);
+        }
+        if (!userId.equals(order.getCreateBy())) {
+            throw new ServiceException("无权操作该订单");
+        }
+        if (!DhOrderStatus.COMPLETED.equals(order.getStatus())) {
+            throw new ServiceException("作品尚未完成，暂不可下载");
+        }
+        LambdaQueryWrapper<DhOrderProductionAsset> assetQuery = Wrappers.lambdaQuery();
+        assetQuery.eq(DhOrderProductionAsset::getOrderId, orderId);
+        assetQuery.last("LIMIT 1");
+        DhOrderProductionAsset asset = productionAssetMapper.selectOne(assetQuery);
+        if (asset == null || StringUtils.isBlank(asset.getOutputVideoUrl())) {
+            throw new ServiceException("成片视频不存在");
+        }
+        PortalOrderDownloadVo vo = new PortalOrderDownloadVo();
+        vo.setOrderId(order.getOrderId());
+        vo.setOrderNo(order.getOrderNo());
+        vo.setDownloadUrl(normalizePortalMediaUrl(asset.getOutputVideoUrl()));
+        vo.setFileName(StringUtils.isNotBlank(asset.getOutputVideoName())
+            ? asset.getOutputVideoName()
+            : order.getOrderNo() + ".mp4");
+        vo.setFileSizeMb(asset.getOutputVideoSizeMb());
+        vo.setDurationSec(asset.getOutputVideoDurationSec());
+        return vo;
+    }
+
+    @Override
+    public void deleteOrder(Long userId, String userName, Long orderId) {
+        DhOrder order = orderMapper.selectById(orderId);
+        if (order == null) {
+            throw new ServiceException("订单不存在: " + orderId);
+        }
+        if (!userId.equals(order.getCreateBy())) {
+            throw new ServiceException("无权操作该订单");
+        }
+        DhOrderStatus status = order.getStatus();
+        if (DhOrderStatus.PENDING.equals(status)
+            || DhOrderStatus.PROCESSING.equals(status)
+            || DhOrderStatus.TO_UPLOAD.equals(status)
+            || DhOrderStatus.REDO.equals(status)) {
+            throw new ServiceException("订单进行中，无法删除，请先取消");
+        }
+        orderMapper.deleteById(orderId);
+        orderCreationHelper.recordProcessLog(orderId, userName, "用户删除作品");
+    }
+
+    private String normalizePortalMediaUrl(String url) {
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        int downloadPathIndex = url.indexOf("/resource/oss/download/");
+        return downloadPathIndex >= 0 ? url.substring(downloadPathIndex) : url;
+    }
+
+    private List<PortalOrderDetailVo.PortalProgressNodeVo> buildProgressNodes(List<DhProcessLogVo> processLogs, DhOrderStatus orderStatus) {
+        if (processLogs == null || processLogs.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<DhProcessLogVo> sortedLogs = new ArrayList<>(processLogs);
+        sortedLogs.sort(Comparator.comparing(DhProcessLogVo::getTime, Comparator.nullsLast(Date::compareTo)));
+
+        boolean terminalStatus = DhOrderStatus.COMPLETED.equals(orderStatus)
+            || DhOrderStatus.CANCELLED.equals(orderStatus)
+            || DhOrderStatus.REJECTED.equals(orderStatus);
+        int currentIndex = terminalStatus ? -1 : sortedLogs.size() - 1;
+
+        List<PortalOrderDetailVo.PortalProgressNodeVo> nodes = new ArrayList<>(sortedLogs.size());
+        for (int i = 0; i < sortedLogs.size(); i++) {
+            DhProcessLogVo log = sortedLogs.get(i);
+            PortalOrderDetailVo.PortalProgressNodeVo node = new PortalOrderDetailVo.PortalProgressNodeVo();
+            node.setLabel(log.getAction());
+            node.setOperatorName(log.getOperator());
+            node.setTime(log.getTime());
+            node.setTimestamp(log.getTime());
+            node.setDescription(log.getOperator());
+            boolean isCurrent = i == currentIndex;
+            node.setIsCurrent(isCurrent);
+            if (isCurrent) {
+                node.setStatus("active");
+            } else if (log.getTime() != null) {
+                node.setStatus("completed");
+            } else {
+                node.setStatus("pending");
+            }
+            nodes.add(node);
+        }
+        return nodes;
     }
 }
