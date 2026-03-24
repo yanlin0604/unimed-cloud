@@ -71,11 +71,15 @@ public class WebClientConfig {
     ) {}
 
     /**
-     * 配置用于调用 Python API 的 WebClient
-     * 
-     * @param properties 数字人服务配置属性
-     * @return 配置好的 WebClient 实例
+     * 后端 WebRTC 服务 base URL Bean
+     *
+     * <p>供 AudioStreamServiceImpl 构造后端 WebSocket URI。</p>
      */
+    @Bean("webRtcBaseUrl")
+    public String webRtcBaseUrl(WebRtcProperties webRtcProperties) {
+        return webRtcProperties.baseUrl();
+    }
+
     @Bean("digitalHumanWebClient")
     public WebClient digitalHumanWebClient(DigitalHumanProperties properties) {
         // 验证必要的配置项

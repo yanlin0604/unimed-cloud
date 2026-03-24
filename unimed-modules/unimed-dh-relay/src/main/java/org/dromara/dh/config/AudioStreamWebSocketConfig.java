@@ -13,8 +13,6 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
  *
  * <p>注册 WebSocket 路由：{@code /api/v1/dh/external/audio_stream}</p>
  *
- * <p>同时提供后端 base URL 字符串 Bean，供
- * {@link org.dromara.dh.service.impl.AudioStreamServiceImpl} 注入。</p>
  *
  * @author unimed
  * @since 2.5.1
@@ -58,14 +56,4 @@ public class AudioStreamWebSocketConfig implements WebSocketConfigurer {
         return container;
     }
 
-    /**
-     * 后端 WebRTC 服务 base URL Bean
-     *
-     * <p>从 {@link WebClientConfig.WebRtcProperties} 读取，复用现有配置，
-     * 供 AudioStreamServiceImpl 构造后端 WebSocket URI。</p>
-     */
-    @Bean("webRtcBaseUrl")
-    public String webRtcBaseUrl(WebClientConfig.WebRtcProperties webRtcProperties) {
-        return webRtcProperties.baseUrl();
-    }
 }
