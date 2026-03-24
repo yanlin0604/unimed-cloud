@@ -11,9 +11,10 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.dhcore.domain.DhUserProfile;
 import org.dromara.dhcore.domain.bo.DhWalletLogQueryBo;
-import org.dromara.dhcore.domain.vo.DhWalletLogVo;
 import org.dromara.dhcore.domain.vo.portal.PortalWalletBalanceVo;
+import org.dromara.dhcore.domain.vo.portal.PortalWalletLogVo;
 import org.dromara.dhcore.mapper.DhUserProfileMapper;
+import org.dromara.dhcore.mapper.DhWalletLogMapper;
 import org.dromara.dhcore.service.IDhUserService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,6 +41,7 @@ public class PortalWalletController extends BaseController {
 
     private final IDhUserService dhUserService;
     private final DhUserProfileMapper userProfileMapper;
+    private final DhWalletLogMapper walletLogMapper;
 
     /**
      * 获取当前用户钱包余额
@@ -56,8 +58,8 @@ public class PortalWalletController extends BaseController {
         vo.setBalance(profile.getWalletBalance() != null ? profile.getWalletBalance() : BigDecimal.ZERO);
         vo.setTotalTopup(profile.getTotalTopup() != null ? profile.getTotalTopup() : BigDecimal.ZERO);
         vo.setTotalConsume(profile.getTotalConsume() != null ? profile.getTotalConsume() : BigDecimal.ZERO);
-        // totalRefund 暂无对应字段，设默认值
-        vo.setTotalRefund(BigDecimal.ZERO);
+        BigDecimal totalRefund = walletLogMapper.sumRefundAmount(userId);
+        vo.setTotalRefund(totalRefund != null ? totalRefund : BigDecimal.ZERO);
         return R.ok(vo);
     }
 
@@ -66,9 +68,9 @@ public class PortalWalletController extends BaseController {
      */
     @Operation(summary = "查询钱包流水")
     @GetMapping("/logs")
-    public TableDataInfo<DhWalletLogVo> getWalletLogs(DhWalletLogQueryBo bo, PageQuery pageQuery) {
+    public TableDataInfo<PortalWalletLogVo> getWalletLogs(DhWalletLogQueryBo bo, PageQuery pageQuery) {
         // 硬绑定当前用户ID，防止越权查询
         bo.setUserId(LoginHelper.getUserId());
-        return dhUserService.queryWalletLogPage(bo, pageQuery);
+        return dhUserService.queryWalletLogPagePortal(bo, pageQuery);
     }
 }

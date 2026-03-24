@@ -10,7 +10,9 @@ import org.dromara.common.web.core.BaseController;
 import org.dromara.dhcore.domain.vo.DhAvatarVo;
 import org.dromara.dhcore.domain.vo.DhMaterialVo;
 import org.dromara.dhcore.domain.vo.DhVoiceVo;
+import org.dromara.dhcore.domain.vo.portal.PortalBackgroundVo;
 import org.dromara.dhcore.domain.vo.portal.PortalTemplateVo;
+import org.dromara.dhcore.service.IDhBackgroundService;
 import org.dromara.dhcore.service.IPortalCreationService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,7 @@ import java.util.List;
 public class PortalCreationController extends BaseController {
 
     private final IPortalCreationService portalCreationService;
+    private final IDhBackgroundService dhBackgroundService;
 
     // ==================== 形象管理 ====================
 
@@ -173,6 +176,20 @@ public class PortalCreationController extends BaseController {
         Long userId = LoginHelper.getUserId();
         portalCreationService.deleteMaterial(userId, materialId);
         return R.ok();
+    }
+
+    // ==================== 背景管理 ====================
+
+    /**
+     * 获取可用背景列表
+     * <p>
+     * 查询启用状态的系统背景，按 sort_order 升序排列
+     */
+    @Operation(summary = "获取背景列表")
+    @SaCheckLogin
+    @GetMapping("/backgrounds")
+    public R<List<PortalBackgroundVo>> getBackgrounds() {
+        return R.ok(dhBackgroundService.listEnabled());
     }
 
     // ==================== 模板管理 ====================

@@ -45,6 +45,11 @@ public class DhTopupTicket extends TenantEntity {
     private String status;
 
     /**
+     * 支付方式（WECHAT/ALIPAY/BANK_CARD）
+     */
+    private String paymentType;
+
+    /**
      * 凭证说明
      */
     private String voucherDesc;

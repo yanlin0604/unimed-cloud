@@ -5,6 +5,7 @@ import cn.hutool.core.util.RandomUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.dhcore.domain.*;
 import org.dromara.dhcore.domain.bo.portal.PortalOrderCreateBo;
@@ -64,9 +65,10 @@ public class OrderCreationHelper {
         var result = configService.queryMemberConfigPage(queryBo, pageQuery);
         DhMemberConfigVo config = (result != null && result.getRows() != null && !result.getRows().isEmpty())
             ? result.getRows().get(0) : null;
-        return config != null && config.getOrderPrice() != null
-            ? config.getOrderPrice()
-            : BigDecimal.ZERO;
+        if (config == null || config.getOrderPrice() == null || config.getOrderPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ServiceException("当前会员等级未配置有效下单价格，请联系管理员");
+        }
+        return config.getOrderPrice();
     }
 
     /**

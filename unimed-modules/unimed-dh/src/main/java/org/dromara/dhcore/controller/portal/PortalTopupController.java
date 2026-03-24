@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
@@ -19,11 +19,13 @@ import org.dromara.dhcore.domain.DhPaymentPriceConfig;
 import org.dromara.dhcore.domain.DhQrUploadConfig;
 import org.dromara.dhcore.domain.DhTopupTicket;
 import org.dromara.dhcore.domain.bo.portal.PortalTopupApplyBo;
+import org.dromara.dhcore.domain.bo.portal.PortalTopupSupplementBo;
 import org.dromara.dhcore.domain.vo.portal.PortalTopupPlanVo;
 import org.dromara.dhcore.domain.vo.portal.PortalTopupRecordVo;
 import org.dromara.dhcore.mapper.DhPaymentPriceConfigMapper;
 import org.dromara.dhcore.mapper.DhQrUploadConfigMapper;
 import org.dromara.dhcore.mapper.DhTopupTicketMapper;
+import org.dromara.resource.api.RemoteFileService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +52,9 @@ public class PortalTopupController extends BaseController {
     private final DhPaymentPriceConfigMapper paymentPriceConfigMapper;
     private final DhQrUploadConfigMapper qrUploadConfigMapper;
     private final DhTopupTicketMapper topupTicketMapper;
+
+    @DubboReference
+    private RemoteFileService remoteFileService;
 
     /**
      * 获取充值档位列表
@@ -91,6 +96,7 @@ public class PortalTopupController extends BaseController {
         ticket.setUserId(userId);
         ticket.setUserName(userName);
         ticket.setAmount(bo.getAmount());
+        ticket.setPaymentType(bo.getPaymentType());
         ticket.setStatus("PENDING");
         ticket.setVoucherImageIds(String.join(",", bo.getVoucherOssIds()));
         ticket.setRemark(bo.getRemark());
@@ -116,38 +122,6 @@ public class PortalTopupController extends BaseController {
         Page<DhTopupTicket> page = topupTicketMapper.selectPage(pageQuery.build(), lqw);
         List<PortalTopupRecordVo> rows = page.getRecords().stream().map(this::toTopupRecordVo).toList();
         return new TableDataInfo<>(rows, page.getTotal());
-    }
-
-    /**
-     * 补充凭证（针对 NEED_MORE 状态的工单）
-     */
-    @Operation(summary = "补充凭证")
-    @PostMapping("/{ticketId}/supplement")
-    public R<Void> supplement(@PathVariable Long ticketId,
-                              @RequestBody PortalTopupApplyBo bo) {
-        Long userId = LoginHelper.getUserId();
-        DhTopupTicket ticket = topupTicketMapper.selectById(ticketId);
-        if (ticket == null) {
-            throw new ServiceException("充值工单不存在");
-        }
-        if (!userId.equals(ticket.getUserId())) {
-            throw new ServiceException("无权操作该工单");
-        }
-        if (!"NEED_MORE".equals(ticket.getStatus())) {
-            throw new ServiceException("仅'需补充凭证'状态的工单可补充");
-        }
-        // 追加凭证图片
-        String existingIds = ticket.getVoucherImageIds() != null ? ticket.getVoucherImageIds() : "";
-        String newIds = bo.getVoucherOssIds() != null ? String.join(",", bo.getVoucherOssIds()) : "";
-        ticket.setVoucherImageIds(existingIds.isEmpty() ? newIds : existingIds + "," + newIds);
-        ticket.setStatus("PENDING"); // 补充后重新进入待审核
-        if (StringUtils.isNotBlank(bo.getRemark())) {
-            ticket.setRemark(
-                (ticket.getRemark() != null ? ticket.getRemark() + "\n" : "") + "[补充] " + bo.getRemark()
-            );
-        }
-        topupTicketMapper.updateById(ticket);
-        return R.ok();
     }
 
     // ==================== 私有辅助 ====================
@@ -185,10 +159,54 @@ public class PortalTopupController extends BaseController {
         vo.setName(config.getConfigName());
         vo.setType(config.getType());
         vo.setQrImageIds(config.getQrImageIds());
+        vo.setQrImageUrl(resolveFirstOssUrl(config.getQrImageIds()));
         vo.setAccountName(config.getAccountName());
         vo.setAccountNo(config.getAccountNo());
         vo.setBankName(config.getBankName());
         return vo;
+    }
+
+    /**
+     * 将 ossIds（逗号分隔）转换为第一张图片的访问 URL
+     */
+    private String resolveFirstOssUrl(String ossIds) {
+        if (StringUtils.isBlank(ossIds)) {
+            return null;
+        }
+        String firstId = ossIds.split(",")[0].trim();
+        if (StringUtils.isBlank(firstId)) {
+            return null;
+        }
+        try {
+            String url = remoteFileService.selectUrlByIds(firstId);
+            return StringUtils.isBlank(url) ? null : url.split(",")[0].trim();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 补充凭证
+     */
+    @Operation(summary = "补充支付凭证")
+    @PostMapping("/{id}/supplement")
+    public R<PortalTopupRecordVo> supplement(@PathVariable Long id,
+                                             @Validated @RequestBody PortalTopupSupplementBo bo) {
+        Long userId = LoginHelper.getUserId();
+        DhTopupTicket ticket = topupTicketMapper.selectById(id);
+        if (ticket == null || !userId.equals(ticket.getUserId())) {
+            return R.fail("工单不存在或无权操作");
+        }
+        if (!"NEED_MORE".equals(ticket.getStatus())) {
+            return R.fail("当前工单状态不允许补充凭证");
+        }
+        ticket.setVoucherImageIds(String.join(",", bo.getVoucherOssIds()));
+        if (StringUtils.isNotBlank(bo.getVoucherDesc())) {
+            ticket.setVoucherDesc(bo.getVoucherDesc());
+        }
+        ticket.setStatus("PENDING");
+        topupTicketMapper.updateById(ticket);
+        return R.ok(toTopupRecordVo(ticket));
     }
 
     /**
@@ -202,6 +220,8 @@ public class PortalTopupController extends BaseController {
         private String name;
         private String type;
         private String qrImageIds;
+        /** OSS 图片访问 URL（第一张） */
+        private String qrImageUrl;
         private String accountName;
         private String accountNo;
         private String bankName;
