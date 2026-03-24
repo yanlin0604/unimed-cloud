@@ -2,13 +2,20 @@ package org.dromara.dhcore.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.dhcore.domain.DhVoice;
+import org.dromara.dhcore.domain.bo.DhConfigStatusBo;
+import org.dromara.dhcore.domain.bo.DhVoiceBo;
+import org.dromara.dhcore.domain.bo.DhVoiceQueryBo;
 import org.dromara.dhcore.domain.vo.DhVoiceVo;
 import org.dromara.dhcore.mapper.DhVoiceMapper;
 import org.dromara.dhcore.service.IDhVoiceService;
@@ -141,5 +148,81 @@ public class DhVoiceServiceImpl implements IDhVoiceService {
     public DhVoice save(DhVoice voice) {
         dhVoiceMapper.insert(voice);
         return voice;
+    }
+
+    // ==================== B端管理方法 ====================
+
+    @Override
+    public TableDataInfo<DhVoiceVo> querySystemVoicePage(DhVoiceQueryBo bo, PageQuery pageQuery) {
+        LambdaQueryWrapper<DhVoice> lqw = Wrappers.lambdaQuery();
+        lqw.eq(DhVoice::getIsSystem, 1);
+        lqw.like(StringUtils.isNotBlank(bo.getName()), DhVoice::getName, bo.getName());
+        lqw.eq(StringUtils.isNotBlank(bo.getStatus()), DhVoice::getStatus, bo.getStatus());
+        lqw.orderByAsc(DhVoice::getSortOrder).orderByDesc(DhVoice::getCreateTime);
+        Page<DhVoice> page = dhVoiceMapper.selectPage(pageQuery.build(), lqw);
+        List<DhVoiceVo> voList = page.getRecords().stream().map(DhConvertUtils::toVoiceVo).toList();
+        return new TableDataInfo<>(voList, page.getTotal());
+    }
+
+    @Override
+    public DhVoiceVo saveSystemVoice(DhVoiceBo bo) {
+        DhVoice voice = new DhVoice();
+        voice.setName(bo.getName());
+        voice.setOssId(bo.getOssId());
+        voice.setSampleUrl(bo.getSampleUrl());
+        voice.setSource("system");
+        voice.setIsSystem(1);
+        voice.setStatus("0");
+        voice.setSortOrder(bo.getSortOrder() != null ? bo.getSortOrder() : 0);
+        voice.setRemark(bo.getRemark());
+        dhVoiceMapper.insert(voice);
+        return DhConvertUtils.toVoiceVo(voice);
+    }
+
+    @Override
+    public DhVoiceVo updateSystemVoice(DhVoiceBo bo) {
+        if (bo.getVoiceId() == null) {
+            throw new ServiceException("音色ID不能为空");
+        }
+        DhVoice voice = dhVoiceMapper.selectById(bo.getVoiceId());
+        if (voice == null) {
+            throw new ServiceException("音色不存在");
+        }
+        if (voice.getIsSystem() != 1) {
+            throw new ServiceException("该音色不是系统预设音色");
+        }
+        LambdaUpdateWrapper<DhVoice> uw = Wrappers.lambdaUpdate();
+        uw.eq(DhVoice::getVoiceId, bo.getVoiceId());
+        uw.set(StringUtils.isNotBlank(bo.getName()), DhVoice::getName, bo.getName());
+        uw.set(bo.getSortOrder() != null, DhVoice::getSortOrder, bo.getSortOrder());
+        uw.set(StringUtils.isNotBlank(bo.getRemark()), DhVoice::getRemark, bo.getRemark());
+        dhVoiceMapper.update(null, uw);
+        return DhConvertUtils.toVoiceVo(dhVoiceMapper.selectById(bo.getVoiceId()));
+    }
+
+    @Override
+    public Boolean deleteSystemVoice(Long voiceId) {
+        DhVoice voice = dhVoiceMapper.selectById(voiceId);
+        if (voice == null) {
+            throw new ServiceException("音色不存在");
+        }
+        if (voice.getIsSystem() != 1) {
+            throw new ServiceException("该记录不是系统预设音色，无法从此接口删除");
+        }
+        return dhVoiceMapper.deleteById(voiceId) > 0;
+    }
+
+    @Override
+    public DhVoiceVo changeSystemVoiceStatus(DhConfigStatusBo bo) {
+        DhVoice voice = dhVoiceMapper.selectById(bo.getId());
+        if (voice == null) {
+            throw new ServiceException("音色不存在");
+        }
+        LambdaUpdateWrapper<DhVoice> uw = Wrappers.lambdaUpdate();
+        uw.eq(DhVoice::getVoiceId, bo.getId());
+        uw.set(DhVoice::getStatus, bo.getStatus());
+        dhVoiceMapper.update(null, uw);
+        voice.setStatus(bo.getStatus());
+        return DhConvertUtils.toVoiceVo(voice);
     }
 }

@@ -9,56 +9,41 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 用户素材视图对象
+ * 数字人背景资源视图对象（B端）
  *
  * @author unimed
  */
 @Data
-public class DhMaterialVo implements Serializable {
+public class DhBackgroundVo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 素材ID
+     * 背景ID
      */
     @JsonSerialize(using = ToStringSerializer.class)
-    private Long materialId;
+    private Long backgroundId;
 
     /**
-     * 类型 IMAGE/VIDEO/AUDIO
-     */
-    private String materialType;
-
-    /**
-     * 素材名称
+     * 背景名称
      */
     private String name;
 
     /**
-     * 原始文件名
+     * 背景类型 IMAGE/VIDEO
      */
-    private String fileName;
+    private String bgType;
 
     /**
-     * 文件URL
+     * OSS文件ID
      */
-    private String fileUrl;
+    private String ossId;
 
     /**
-     * 缩略图URL
+     * 预览URL
      */
-    private String thumbnailUrl;
-
-    /**
-     * 文件大小(字节)
-     */
-    private Long fileSize;
-
-    /**
-     * 时长(秒)
-     */
-    private Integer duration;
+    private String previewUrl;
 
     /**
      * 是否系统预设

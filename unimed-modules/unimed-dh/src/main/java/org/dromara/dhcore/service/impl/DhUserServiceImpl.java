@@ -23,6 +23,7 @@ import org.dromara.dhcore.domain.vo.DhOrderItemVo;
 import org.dromara.dhcore.domain.vo.DhUserDetailVo;
 import org.dromara.dhcore.domain.vo.DhUserItemVo;
 import org.dromara.dhcore.domain.vo.DhWalletLogVo;
+import org.dromara.dhcore.domain.vo.portal.PortalWalletLogVo;
 import org.dromara.dhcore.mapper.DhAuditLogMapper;
 import org.dromara.dhcore.mapper.DhMemberConfigMapper;
 import org.dromara.dhcore.mapper.DhOrderMapper;
@@ -131,6 +132,20 @@ public class DhUserServiceImpl implements IDhUserService {
 
         Page<DhWalletLog> page = walletLogMapper.selectPage(pageQuery.build(), lqw);
         List<DhWalletLogVo> rows = page.getRecords().stream().map(this::toWalletLogVo).toList();
+        return new TableDataInfo<>(rows, page.getTotal());
+    }
+
+    @Override
+    public TableDataInfo<PortalWalletLogVo> queryWalletLogPagePortal(DhWalletLogQueryBo bo, PageQuery pageQuery) {
+        LambdaQueryWrapper<DhWalletLog> lqw = Wrappers.lambdaQuery();
+        lqw.eq(bo.getUserId() != null, DhWalletLog::getUserId, bo.getUserId());
+        lqw.eq(StringUtils.isNotBlank(bo.getType()), DhWalletLog::getType, bo.getType());
+        lqw.ge(StringUtils.isNotBlank(bo.getBeginTime()), DhWalletLog::getCreateTime, parseDateTime(bo.getBeginTime()));
+        lqw.le(StringUtils.isNotBlank(bo.getEndTime()), DhWalletLog::getCreateTime, parseDateTime(bo.getEndTime()));
+        lqw.orderByDesc(DhWalletLog::getCreateTime);
+
+        Page<DhWalletLog> page = walletLogMapper.selectPage(pageQuery.build(), lqw);
+        List<PortalWalletLogVo> rows = page.getRecords().stream().map(this::toPortalWalletLogVo).toList();
         return new TableDataInfo<>(rows, page.getTotal());
     }
 
@@ -257,6 +272,18 @@ public class DhUserServiceImpl implements IDhUserService {
         vo.setExpectDeliveryHours(order.getExpectDeliveryHours());
         vo.setCreateTime(order.getCreateTime());
         vo.setUpdateTime(order.getUpdateTime());
+        return vo;
+    }
+
+    private PortalWalletLogVo toPortalWalletLogVo(DhWalletLog log) {
+        PortalWalletLogVo vo = new PortalWalletLogVo();
+        vo.setId(log.getLogId());
+        vo.setType(log.getType());
+        vo.setAmount(log.getAmount());
+        vo.setBalanceAfter(log.getBalanceAfter());
+        vo.setRelatedOrderId(log.getRelatedOrderId());
+        vo.setRemark(log.getRemark());
+        vo.setCreateTime(log.getCreateTime());
         return vo;
     }
 

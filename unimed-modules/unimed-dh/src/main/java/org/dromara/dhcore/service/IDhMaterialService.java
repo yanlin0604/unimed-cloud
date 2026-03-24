@@ -1,6 +1,11 @@
 package org.dromara.dhcore.service;
 
+import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.dhcore.domain.DhMaterial;
+import org.dromara.dhcore.domain.bo.DhConfigStatusBo;
+import org.dromara.dhcore.domain.bo.DhMaterialBo;
+import org.dromara.dhcore.domain.bo.DhMaterialQueryBo;
 import org.dromara.dhcore.domain.vo.DhMaterialVo;
 
 import java.util.List;
@@ -64,4 +69,47 @@ public interface IDhMaterialService {
      * @return 保存后的素材
      */
     DhMaterial save(DhMaterial material);
+
+    // ==================== B端管理方法 ====================
+
+    /**
+     * 分页查询系统素材（B端）
+     *
+     * @param bo        查询参数
+     * @param pageQuery 分页参数
+     * @return 分页结果
+     */
+    TableDataInfo<DhMaterialVo> querySystemMaterialPage(DhMaterialQueryBo bo, PageQuery pageQuery);
+
+    /**
+     * 新增系统素材（B端，is_system=1）
+     *
+     * @param bo 新增参数
+     * @return 新增后的素材
+     */
+    DhMaterialVo saveSystemMaterial(DhMaterialBo bo);
+
+    /**
+     * 修改系统素材（B端）
+     *
+     * @param bo 修改参数
+     * @return 修改后的素材
+     */
+    DhMaterialVo updateSystemMaterial(DhMaterialBo bo);
+
+    /**
+     * 删除系统素材（B端，仅允许删除 is_system=1 的记录）
+     *
+     * @param materialId 素材ID
+     * @return 是否成功
+     */
+    Boolean deleteSystemMaterial(Long materialId);
+
+    /**
+     * 切换系统素材状态（B端）
+     *
+     * @param bo 状态参数
+     * @return 更新后的素材
+     */
+    DhMaterialVo changeSystemMaterialStatus(DhConfigStatusBo bo);
 }
