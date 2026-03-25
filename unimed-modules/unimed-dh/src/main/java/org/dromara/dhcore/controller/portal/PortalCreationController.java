@@ -134,14 +134,17 @@ public class PortalCreationController extends BaseController {
     // ==================== 素材管理 ====================
 
     /**
-     * 获取当前用户素材列表
+     * 获取当前用户素材列表（含系统预设）
+     *
+     * @param materialType 素材类型过滤（VIDEO/IMAGE/AUDIO），不传时返回全部
      */
     @Operation(summary = "获取素材列表")
     @SaCheckLogin
     @GetMapping("/materials")
-    public R<List<DhMaterialVo>> getMaterials() {
+    public R<List<DhMaterialVo>> getMaterials(
+        @RequestParam(required = false) String materialType) {
         Long userId = LoginHelper.getUserId();
-        return R.ok(portalCreationService.listMaterials(userId));
+        return R.ok(portalCreationService.listMaterials(userId, materialType));
     }
 
     /**

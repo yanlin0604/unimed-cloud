@@ -40,3 +40,8 @@ CREATE TABLE `dh_background` (
 -- 若已执行建表 SQL，需单独执行此语句
 -- ---------------------------------------------------------------
 -- ALTER TABLE dh_background ADD COLUMN `create_dept` bigint NULL COMMENT '创建部门' AFTER `del_flag`;
+
+-- ---------------------------------------------------------------
+-- Task 3: dh_material.user_id 改为允许 NULL（系统预设素材无用户）
+-- ---------------------------------------------------------------
+ALTER TABLE dh_material MODIFY COLUMN `user_id` BIGINT(20) NULL COMMENT '用户ID（系统预设为空）';

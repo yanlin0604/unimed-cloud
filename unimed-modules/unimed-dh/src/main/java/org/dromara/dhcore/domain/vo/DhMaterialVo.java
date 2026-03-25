@@ -81,6 +81,21 @@ public class DhMaterialVo implements Serializable {
     private String remark;
 
     /**
+     * OSS文件ID
+     */
+    private String ossId;
+
+    /**
+     * 分辨率（如 1920x1080）
+     */
+    private String resolution;
+
+    /**
+     * 上传者用户名
+     */
+    private String uploadUser;
+
+    /**
      * 创建时间
      */
     private Date createTime;

@@ -1102,7 +1102,7 @@ CREATE TABLE dh_voice (
 CREATE TABLE dh_material (
     material_id     BIGINT(20)      NOT NULL AUTO_INCREMENT COMMENT '素材ID',
     tenant_id       VARCHAR(20)     DEFAULT '000000' COMMENT '租户编号',
-    user_id         BIGINT(20)      NOT NULL COMMENT '用户ID',
+    user_id         BIGINT(20)      NULL COMMENT '用户ID（系统预设为空）',
     material_type   VARCHAR(20)     NOT NULL COMMENT '类型 IMAGE/VIDEO/AUDIO',
     name            VARCHAR(200)    NULL COMMENT '素材名称',
     file_name       VARCHAR(200)    NULL COMMENT '原始文件名',

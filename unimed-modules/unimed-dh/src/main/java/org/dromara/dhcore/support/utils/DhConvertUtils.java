@@ -58,6 +58,8 @@ public final class DhConvertUtils {
         vo.setOssId(voice.getOssId());
         vo.setSource(voice.getSource());
         vo.setIsSystem(voice.getIsSystem() != null && voice.getIsSystem() == 1);
+        vo.setStatus(voice.getStatus());
+        vo.setRemark(voice.getRemark());
         vo.setCreateTime(voice.getCreateTime());
         return vo;
     }
@@ -77,14 +79,17 @@ public final class DhConvertUtils {
         vo.setMaterialType(material.getMaterialType());
         vo.setName(material.getName());
         vo.setFileName(material.getFileName());
+        vo.setOssId(material.getOssId());
         vo.setFileUrl(material.getFileUrl());
         vo.setThumbnailUrl(material.getThumbnailUrl());
         vo.setFileSize(material.getFileSize());
+        vo.setResolution(material.getResolution());
         vo.setDuration(material.getDuration());
         vo.setIsSystem(material.getIsSystem() != null && material.getIsSystem() == 1);
         vo.setStatus(material.getStatus());
         vo.setSortOrder(material.getSortOrder());
         vo.setRemark(material.getRemark());
+        vo.setUploadUser(material.getCreateBy() != null ? String.valueOf(material.getCreateBy()) : null);
         vo.setCreateTime(material.getCreateTime());
         return vo;
     }

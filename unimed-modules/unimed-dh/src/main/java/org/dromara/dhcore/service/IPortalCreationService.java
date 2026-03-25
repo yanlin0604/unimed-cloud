@@ -76,12 +76,13 @@ public interface IPortalCreationService {
     // ==================== 素材管理 ====================
 
     /**
-     * 获取用户素材列表
+     * 获取用户素材列表（含系统预设）
      *
-     * @param userId 用户ID
+     * @param userId       用户ID
+     * @param materialType 素材类型过滤（VIDEO/IMAGE/AUDIO），传 null 时返回全部
      * @return 素材列表
      */
-    List<DhMaterialVo> listMaterials(Long userId);
+    List<DhMaterialVo> listMaterials(Long userId, String materialType);
 
     /**
      * 保存用户上传的素材

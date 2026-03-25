@@ -67,8 +67,8 @@ public class PortalCreationServiceImpl implements IPortalCreationService {
     // ==================== 素材管理 ====================
 
     @Override
-    public List<DhMaterialVo> listMaterials(Long userId) {
-        return materialService.listByUserId(userId);
+    public List<DhMaterialVo> listMaterials(Long userId, String materialType) {
+        return materialService.listByUserIdAndType(userId, materialType);
     }
 
     @Override

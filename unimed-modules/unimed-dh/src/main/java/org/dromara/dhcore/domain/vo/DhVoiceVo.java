@@ -56,6 +56,16 @@ public class DhVoiceVo implements Serializable {
     private Boolean isSystem;
 
     /**
+     * 状态 0正常 1禁用
+     */
+    private String status;
+
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
      * 创建时间
      */
     private Date createTime;

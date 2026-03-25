@@ -20,10 +20,14 @@ import org.dromara.dhcore.mapper.DhMaterialMapper;
 import org.dromara.dhcore.service.IDhMaterialService;
 import org.dromara.dhcore.support.utils.DhConvertUtils;
 import org.dromara.resource.api.RemoteFileService;
+import org.dromara.resource.api.domain.RemoteFile;
+import org.dromara.system.api.RemoteUserService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 素材服务实现类
@@ -40,6 +44,9 @@ public class DhMaterialServiceImpl implements IDhMaterialService {
     @DubboReference
     private RemoteFileService remoteFileService;
 
+    @DubboReference
+    private RemoteUserService remoteUserService;
+
     @Override
     public List<DhMaterialVo> listByUserId(Long userId) {
         LambdaQueryWrapper<DhMaterial> lqw = Wrappers.lambdaQuery();
@@ -47,26 +54,57 @@ public class DhMaterialServiceImpl implements IDhMaterialService {
         lqw.and(w -> w.eq(DhMaterial::getIsSystem, 1).or().eq(DhMaterial::getUserId, userId));
         lqw.eq(DhMaterial::getStatus, "0");
         lqw.orderByDesc(DhMaterial::getIsSystem).orderByDesc(DhMaterial::getCreateTime);
-
-        List<DhMaterial> materials = dhMaterialMapper.selectList(lqw);
-        List<DhMaterialVo> result = new ArrayList<>();
-        for (DhMaterial material : materials) {
-            result.add(DhConvertUtils.toMaterialVo(material));
-        }
-        return result;
+        return convertWithOssUrl(dhMaterialMapper.selectList(lqw));
     }
 
     @Override
     public List<DhMaterialVo> listByUserIdAndType(Long userId, String materialType) {
         LambdaQueryWrapper<DhMaterial> lqw = Wrappers.lambdaQuery();
-        lqw.eq(DhMaterial::getUserId, userId);
-        lqw.eq(DhMaterial::getMaterialType, materialType);
-        lqw.orderByDesc(DhMaterial::getCreateTime);
+        // 系统预设素材 + 用户自己上传的素材
+        lqw.and(w -> w.eq(DhMaterial::getIsSystem, 1).or().eq(DhMaterial::getUserId, userId));
+        lqw.eq(DhMaterial::getStatus, "0");
+        if (StringUtils.isNotBlank(materialType)) {
+            lqw.eq(DhMaterial::getMaterialType, materialType);
+        }
+        lqw.orderByDesc(DhMaterial::getIsSystem).orderByDesc(DhMaterial::getCreateTime);
+        return convertWithOssUrl(dhMaterialMapper.selectList(lqw));
+    }
 
-        List<DhMaterial> materials = dhMaterialMapper.selectList(lqw);
+    /**
+     * 批量转换素材列表并通过 ossId 重新生成最新 URL
+     * <p>
+     * 防止数据库存储的 URL 签名过期导致无法访问。
+     */
+    private List<DhMaterialVo> convertWithOssUrl(List<DhMaterial> materials) {
+        List<String> ossIds = materials.stream()
+            .map(DhMaterial::getOssId)
+            .filter(StringUtils::isNotBlank)
+            .distinct()
+            .toList();
+        Map<String, RemoteFile> ossMap = new HashMap<>();
+        if (!ossIds.isEmpty()) {
+            try {
+                List<RemoteFile> files = remoteFileService.selectByIds(String.join(",", ossIds));
+                if (files != null) {
+                    for (RemoteFile f : files) {
+                        ossMap.put(String.valueOf(f.getOssId()), f);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("批量获取素材OSS信息失败", e);
+            }
+        }
         List<DhMaterialVo> result = new ArrayList<>();
         for (DhMaterial material : materials) {
-            result.add(DhConvertUtils.toMaterialVo(material));
+            DhMaterialVo vo = DhConvertUtils.toMaterialVo(material);
+            if (StringUtils.isNotBlank(material.getOssId())) {
+                RemoteFile f = ossMap.get(material.getOssId());
+                if (f != null) {
+                    vo.setFileUrl(f.getUrl());
+                    vo.setFileName(f.getOriginalName());
+                }
+            }
+            result.add(vo);
         }
         return result;
     }
@@ -120,7 +158,61 @@ public class DhMaterialServiceImpl implements IDhMaterialService {
         lqw.eq(StringUtils.isNotBlank(bo.getStatus()), DhMaterial::getStatus, bo.getStatus());
         lqw.orderByAsc(DhMaterial::getSortOrder).orderByDesc(DhMaterial::getCreateTime);
         Page<DhMaterial> page = dhMaterialMapper.selectPage(pageQuery.build(), lqw);
-        List<DhMaterialVo> voList = page.getRecords().stream().map(DhConvertUtils::toMaterialVo).toList();
+        List<DhMaterial> records = page.getRecords();
+
+        // 批量通过 ossId 获取最新临时 URL，防止签名过期
+        List<String> ossIds = records.stream()
+            .map(DhMaterial::getOssId)
+            .filter(StringUtils::isNotBlank)
+            .distinct()
+            .toList();
+        Map<String, RemoteFile> ossMap = new HashMap<>();
+        if (!ossIds.isEmpty()) {
+            try {
+                List<RemoteFile> files = remoteFileService.selectByIds(String.join(",", ossIds));
+                if (files != null) {
+                    for (RemoteFile f : files) {
+                        ossMap.put(String.valueOf(f.getOssId()), f);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("批量获取素材OSS信息失败", e);
+            }
+        }
+
+        // 批量查询上传者用户名
+        List<Long> createByIds = records.stream()
+            .map(DhMaterial::getCreateBy)
+            .filter(id -> id != null && id > 0)
+            .distinct()
+            .toList();
+        Map<Long, String> userNameMap = new HashMap<>();
+        if (!createByIds.isEmpty()) {
+            try {
+                Map<Long, String> result = remoteUserService.selectUserNamesByIds(createByIds);
+                if (result != null) {
+                    userNameMap.putAll(result);
+                }
+            } catch (Exception e) {
+                log.warn("批量获取上传者用户名失败", e);
+            }
+        }
+
+        List<DhMaterialVo> voList = new ArrayList<>();
+        for (DhMaterial material : records) {
+            DhMaterialVo vo = DhConvertUtils.toMaterialVo(material);
+            if (StringUtils.isNotBlank(material.getOssId())) {
+                RemoteFile f = ossMap.get(material.getOssId());
+                if (f != null) {
+                    vo.setFileUrl(f.getUrl());
+                    vo.setFileName(f.getOriginalName());
+                }
+            }
+            if (material.getCreateBy() != null) {
+                vo.setUploadUser(userNameMap.getOrDefault(material.getCreateBy(), String.valueOf(material.getCreateBy())));
+            }
+            voList.add(vo);
+        }
         return new TableDataInfo<>(voList, page.getTotal());
     }
 
