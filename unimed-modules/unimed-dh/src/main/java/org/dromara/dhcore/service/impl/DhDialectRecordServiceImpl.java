@@ -142,8 +142,47 @@ public class DhDialectRecordServiceImpl implements IDhDialectRecordService {
         List<DhDialectRecordVo> voList = records.stream()
             .map(DhDialectConvert::toDialectRecordVo).toList();
         fillPromptContent(voList);
+        // 通过 ossId 刷新录音地址，防止导出的 URL 已过期
+        refreshAudioUrl(voList);
 
         ExcelUtil.exportExcel(voList, "方言采集录音记录", DhDialectRecordVo.class, response);
+    }
+
+    /**
+     * 通过 ossId 批量刷新录音访问地址（防止导出的 URL 已过期）
+     */
+    private void refreshAudioUrl(List<DhDialectRecordVo> voList) {
+        if (voList == null || voList.isEmpty()) {
+            return;
+        }
+        List<String> ossIds = voList.stream()
+            .map(DhDialectRecordVo::getOssId)
+            .filter(StringUtils::isNotBlank)
+            .distinct()
+            .toList();
+        if (ossIds.isEmpty()) {
+            return;
+        }
+        Map<String, RemoteFile> ossMap = new HashMap<>();
+        try {
+            List<RemoteFile> files = remoteFileService.selectByIds(String.join(",", ossIds));
+            if (files != null) {
+                for (RemoteFile f : files) {
+                    ossMap.put(String.valueOf(f.getOssId()), f);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("导出时批量刷新录音OSS地址失败: {}", e.getMessage());
+            return;
+        }
+        for (DhDialectRecordVo vo : voList) {
+            if (StringUtils.isNotBlank(vo.getOssId())) {
+                RemoteFile file = ossMap.get(vo.getOssId());
+                if (file != null && StringUtils.isNotBlank(file.getUrl())) {
+                    vo.setAudioUrl(file.getUrl());
+                }
+            }
+        }
     }
 
     /**

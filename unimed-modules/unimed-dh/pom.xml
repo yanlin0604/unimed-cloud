@@ -62,6 +62,17 @@
             <artifactId>unimed-api-resource</artifactId>
         </dependency>
 
+        <!-- Excel导出依赖：提供 DictService 实现（ExcelDownHandler 构造器需要） -->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-excel</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-service-impl</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
