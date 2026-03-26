@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -24,18 +26,20 @@ import org.dromara.dhcore.mapper.DhTopupTicketMapper;
 import org.dromara.dhcore.mapper.DhUserProfileMapper;
 import org.dromara.dhcore.mapper.DhWalletLogMapper;
 import org.dromara.dhcore.service.IDhTopupService;
+import org.dromara.resource.api.RemoteFileService;
+import org.dromara.resource.api.domain.RemoteFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 数字人口播充值审核服务实现
  */
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class DhTopupServiceImpl implements IDhTopupService {
 
@@ -47,6 +51,9 @@ public class DhTopupServiceImpl implements IDhTopupService {
     private final DhUserProfileMapper userProfileMapper;
     private final DhWalletLogMapper walletLogMapper;
     private final DhAuditLogMapper auditLogMapper;
+
+    @DubboReference
+    private RemoteFileService remoteFileService;
 
     @Override
     public TableDataInfo<DhTopupTicketVo> queryTopupPage(DhTopupQueryBo bo, PageQuery pageQuery) {
@@ -64,6 +71,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
 
         Page<DhTopupTicket> page = topupTicketMapper.selectPage(pageQuery.build(), lqw);
         List<DhTopupTicketVo> rows = page.getRecords().stream().map(this::toTopupTicketVo).toList();
+        fillVoucherImageUrls(rows);
         return new TableDataInfo<>(rows, page.getTotal());
     }
 
@@ -96,7 +104,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
         insertWalletLog(user, "TOPUP", actualAmount, null, operatorName, "充值审核通过");
         insertAuditLog("TOPUP_APPROVE", operatorName, "TOPUP", String.valueOf(ticket.getTicketId()),
             String.format("确认充值 ¥%s", actualAmount.toPlainString()));
-        return toTopupTicketVo(ticket);
+        return toTopupTicketVoWithUrls(ticket);
     }
 
     @Override
@@ -113,7 +121,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
 
         insertAuditLog("TOPUP_NEED_MORE", operatorName, "TOPUP", String.valueOf(ticket.getTicketId()),
             String.format("充值工单待补充：%s", bo.getReason()));
-        return toTopupTicketVo(ticket);
+        return toTopupTicketVoWithUrls(ticket);
     }
 
     @Override
@@ -130,7 +138,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
 
         insertAuditLog("TOPUP_REJECT", operatorName, "TOPUP", String.valueOf(ticket.getTicketId()),
             String.format("拒绝充值：%s", bo.getReason()));
-        return toTopupTicketVo(ticket);
+        return toTopupTicketVoWithUrls(ticket);
     }
 
     private DhTopupTicket requireTopupTicket(Long ticketId) {
@@ -202,6 +210,7 @@ public class DhTopupServiceImpl implements IDhTopupService {
         vo.setUserName(ticket.getUserName());
         vo.setAmount(ticket.getAmount());
         vo.setStatus(ticket.getStatus());
+        vo.setPaymentType(ticket.getPaymentType());
         vo.setVoucherDesc(ticket.getVoucherDesc());
         vo.setVoucherImageIds(ticket.getVoucherImageIds());
         vo.setActualAmount(ticket.getActualAmount());
@@ -212,5 +221,58 @@ public class DhTopupServiceImpl implements IDhTopupService {
         vo.setCreateTime(ticket.getCreateTime());
         vo.setUpdateTime(ticket.getUpdateTime());
         return vo;
+    }
+
+    /**
+     * 单条转换并解析 OSS URL（用于审核操作返回）
+     */
+    private DhTopupTicketVo toTopupTicketVoWithUrls(DhTopupTicket ticket) {
+        DhTopupTicketVo vo = toTopupTicketVo(ticket);
+        fillVoucherImageUrls(List.of(vo));
+        return vo;
+    }
+
+    /**
+     * 批量填充凭证图片 URL（通过 OSS 服务解析）
+     */
+    private void fillVoucherImageUrls(List<DhTopupTicketVo> voList) {
+        // 1. 收集所有 ossId（凭证可能包含多张，逗号分隔）
+        List<String> allOssIds = voList.stream()
+            .map(DhTopupTicketVo::getVoucherImageIds)
+            .filter(StringUtils::isNotBlank)
+            .flatMap(ids -> Arrays.stream(ids.split(",")))
+            .map(String::trim)
+            .filter(StringUtils::isNotBlank)
+            .distinct()
+            .toList();
+        if (allOssIds.isEmpty()) {
+            return;
+        }
+        // 2. 批量查询 OSS 文件信息
+        Map<String, String> ossUrlMap = new HashMap<>();
+        try {
+            List<RemoteFile> files = remoteFileService.selectByIds(String.join(",", allOssIds));
+            if (files != null) {
+                files.forEach(f -> {
+                    if (f != null && StringUtils.isNotBlank(f.getUrl())) {
+                        ossUrlMap.put(String.valueOf(f.getOssId()), f.getUrl());
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("批量获取充值凭证OSS文件信息失败: {}", e.getMessage());
+        }
+        // 3. 回填 URL 列表
+        for (DhTopupTicketVo vo : voList) {
+            if (StringUtils.isNotBlank(vo.getVoucherImageIds())) {
+                List<String> urls = Arrays.stream(vo.getVoucherImageIds().split(","))
+                    .map(String::trim)
+                    .filter(StringUtils::isNotBlank)
+                    .map(ossId -> ossUrlMap.getOrDefault(ossId, ""))
+                    .filter(StringUtils::isNotBlank)
+                    .collect(Collectors.toList());
+                vo.setVoucherImageUrls(urls);
+            }
+        }
     }
 }

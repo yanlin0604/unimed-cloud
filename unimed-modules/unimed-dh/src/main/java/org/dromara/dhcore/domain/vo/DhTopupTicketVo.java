@@ -8,6 +8,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 充值工单视图对象
@@ -54,6 +55,16 @@ public class DhTopupTicketVo implements Serializable {
      * 凭证图片ID列表
      */
     private String voucherImageIds;
+
+    /**
+     * 凭证图片URL列表（通过 OSS 解析）
+     */
+    private List<String> voucherImageUrls;
+
+    /**
+     * 支付方式（WECHAT/ALIPAY/BANK_CARD）
+     */
+    private String paymentType;
 
     /**
      * 实际到账金额

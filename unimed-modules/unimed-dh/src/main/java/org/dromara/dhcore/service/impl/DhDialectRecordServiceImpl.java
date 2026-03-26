@@ -99,6 +99,8 @@ public class DhDialectRecordServiceImpl implements IDhDialectRecordService {
 
         // 批量填充关联文字内容
         fillPromptContent(voList);
+        // 通过 ossId 刷新录音地址，防止 URL 已过期
+        refreshAudioUrl(voList);
 
         return new TableDataInfo<>(voList, page.getTotal());
     }

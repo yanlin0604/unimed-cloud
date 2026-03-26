@@ -180,7 +180,7 @@ public class OssClient {
             // 创建异步请求体（length如果为空会报错）
             BlockingInputStreamAsyncRequestBody body = BlockingInputStreamAsyncRequestBody.builder()
                 .contentLength(length)
-                .subscribeTimeout(Duration.ofSeconds(120))
+                .subscribeTimeout(Duration.ofHours(48))
                 .build();
 
             // 使用 transferManager 进行上传
