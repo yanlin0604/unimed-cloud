@@ -41,6 +41,11 @@ public class DhDialectPromptVo implements Serializable {
     private String status;
 
     /**
+     * 排序号
+     */
+    private Integer sortOrder;
+
+    /**
      * 备注
      */
     private String remark;

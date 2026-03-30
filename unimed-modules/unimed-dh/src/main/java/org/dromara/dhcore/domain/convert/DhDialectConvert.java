@@ -27,6 +27,7 @@ public final class DhDialectConvert {
         vo.setContent(prompt.getContent());
         vo.setCategory(prompt.getCategory());
         vo.setStatus(prompt.getStatus());
+        vo.setSortOrder(prompt.getSortOrder());
         vo.setRemark(prompt.getRemark());
         vo.setCreateTime(prompt.getCreateTime());
         return vo;

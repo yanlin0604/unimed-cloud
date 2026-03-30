@@ -46,6 +46,12 @@ public class DhDialectPromptBo implements Serializable {
     private String status;
 
     /**
+     * 排序号
+     */
+    @Schema(description = "排序号")
+    private Integer sortOrder;
+
+    /**
      * 备注
      */
     @Schema(description = "备注")

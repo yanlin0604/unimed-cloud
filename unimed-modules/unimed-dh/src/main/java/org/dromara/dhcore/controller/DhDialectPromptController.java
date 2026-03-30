@@ -10,13 +10,16 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.dhcore.domain.bo.DhConfigStatusBo;
 import org.dromara.dhcore.domain.bo.DhDialectPromptBo;
+import org.dromara.dhcore.domain.bo.DhDialectPromptImportBo;
 import org.dromara.dhcore.domain.bo.DhDialectPromptQueryBo;
 import org.dromara.dhcore.domain.vo.DhDialectPromptVo;
 import org.dromara.dhcore.service.IDhDialectPromptService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * B端采集文字管理控制器
@@ -80,5 +83,34 @@ public class DhDialectPromptController extends BaseController {
     @PostMapping("/status")
     public R<DhDialectPromptVo> changeStatus(@Validated @RequestBody DhConfigStatusBo bo) {
         return R.ok(dialectPromptService.changeStatus(bo));
+    }
+
+    /**
+     * 批量导入提示文字
+     */
+    @Operation(summary = "批量导入提示文字")
+    @SaCheckPermission("dh:dialect:import")
+    @PostMapping("/import")
+    public R<Map<String, Integer>> importPrompts(@Validated @RequestBody DhDialectPromptImportBo bo) {
+        return R.ok(dialectPromptService.batchImport(bo));
+    }
+
+    /**
+     * 调整提示文字排序
+     */
+    @Operation(summary = "调整提示文字排序")
+    @SaCheckPermission("dh:dialect:edit")
+    @PostMapping("/sort")
+    public R<Boolean> adjustSort(@RequestBody Map<String, Object> params) {
+        Long promptId = Long.valueOf(params.get("promptId").toString());
+        String direction = params.get("direction").toString();
+        if (promptId == null) {
+            return R.fail("提示文字ID不能为空");
+        }
+        if (direction == null || direction.isBlank()) {
+            return R.fail("方向不能为空");
+        }
+        dialectPromptService.adjustSort(promptId, direction);
+        return R.ok(true);
     }
 }
