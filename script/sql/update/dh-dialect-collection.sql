@@ -30,7 +30,7 @@ CREATE TABLE `dh_dialect_prompt` (
 CREATE TABLE `dh_dialect_record` (
     `record_id`    bigint       NOT NULL AUTO_INCREMENT                    COMMENT '录音记录ID',
     `prompt_id`    bigint       NOT NULL                                   COMMENT '关联提示文字ID',
-    `user_id`      bigint       NOT NULL                                   COMMENT '提交用户ID',
+    `user_id`      bigint           NULL                                   COMMENT '提交用户ID（匿名提交为空）',
     `dialect_name` varchar(100) NOT NULL                                   COMMENT '方言名称',
     `dialect_area` varchar(100)     NULL                                   COMMENT '方言地区',
     `audio_url`    varchar(500)     NULL                                   COMMENT 'OSS持久访问URL',

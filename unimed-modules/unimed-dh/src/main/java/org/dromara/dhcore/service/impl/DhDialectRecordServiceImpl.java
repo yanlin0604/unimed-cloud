@@ -9,11 +9,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.excel.utils.ExcelUtil;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.dhcore.domain.bo.DhDialectRecordAuditBo;
 import org.dromara.dhcore.domain.bo.DhDialectRecordBo;
 import org.dromara.dhcore.domain.bo.DhDialectRecordQueryBo;
@@ -69,6 +71,7 @@ public class DhDialectRecordServiceImpl implements IDhDialectRecordService {
 
         DhDialectRecord record = new DhDialectRecord();
         record.setPromptId(bo.getPromptId());
+        record.setTenantId(StringUtils.blankToDefault(LoginHelper.getTenantId(), TenantConstants.DEFAULT_TENANT_ID));
         record.setUserId(userId);
         record.setDialectName(bo.getDialectName());
         record.setDialectArea(bo.getDialectArea());
