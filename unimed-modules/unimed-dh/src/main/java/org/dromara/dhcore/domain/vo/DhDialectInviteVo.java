@@ -9,41 +9,51 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 方言采集提示文字视图对象
+ * 方言邀请码配置视图对象
  *
  * @author unimed
  */
 @Data
-public class DhDialectPromptVo implements Serializable {
+public class DhDialectInviteVo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 提示文字ID
+     * 邀请配置ID
      */
     @JsonSerialize(using = ToStringSerializer.class)
-    private Long promptId;
+    private Long inviteId;
 
     /**
-     * 采集文字内容
+     * 语种名（与C端方言名称一致）
      */
-    private String content;
+    private String dialectName;
 
     /**
-     * 状态 0正常 1禁用
+     * 邀请码
+     */
+    private String inviteCode;
+
+    /**
+     * 生成的分享链接
+     */
+    private String collectionUrl;
+
+    /**
+     * 扩展信息
+     */
+    private String extInfo;
+
+    /**
+     * 状态
      */
     private String status;
 
     /**
-     * 排序号
+     * 关联采集记录数
      */
-    private Integer sortOrder;
-
-    /**
-     * 备注
-     */
-    private String remark;
+    private Integer recordCount;
 
     /**
      * 创建时间

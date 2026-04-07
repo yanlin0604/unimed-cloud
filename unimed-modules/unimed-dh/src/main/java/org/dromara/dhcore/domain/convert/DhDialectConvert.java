@@ -25,7 +25,6 @@ public final class DhDialectConvert {
         DhDialectPromptVo vo = new DhDialectPromptVo();
         vo.setPromptId(prompt.getPromptId());
         vo.setContent(prompt.getContent());
-        vo.setCategory(prompt.getCategory());
         vo.setStatus(prompt.getStatus());
         vo.setSortOrder(prompt.getSortOrder());
         vo.setRemark(prompt.getRemark());
@@ -51,6 +50,7 @@ public final class DhDialectConvert {
         vo.setDuration(record.getDuration());
         vo.setAuditStatus(record.getAuditStatus());
         vo.setAuditRemark(record.getAuditRemark());
+        vo.setInviteCode(record.getInviteCode());
         vo.setCreateTime(record.getCreateTime());
         return vo;
     }

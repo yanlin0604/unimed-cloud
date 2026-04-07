@@ -78,6 +78,7 @@ public class DhDialectRecordServiceImpl implements IDhDialectRecordService {
         record.setAudioUrl(persistentUrl);
         record.setOssId(bo.getOssId());
         record.setDuration(bo.getDuration());
+        record.setInviteCode(bo.getInviteCode());
         record.setAuditStatus("PENDING");
         dialectRecordMapper.insert(record);
 
@@ -91,6 +92,7 @@ public class DhDialectRecordServiceImpl implements IDhDialectRecordService {
     public TableDataInfo<DhDialectRecordVo> queryPage(DhDialectRecordQueryBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<DhDialectRecord> lqw = Wrappers.lambdaQuery();
         lqw.eq(StringUtils.isNotBlank(bo.getDialectName()), DhDialectRecord::getDialectName, bo.getDialectName());
+        lqw.eq(StringUtils.isNotBlank(bo.getInviteCode()), DhDialectRecord::getInviteCode, bo.getInviteCode());
         lqw.eq(StringUtils.isNotBlank(bo.getAuditStatus()), DhDialectRecord::getAuditStatus, bo.getAuditStatus());
         lqw.ge(StringUtils.isNotBlank(bo.getBeginTime()), DhDialectRecord::getCreateTime, bo.getBeginTime());
         lqw.le(StringUtils.isNotBlank(bo.getEndTime()), DhDialectRecord::getCreateTime, bo.getEndTime());
@@ -136,6 +138,7 @@ public class DhDialectRecordServiceImpl implements IDhDialectRecordService {
     public void export(DhDialectRecordQueryBo bo, HttpServletResponse response) {
         LambdaQueryWrapper<DhDialectRecord> lqw = Wrappers.lambdaQuery();
         lqw.eq(StringUtils.isNotBlank(bo.getDialectName()), DhDialectRecord::getDialectName, bo.getDialectName());
+        lqw.eq(StringUtils.isNotBlank(bo.getInviteCode()), DhDialectRecord::getInviteCode, bo.getInviteCode());
         lqw.eq(StringUtils.isNotBlank(bo.getAuditStatus()), DhDialectRecord::getAuditStatus, bo.getAuditStatus());
         lqw.ge(StringUtils.isNotBlank(bo.getBeginTime()), DhDialectRecord::getCreateTime, bo.getBeginTime());
         lqw.le(StringUtils.isNotBlank(bo.getEndTime()), DhDialectRecord::getCreateTime, bo.getEndTime());

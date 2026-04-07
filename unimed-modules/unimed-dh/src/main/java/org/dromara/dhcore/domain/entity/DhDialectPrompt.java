@@ -29,11 +29,6 @@ public class DhDialectPrompt extends TenantEntity {
     private String content;
 
     /**
-     * 分类标签
-     */
-    private String category;
-
-    /**
      * 状态 0正常 1禁用
      */
     private String status;

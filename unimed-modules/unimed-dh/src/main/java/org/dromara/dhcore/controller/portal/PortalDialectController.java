@@ -23,6 +23,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -44,13 +46,24 @@ public class PortalDialectController extends BaseController {
     @DubboReference
     private RemoteFileService remoteFileService;
 
+    /** 是否随机打乱启用的提示文字列表（每次访问顺序不同） */
+    private static final boolean SHUFFLE_PROMPTS = true;
+
     /**
      * 获取启用的提示文字列表
      */
     @Operation(summary = "获取启用的提示文字列表")
     @GetMapping("/prompts")
     public R<List<DhDialectPromptVo>> getPrompts() {
-        return executeWithPortalTenant(() -> R.ok(dialectPromptService.listEnabled()));
+        return executeWithPortalTenant(() -> {
+            List<DhDialectPromptVo> list = dialectPromptService.listEnabled();
+            if (SHUFFLE_PROMPTS) {
+                List<DhDialectPromptVo> shuffled = new ArrayList<>(list);
+                Collections.shuffle(shuffled);
+                return R.ok(shuffled);
+            }
+            return R.ok(list);
+        });
     }
 
     /**

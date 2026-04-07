@@ -25,12 +25,6 @@ public class DhDialectPromptQueryBo implements Serializable {
     private String content;
 
     /**
-     * 分类标签
-     */
-    @Schema(description = "分类标签")
-    private String category;
-
-    /**
      * 状态（0正常 1禁用）
      */
     @Schema(description = "状态 0正常 1禁用")

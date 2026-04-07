@@ -23,16 +23,15 @@ INSERT INTO sys_menu (menu_name, parent_id, order_num, path, menu_type, perms, i
 VALUES ('批量导入', @parent_id, 1, NULL, 'F', 'dh:dialect:import', NULL, 'admin', NOW(), NULL, NULL, '方言采集提示文字批量导入按钮权限');
 
 -- ---------------------------------------------------------------
--- Task 11: 为已有数据按分类+创建时间分配递增排序号
+-- Task 11: 为已有数据按创建时间分配递增排序号
 -- 修复所有 sort_order=0 的记录，避免上移/下移功能失效
 -- ---------------------------------------------------------------
 UPDATE dh_dialect_prompt dp
 JOIN (
     SELECT prompt_id,
-           ROW_NUMBER() OVER (PARTITION BY category ORDER BY create_time ASC) AS rn
+           ROW_NUMBER() OVER (ORDER BY create_time ASC) AS rn
     FROM dh_dialect_prompt
     WHERE del_flag = '0'
 ) ranked ON dp.prompt_id = ranked.prompt_id
 SET dp.sort_order = ranked.rn
 WHERE dp.del_flag = '0';
-

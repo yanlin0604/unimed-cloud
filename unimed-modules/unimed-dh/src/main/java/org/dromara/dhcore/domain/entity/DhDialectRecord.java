@@ -34,6 +34,11 @@ public class DhDialectRecord extends TenantEntity {
     private Long userId;
 
     /**
+     * 邀请码来源
+     */
+    private String inviteCode;
+
+    /**
      * 方言名称
      */
     private String dialectName;

@@ -25,12 +25,6 @@ public class DhDialectRecordQueryBo implements Serializable {
     private String dialectName;
 
     /**
-     * 分类标签
-     */
-    @Schema(description = "分类标签")
-    private String category;
-
-    /**
      * 审核状态 PENDING/APPROVED/REJECTED
      */
     @Schema(description = "审核状态")
@@ -47,4 +41,10 @@ public class DhDialectRecordQueryBo implements Serializable {
      */
     @Schema(description = "提交结束时间")
     private String endTime;
+
+    /**
+     * 邀请码来源
+     */
+    @Schema(description = "邀请码")
+    private String inviteCode;
 }

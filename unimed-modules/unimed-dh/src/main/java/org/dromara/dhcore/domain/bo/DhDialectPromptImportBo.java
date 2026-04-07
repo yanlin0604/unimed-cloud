@@ -19,8 +19,4 @@ public class DhDialectPromptImportBo {
     @NotEmpty(message = "导入内容不能为空")
     private List<String> contents;
 
-    /**
-     * 分类标签
-     */
-    private String category;
 }

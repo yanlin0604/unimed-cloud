@@ -44,7 +44,6 @@ public class DhDialectPromptServiceImpl implements IDhDialectPromptService {
     public TableDataInfo<DhDialectPromptVo> queryPage(DhDialectPromptQueryBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<DhDialectPrompt> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(bo.getContent()), DhDialectPrompt::getContent, bo.getContent());
-        lqw.eq(StringUtils.isNotBlank(bo.getCategory()), DhDialectPrompt::getCategory, bo.getCategory());
         lqw.eq(StringUtils.isNotBlank(bo.getStatus()), DhDialectPrompt::getStatus, bo.getStatus());
         lqw.orderByAsc(DhDialectPrompt::getSortOrder).orderByDesc(DhDialectPrompt::getCreateTime);
         Page<DhDialectPrompt> page = dialectPromptMapper.selectPage(pageQuery.build(), lqw);
@@ -57,10 +56,9 @@ public class DhDialectPromptServiceImpl implements IDhDialectPromptService {
     public DhDialectPromptVo save(DhDialectPromptBo bo) {
         DhDialectPrompt prompt = new DhDialectPrompt();
         prompt.setContent(bo.getContent());
-        prompt.setCategory(bo.getCategory());
         prompt.setStatus(StringUtils.isNotBlank(bo.getStatus()) ? bo.getStatus() : "0");
-        // 自动计算排序号：取同分类最大排序号 + 1
-        prompt.setSortOrder(bo.getSortOrder() != null ? bo.getSortOrder() : getMaxSortOrder(bo.getCategory()) + 1);
+        // 自动计算排序号：取当前最大排序号 + 1
+        prompt.setSortOrder(bo.getSortOrder() != null ? bo.getSortOrder() : getMaxSortOrder() + 1);
         prompt.setRemark(bo.getRemark());
         dialectPromptMapper.insert(prompt);
         return DhDialectConvert.toDialectPromptVo(prompt);
@@ -78,7 +76,6 @@ public class DhDialectPromptServiceImpl implements IDhDialectPromptService {
         LambdaUpdateWrapper<DhDialectPrompt> uw = Wrappers.lambdaUpdate();
         uw.eq(DhDialectPrompt::getPromptId, bo.getPromptId());
         uw.set(StringUtils.isNotBlank(bo.getContent()), DhDialectPrompt::getContent, bo.getContent());
-        uw.set(StringUtils.isNotBlank(bo.getCategory()), DhDialectPrompt::getCategory, bo.getCategory());
         uw.set(StringUtils.isNotBlank(bo.getStatus()), DhDialectPrompt::getStatus, bo.getStatus());
         uw.set(bo.getSortOrder() != null, DhDialectPrompt::getSortOrder, bo.getSortOrder());
         uw.set(bo.getRemark() != null, DhDialectPrompt::getRemark, bo.getRemark());
@@ -122,9 +119,7 @@ public class DhDialectPromptServiceImpl implements IDhDialectPromptService {
     public Map<String, Integer> batchImport(DhDialectPromptImportBo bo) {
         int imported = 0;
         int duplicated = 0;
-        String category = StringUtils.isNotBlank(bo.getCategory()) ? bo.getCategory() : "未分类";
-        // 获取当前分类最大排序号，后续递增
-        int currentMaxSort = getMaxSortOrder(category);
+        int currentMaxSort = getMaxSortOrder();
         for (String content : bo.getContents()) {
             if (StringUtils.isBlank(content)) {
                 continue;
@@ -144,7 +139,6 @@ public class DhDialectPromptServiceImpl implements IDhDialectPromptService {
             }
             DhDialectPrompt entity = new DhDialectPrompt();
             entity.setContent(trimContent);
-            entity.setCategory(category);
             entity.setStatus("0");
             entity.setSortOrder(++currentMaxSort);
             dialectPromptMapper.insert(entity);
@@ -164,9 +158,8 @@ public class DhDialectPromptServiceImpl implements IDhDialectPromptService {
             throw new ServiceException("提示文字不存在");
         }
 
-        // 查询同分类的所有数据，按序号排序
+        // 查询全部提示文字，按序号排序
         LambdaQueryWrapper<DhDialectPrompt> lqw = Wrappers.lambdaQuery();
-        lqw.eq(DhDialectPrompt::getCategory, current.getCategory());
         lqw.orderByAsc(DhDialectPrompt::getSortOrder).orderByDesc(DhDialectPrompt::getCreateTime);
         List<DhDialectPrompt> list = new ArrayList<>(dialectPromptMapper.selectList(lqw));
 
@@ -212,11 +205,10 @@ public class DhDialectPromptServiceImpl implements IDhDialectPromptService {
     }
 
     /**
-     * 获取指定分类的最大排序号
+     * 获取当前最大排序号
      */
-    private int getMaxSortOrder(String category) {
+    private int getMaxSortOrder() {
         LambdaQueryWrapper<DhDialectPrompt> lqw = Wrappers.lambdaQuery();
-        lqw.eq(StringUtils.isNotBlank(category), DhDialectPrompt::getCategory, category);
         lqw.orderByDesc(DhDialectPrompt::getSortOrder);
         lqw.last("LIMIT 1");
         DhDialectPrompt maxItem = dialectPromptMapper.selectOne(lqw);

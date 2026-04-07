@@ -52,4 +52,10 @@ public class DhDialectRecordBo implements Serializable {
      */
     @Schema(description = "录音时长（秒）")
     private Integer duration;
+
+    /**
+     * 邀请码（可选，用于来源追踪）
+     */
+    @Schema(description = "邀请码")
+    private String inviteCode;
 }

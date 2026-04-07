@@ -49,6 +49,12 @@ public class DhDialectRecordVo implements Serializable {
     private Long userId;
 
     /**
+     * 邀请码来源
+     */
+    @ExcelProperty(value = "邀请码")
+    private String inviteCode;
+
+    /**
      * 方言名称
      */
     @ExcelProperty(value = "方言名称")

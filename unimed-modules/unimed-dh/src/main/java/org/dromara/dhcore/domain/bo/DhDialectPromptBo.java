@@ -33,13 +33,6 @@ public class DhDialectPromptBo implements Serializable {
     private String content;
 
     /**
-     * 分类标签
-     */
-    @NotBlank(message = "分类标签不能为空")
-    @Schema(description = "分类标签", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String category;
-
-    /**
      * 状态 0正常 1禁用
      */
     @Schema(description = "状态 0正常 1禁用")

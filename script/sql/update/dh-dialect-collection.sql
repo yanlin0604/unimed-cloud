@@ -11,7 +11,6 @@
 CREATE TABLE `dh_dialect_prompt` (
     `prompt_id`   bigint       NOT NULL AUTO_INCREMENT                    COMMENT '提示文字ID',
     `content`     varchar(500) NOT NULL                                   COMMENT '采集文字内容',
-    `category`    varchar(100) NOT NULL                                   COMMENT '分类标签',
     `status`      char(1)      NOT NULL DEFAULT '0'                       COMMENT '状态 0正常 1禁用',
     `remark`      varchar(255)     NULL                                   COMMENT '备注',
     `tenant_id`   varchar(20)      NULL                                   COMMENT '租户ID',
