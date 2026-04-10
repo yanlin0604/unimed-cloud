@@ -2,8 +2,9 @@
 
 ## 变更记录 (Changelog)
 
-- **2026-03-04（第三次更新）** - unimed-dh 新增 B 端控制器（音色/素材/背景/生产/报表）和 C 端门户（认证/会员/钱包/充值/订单/创作/声音克隆）；dh_background 表新建；dh_topup_ticket 新增 payment_type
-- **2026-03-04 09:57:40** - 识别 unimed-dh-relay、unimed-dh 重构为 dhcore、新增 unimed-api-auth；补充 unimed-common 子模块清单（32 个）
+- **2026-04-07** - 方言采集模块上线：新增 4 个控制器（DhDialectPrompt/DhDialectRecord/DhDialectInvite/PortalDialect）；3 张新表（dh_dialect_prompt/dh_dialect_record/dh_dialect_invite）；支持匿名提交、录音上传、邀请码管理、批量导入排序
+- **2026-03-04（第三次更新）** - unimed-dh 新增 B 端控制器（音色/素材/背景/生产/报表）和 C 端门户（认证/会员/钱包/充值/订单/创作/声音克隆）
+- **2026-03-04 09:57:40** - 识别 unimed-dh-relay、unimed-dh 重构为 dhcore、新增 unimed-api-auth
 - **2025-12-16 09:30:24** - 初始化项目 AI 上下文
 
 ## 项目愿景
@@ -33,22 +34,23 @@ graph TD
     D --> L["unimed-resource"];
     D --> M["unimed-workflow"];
     D --> N["unimed-dh"];
-    D --> O2["unimed-dh-relay"];
-    E --> O["unimed-api-system"];
-    E --> P["unimed-api-resource"];
-    E --> Q["unimed-api-workflow"];
-    E --> R["unimed-api-auth"];
-    G --> S["unimed-monitor"];
-    G --> T["unimed-nacos"];
-    G --> U["unimed-seata-server"];
-    G --> V["unimed-snailjob-server"];
-    H --> W["unimed-demo"];
+    D --> O["unimed-dh-relay"];
+    E --> P["unimed-api-system"];
+    E --> Q["unimed-api-resource"];
+    E --> R["unimed-api-workflow"];
+    E --> S["unimed-api-auth"];
+    G --> T["unimed-monitor"];
+    G --> U["unimed-nacos"];
+    G --> V["unimed-seata-server"];
+    G --> W["unimed-snailjob-server"];
+    H --> X["unimed-demo"];
+
     click B "./unimed-auth/CLAUDE.md" "认证授权"
     click C "./unimed-gateway/CLAUDE.md" "网关"
     click I "./unimed-modules/unimed-system/CLAUDE.md" "系统管理"
     click M "./unimed-modules/unimed-workflow/CLAUDE.md" "工作流"
     click N "./unimed-modules/unimed-dh/CLAUDE.md" "数字人业务"
-    click O2 "./unimed-modules/unimed-dh-relay/CLAUDE.md" "数字人中转"
+    click O "./unimed-modules/unimed-dh-relay/CLAUDE.md" "数字人中转"
     click S "./unimed-visual/unimed-monitor/CLAUDE.md" "监控"
 ```
 
@@ -63,7 +65,7 @@ graph TD
 | unimed-modules/unimed-job | 任务调度 | 9203 | 定时任务、分布式任务 |
 | unimed-modules/unimed-resource | 资源服务 | 9204 | 文件存储、OSS、邮件短信 |
 | unimed-modules/unimed-dh-relay | 数字人中转 | 9205 | API 中转、WebRTC、AI 对话 |
-| unimed-modules/unimed-dh | 数字人业务 | 9206 | B端管理+C端门户（dhcore 包） |
+| unimed-modules/unimed-dh | 数字人业务 | 9206 | B端管理+C端门户+方言采集（dhcore 包） |
 | unimed-modules/unimed-workflow | 工作流 | 9207 | 流程定义、任务管理 |
 | unimed-visual/unimed-monitor | 监控中心 | 9100 | Spring Boot Admin |
 | unimed-visual/unimed-nacos | 注册中心 | 8848 | Nacos |
@@ -132,6 +134,7 @@ module/
 
 - **新增 B 端功能**: 参考 DhOrderController / DhMaterialController 模式
 - **新增 C 端接口**: 参考 PortalOrderController / PortalTopupController，放在 `controller/portal/` 下
+- **方言采集功能**: 参考 DhDialectPromptController（B端管理）和 PortalDialectController（C端采集）
 - **跨服务调用**: 在 unimed-api 定义接口，实现端 `@DubboService`，调用端 `@DubboReference`
 - **响应式服务**: 参考 unimed-dh-relay 的 WebClient + Mono 模式
 - **数字人数据库**: 参考 `script/sql/update/dh-*.sql` 历史变更脚本

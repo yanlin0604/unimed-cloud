@@ -543,3 +543,43 @@ curl -X GET "http://nacos:8848/nacos/v1/cs/configs?export=true&group=DEFAULT_GRO
 - 添加必要的注释和文档
 - 编写相应的测试用例
 - 确保所有测试通过
+
+## mvn clean package -DskipTests -am "-pl" "unimed-gateway,unimed-auth,unimed-modules/unimed-system,unimed-modules/unimed-resource,unimed-modules/unimed-dh-relay,unimed-visual/unimed-nacos"
+
+
+# 1. Gateway
+docker build -t unimed-gateway:latest ./unimed-gateway
+
+# 2. Auth
+docker build -t unimed-auth:latest ./unimed-auth
+
+# 3. System (注意路径在 modules 下)
+docker build -t unimed-system:latest ./unimed-modules/unimed-system
+
+# 4. Resource (注意路径在 modules 下)
+docker build -t unimed-resource:latest ./unimed-modules/unimed-resource
+
+# 5. DH-Relay (注意路径在 modules 下)
+docker build -t unimed-dh-relay:latest ./unimed-modules/unimed-dh-relay
+
+# 6. Nacos (注意路径在 visual 下)
+docker build -t unimed-nacos:latest ./unimed-visual/unimed-nacos
+
+docker save -o unimed-images.tar `
+  unimed-gateway:latest `
+unimed-auth:latest `
+  unimed-system:latest `
+unimed-resource:latest `
+  unimed-dh-relay:latest `
+unimed-nacos:latest
+
+ # 4. 服务器上                                                                                                                                                                                                                  
+ docker load -i unimed-images.tar                                                                                                                                                       ▼ MCP                                   
+ docker-compose up -d                                                                                                                                                                   • ace-tool Connected                    
+
+
+ # 2. 服务器加载                                                                                                                                                                        Context                              █  
+ docker load -i unimed-dh-relay.tar                                                                                                                                                     62,188 tokens                        █  
+                                                                                                                                                                                        31% used                             █  
+ # 3. 重启单个容器                                                                                                                                                                      $0.00 spent                             
+ docker-compose up -d unimed-dh-relay   

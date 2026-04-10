@@ -1,39 +1,26 @@
-# 多阶段构建 - 构建阶段
-FROM eclipse-temurin:17-jdk-alpine AS builder
+# 贝尔实验室 Spring 官方推荐镜像 JDK下载地址 https://bell-sw.com/pages/downloads/
+#FROM bellsoft/liberica-openjdk-rocky:17.0.16-cds
+FROM bellsoft/liberica-openjdk-rocky:21.0.8-cds
+#FROM findepi/graalvm:java17-native
 
-WORKDIR /app
+LABEL maintainer="Lion Li"
 
-# 复制 Maven 配置文件
-COPY pom.xml .
-COPY src ./src
+RUN mkdir -p /unimed/dh-relay/logs  \
+    /unimed/dh-relay/temp  \
+    /unimed/skywalking/agent
 
-# 构建应用
-RUN ./mvnw clean package -DskipTests
+WORKDIR /unimed/dh-relay
 
-# 运行阶段
-FROM eclipse-temurin:17-jre-alpine
+ENV SERVER_PORT=9205 LANG=C.UTF-8 LC_ALL=C.UTF-8 JAVA_OPTS=""
 
-# 添加应用用户
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+EXPOSE ${SERVER_PORT}
 
-WORKDIR /app
+ADD ./target/unimed-dh-relay.jar ./app.jar
 
-# 复制构建产物
-COPY --from=builder /app/target/*.jar app.jar
+SHELL ["/bin/bash", "-c"]
 
-# 创建日志目录
-RUN mkdir -p logs && chown -R appuser:appgroup logs
-
-# 设置 JVM 参数
-ENV JAVA_OPTS="-XX:+UseG1GC -Xmx512m -Xms256m"
-
-USER appuser
-
-EXPOSE 9205
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:9205/actuator/health || exit 1
-
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT java -Djava.security.egd=file:/dev/./urandom -Dserver.port=${SERVER_PORT} \
+           #-Dskywalking.agent.service_name=unimed-dh-relay \
+           #-javaagent:/unimed/skywalking/agent/skywalking-agent.jar \
+           -XX:+HeapDumpOnOutOfMemoryError -XX:+UseZGC ${JAVA_OPTS} \
+           -jar app.jar
