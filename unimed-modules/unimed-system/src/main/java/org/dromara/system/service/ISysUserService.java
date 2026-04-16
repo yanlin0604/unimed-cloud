@@ -98,7 +98,7 @@ public interface ISysUserService {
     String selectUserPostGroup(Long userId);
 
     /**
-     * 校验用户名称是否唯一
+     * 校验用户账号是否唯一
      *
      * @param user 用户信息
      * @return 结果
@@ -171,7 +171,7 @@ public interface ISysUserService {
      * 修改用户状态
      *
      * @param userId 用户ID
-     * @param status 帐号状态
+     * @param status 账号状态
      * @return 结果
      */
     int updateUserStatus(Long userId, String status);

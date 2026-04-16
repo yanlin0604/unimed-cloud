@@ -2,7 +2,7 @@
   <configuration default="false" name="unimed-snailjob-server" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
     <deployment type="dockerfile">
       <settings>
-        <option name="imageTag" value="unimed/unimed-snailjob-server:2.5.1" />
+        <option name="imageTag" value="unimed/unimed-snailjob-server:2.6.0" />
         <option name="buildOnly" value="true" />
         <option name="sourceFilePath" value="unimed-visual/unimed-snailjob-server/Dockerfile" />
       </settings>

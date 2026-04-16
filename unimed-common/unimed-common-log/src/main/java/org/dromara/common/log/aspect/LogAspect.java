@@ -13,6 +13,7 @@ import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.utils.ServletUtils;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -38,12 +39,6 @@ import java.util.*;
 @Aspect
 @AutoConfiguration
 public class LogAspect {
-
-    /**
-     * 排除敏感属性字段
-     */
-    public static final String[] EXCLUDE_PROPERTIES = { "password", "oldPassword", "newPassword", "confirmPassword" };
-
 
     /**
      * 计时 key
@@ -86,36 +81,15 @@ public class LogAspect {
 
             // *========数据库日志=========*//
             OperLogEvent operLog = new OperLogEvent();
-
-            // 尝试获取租户ID，如果获取失败则使用默认值
-            try {
-                operLog.setTenantId(LoginHelper.getTenantId());
-            } catch (Exception tenantException) {
-                log.debug("获取租户ID失败，使用默认值: {}", tenantException.getMessage());
-                operLog.setTenantId("000000"); // 默认租户ID
-            }
-
+            operLog.setTenantId(LoginHelper.getTenantId());
             operLog.setStatus(BusinessStatus.SUCCESS.ordinal());
             // 请求的地址
             String ip = ServletUtils.getClientIP();
             operLog.setOperIp(ip);
             operLog.setOperUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-
-            // 尝试获取登录用户信息，如果获取失败（如API Key认证），则使用默认值
-            try {
-                LoginUser loginUser = LoginHelper.getLoginUser();
-                if (loginUser != null) {
-                    operLog.setOperName(loginUser.getUsername());
-                    operLog.setDeptName(loginUser.getDeptName());
-                } else {
-                    // 没有登录用户时的默认处理
-                    setDefaultOperatorInfo(operLog);
-                }
-            } catch (Exception loginException) {
-                // 获取登录用户失败时的处理（如API Key认证、token过期等）
-                log.debug("获取登录用户信息失败，使用默认操作者信息: {}", loginException.getMessage());
-                setDefaultOperatorInfo(operLog);
-            }
+            LoginUser loginUser = LoginHelper.getLoginUser();
+            operLog.setOperName(loginUser.getUsername());
+            operLog.setDeptName(loginUser.getDeptName());
 
             if (e != null) {
                 operLog.setStatus(BusinessStatus.FAIL.ordinal());
@@ -180,11 +154,11 @@ public class LogAspect {
         String requestMethod = operLog.getRequestMethod();
         if (MapUtil.isEmpty(paramsMap) && StringUtils.equalsAny(requestMethod, HttpMethod.PUT.name(), HttpMethod.POST.name(), HttpMethod.DELETE.name())) {
             String params = argsArrayToString(joinPoint.getArgs(), excludeParamNames);
-            operLog.setOperParam(StringUtils.substring(params, 0, 20000));
+            operLog.setOperParam(StringUtils.substring(params, 0, 3800));
         } else {
-            MapUtil.removeAny(paramsMap, EXCLUDE_PROPERTIES);
+            MapUtil.removeAny(paramsMap, SystemConstants.EXCLUDE_PROPERTIES);
             MapUtil.removeAny(paramsMap, excludeParamNames);
-            operLog.setOperParam(StringUtils.substring(JsonUtils.toJsonString(paramsMap), 0, 20000));
+            operLog.setOperParam(StringUtils.substring(JsonUtils.toJsonString(paramsMap), 0, 3800));
         }
     }
 
@@ -196,7 +170,7 @@ public class LogAspect {
         if (ArrayUtil.isEmpty(paramsArray)) {
             return params.toString();
         }
-        String[] exclude = ArrayUtil.addAll(excludeParamNames, EXCLUDE_PROPERTIES);
+        String[] exclude = ArrayUtil.addAll(excludeParamNames, SystemConstants.EXCLUDE_PROPERTIES);
         for (Object o : paramsArray) {
             if (ObjectUtil.isNotNull(o) && !isFilterObject(o)) {
                 String str = "";
@@ -223,26 +197,6 @@ public class LogAspect {
             }
         }
         return params.toString();
-    }
-
-    /**
-     * 设置默认操作者信息
-     * 用于API Key认证或其他无法获取登录用户的场景
-     */
-    private void setDefaultOperatorInfo(OperLogEvent operLog) {
-        HttpServletRequest request = ServletUtils.getRequest();
-
-        // 尝试从请求中获取API Key相关信息
-        String apiKeyName = (String) request.getAttribute("apiKeyName");
-        if (StringUtils.isNotBlank(apiKeyName)) {
-            operLog.setOperName("API:" + apiKeyName);
-            operLog.setDeptName("外部系统");
-        } else {
-            // 使用IP地址作为操作者标识
-            String clientIp = ServletUtils.getClientIP();
-            operLog.setOperName("ANONYMOUS:" + clientIp);
-            operLog.setDeptName("匿名访问");
-        }
     }
 
     /**

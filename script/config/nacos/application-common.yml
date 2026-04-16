@@ -2,7 +2,7 @@ server:
   # undertow 配置
   undertow:
     # HTTP post内容的最大大小。当值为-1时，默认值为大小是无限的
-    max-http-post-size: -1
+    max-http-post-size: 1GB
     # 以下的配置会影响buffer,这些buffer会用于服务器连接的IO操作,有点类似netty的池化内存管理
     # 每块buffer的空间大小,越小的空间被利用越充分
     buffer-size: 512
@@ -32,21 +32,6 @@ dubbo:
   consumer:
     # 超时时间
     timeout: 3000
-    # 启用 Sa-Token 过滤器 (临时禁用以解决启动问题)
-    # filter: satoken
-  # 提供者相关配置
-  provider:
-    # 启用 Sa-Token 过滤器 (临时禁用以解决启动问题)
-    # filter: satoken
-  metadata-report:
-    # Redis集群开关
-    cluster: false
-    parameters:
-      # 集群地址 cluster 为 true 生效
-      # 集群把所有Redis集群节点写到这里就行了
-      backup: 47.113.122.118:3719
-      # 使用不同的数据库避免键名冲突
-      database: 6
   # 自定义配置
   custom:
     # 全局请求log
@@ -73,9 +58,9 @@ spring:
   servlet:
     multipart:
       # 整个请求大小限制
-      max-request-size: 500MB
+      max-request-size: 20MB
       # 上传单个文件大小限制
-      max-file-size: 500MB
+      max-file-size: 10MB
   mvc:
     # 设置静态资源路径 防止所有请求都去查静态资源
     static-path-pattern: /static/**
@@ -118,11 +103,11 @@ spring:
   # redis通用配置 子服务可以自行配置进行覆盖
   data:
     redis:
-      host: 47.113.122.118
-      port: 3719
+      host: localhost
+      port: 6379
       # redis 密码必须配置
-      password: 20255Jkoot#12#
-      database: 5
+      password: unimed123
+      database: 0
       # 需要使用数字
       timeout: 10000
       ssl.enabled: false
@@ -187,8 +172,7 @@ sa-token:
   # token名称 (同时也是cookie名称)
   token-name: Authorization
   # 开启内网服务调用鉴权(不允许越过gateway访问内网服务 保障服务安全)
-  # 临时禁用 Same-Token 检查以解决 Dubbo RPC 调用问题
-  check-same-token: false
+  check-same-token: true
   # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
   is-concurrent: true
   # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
@@ -254,7 +238,7 @@ springdoc:
     enabled: true
   info:
     # 标题
-    title: '标题：Unimed-Cloud-Plus微服务权限管理系统_接口文档'
+    title: '标题：unimed-Cloud-Plus微服务权限管理系统_接口文档'
     # 描述
     description: '描述：微服务权限管理系统, 具体包括XXX,XXX模块...'
     # 版本
@@ -263,7 +247,7 @@ springdoc:
     contact:
       name: Lion Li
       email: crazylionli@163.com
-      url: https://gitee.com/dromara/Unimed-Cloud-Plus
+      url: https://gitee.com/dromara/RuoYi-Cloud-Plus
 
 # seata配置
 seata:

@@ -8,7 +8,7 @@ services:
       # root 密码
       MYSQL_ROOT_PASSWORD: unimed123
       # 初始化数据库
-      MYSQL_DATABASE: um-cloud
+      MYSQL_DATABASE: ry-cloud
     ports:
       - "3306:3306"
     volumes:
@@ -27,7 +27,7 @@ services:
     network_mode: "host"
 
   nacos:
-    image: unimed/unimed-nacos:2.5.1
+    image: unimed/unimed-nacos:2.6.0
     container_name: nacos
     ports:
       - "8848:8848"
@@ -61,8 +61,8 @@ services:
     network_mode: "host"
 
   minio:
-    # minio 最后一个未阉割版本 不能再进行升级 在往上的版本功能被阉割
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    # pgsty 开源社区 fork 重新维护的最新版 minio
+    image: pgsty/minio:RELEASE.2026-02-14T12-00-00Z
     container_name: minio
     ports:
       # api 端口
@@ -95,7 +95,7 @@ services:
     network_mode: "host"
 
   seata-server:
-    image: unimed/unimed-seata-server:2.5.1
+    image: unimed/unimed-seata-server:2.6.0
     container_name: seata-server
     ports:
       - "7091:7091"
@@ -134,7 +134,7 @@ services:
     network_mode: "host"
 
   unimed-monitor:
-    image: unimed/unimed-monitor:2.5.1
+    image: unimed/unimed-monitor:2.6.0
     container_name: unimed-monitor
     environment:
       # 时区上海
@@ -150,7 +150,7 @@ services:
     network_mode: "host"
 
   unimed-snailjob-server:
-    image: unimed/unimed-snailjob-server:2.5.1
+    image: unimed/unimed-snailjob-server:2.6.0
     container_name: unimed-snailjob-server
     environment:
       # 时区上海
@@ -164,7 +164,7 @@ services:
     network_mode: "host"
 
   unimed-gateway:
-    image: unimed/unimed-gateway:2.5.1
+    image: unimed/unimed-gateway:2.6.0
     container_name: unimed-gateway
     environment:
       # 时区上海
@@ -180,13 +180,13 @@ services:
     network_mode: "host"
 
   unimed-auth:
-    image: unimed/unimed-auth:2.5.1
+    image: unimed/unimed-auth:2.6.0
     container_name: unimed-auth
     environment:
       # 时区上海
       TZ: Asia/Shanghai
     ports:
-      - "9221:9221"
+      - "9210:9210"
     volumes:
       # 配置文件
       - /docker/unimed-auth/logs/:/unimed/auth/logs
@@ -196,7 +196,7 @@ services:
     network_mode: "host"
 
   unimed-system:
-    image: unimed/unimed-system:2.5.1
+    image: unimed/unimed-system:2.6.0
     container_name: unimed-system
     environment:
       # 时区上海
@@ -212,7 +212,7 @@ services:
     network_mode: "host"
 
   unimed-gen:
-    image: unimed/unimed-gen:2.5.1
+    image: unimed/unimed-gen:2.6.0
     container_name: unimed-gen
     environment:
       # 时区上海
@@ -228,7 +228,7 @@ services:
     network_mode: "host"
 
   unimed-job:
-    image: unimed/unimed-job:2.5.1
+    image: unimed/unimed-job:2.6.0
     container_name: unimed-job
     environment:
       # 时区上海
@@ -246,7 +246,7 @@ services:
     network_mode: "host"
 
   unimed-resource:
-    image: unimed/unimed-resource:2.5.1
+    image: unimed/unimed-resource:2.6.0
     container_name: unimed-resource
     environment:
       # 时区上海
@@ -262,7 +262,7 @@ services:
     network_mode: "host"
 
   unimed-workflow:
-    image: unimed/unimed-workflow:2.5.1
+    image: unimed/unimed-workflow:2.6.0
     container_name: unimed-workflow
     environment:
       # 时区上海
@@ -395,56 +395,31 @@ services:
       - /docker/rabbitmq/data:/var/lib/rabbitmq
     network_mode: "host"
 
-  zookeeper:
-    image: 'bitnami/zookeeper:3.8.0'
-    container_name: zookeeper
-    ports:
-      - "2181:2181"
-    environment:
-      TZ: Asia/Shanghai
-      ALLOW_ANONYMOUS_LOGIN: "yes"
-      ZOO_SERVER_ID: 1
-      ZOO_PORT_NUMBER: 2181
-      # 自带的控制台 一般用不上可自行开启
-      ZOO_ENABLE_ADMIN_SERVER: "no"
-      # 自带控制台的端口
-      ZOO_ADMIN_SERVER_PORT_NUMBER: 8080
-    network_mode: "host"
-
   kafka:
-    image: 'bitnami/kafka:3.6.2'
+    image: apache/kafka:3.9.1
     container_name: kafka
     ports:
       - "9092:9092"
+      - "9093:9093"
     environment:
-      TZ: Asia/Shanghai
-      # 更多变量 查看文档 https://github.com/bitnami/bitnami-docker-kafka/blob/master/README.md
-      KAFKA_BROKER_ID: 1
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
       # 监听端口
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       # 实际访问ip 本地用 127 内网用 192 外网用 外网ip
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://192.168.31.165:9092
-      KAFKA_CFG_ZOOKEEPER_CONNECT: 127.0.0.1:2181
-      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.31.165:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk" # 使用 kafka-storage.sh random-uuid 生成
     volumes:
-      - /docker/kafka/data:/bitnami/kafka/data
-    depends_on:
-      - zookeeper
-    network_mode: "host"
-
-  kafka-manager:
-    image: sheepkiller/kafka-manager:latest
-    container_name: kafka-manager
-    ports:
-      - "19092:19092"
-    environment:
-      ZK_HOSTS: 127.0.0.1:2181
-      APPLICATION_SECRET: letmein
-      KAFKA_MANAGER_USERNAME: unimed
-      KAFKA_MANAGER_PASSWORD: unimed123
-      KM_ARGS: -Dhttp.port=19092
-    depends_on:
-      - kafka
+      - /docker/kafka/data:/var/lib/kafka/data
     network_mode: "host"
 
   sky-oap:

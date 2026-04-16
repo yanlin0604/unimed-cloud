@@ -189,7 +189,7 @@ public class DhMaterialServiceImpl implements IDhMaterialService {
         Map<Long, String> userNameMap = new HashMap<>();
         if (!createByIds.isEmpty()) {
             try {
-                Map<Long, String> result = remoteUserService.selectUserNamesByIds(createByIds);
+                Map<Long, String> result = remoteUserService.selectUserNicksByIds(createByIds);
                 if (result != null) {
                     userNameMap.putAll(result);
                 }

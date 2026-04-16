@@ -305,6 +305,7 @@ public class RemoteUserServiceImpl implements RemoteUserService {
      *
      * @param userIds 用户ids
      * @return 用户列表
+     * @see org.dromara.system.domain.convert.SysUserVoConvert
      */
     @Override
     public List<RemoteUserVo> selectListByIds(List<Long> userIds) {
@@ -398,12 +399,13 @@ public class RemoteUserServiceImpl implements RemoteUserService {
     }
 
     /**
-     * 根据用户 ID 列表查询用户名称映射关系
+     * 根据用户 ID 列表查询用户昵称映射关系
      *
      * @param userIds 用户 ID 列表
-     * @return Map，其中 key 为用户 ID，value 为对应的用户名称
+     * @return Map，其中 key 为用户 ID，value 为对应的用户昵称
      */
-    public Map<Long, String> selectUserNamesByIds(List<Long> userIds) {
+    @Override
+    public Map<Long, String> selectUserNicksByIds(List<Long> userIds) {
         if (CollUtil.isEmpty(userIds)) {
             return Collections.emptyMap();
         }
