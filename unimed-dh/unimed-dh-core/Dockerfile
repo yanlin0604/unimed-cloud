@@ -15,7 +15,7 @@ ENV SERVER_PORT=9206 LANG=C.UTF-8 LC_ALL=C.UTF-8 JAVA_OPTS=""
 
 EXPOSE ${SERVER_PORT}
 
-ADD ./target/unimed-dh.jar ./app.jar
+ADD ./target/unimed-dh-core.jar ./app.jar
 
 SHELL ["/bin/bash", "-c"]
 

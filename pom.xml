@@ -391,6 +391,8 @@
 	<module>unimed-gateway-mvc</module>
         <module>unimed-visual</module>
         <module>unimed-modules</module>
+        <module>unimed-dh</module>
+        <module>unimed-chronic</module>
         <module>unimed-api</module>
         <module>unimed-common</module>
         <module>unimed-example</module>

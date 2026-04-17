@@ -1,4 +1,4 @@
-[根目录](../../CLAUDE.md) > [unimed-modules](../) > **unimed-dh-relay**
+[根目录](../../CLAUDE.md) > [unimed-dh](../) > **unimed-dh-relay**
 
 # Unimed DH Relay 数字人中转服务模块
 

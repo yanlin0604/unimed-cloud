@@ -1,6 +1,6 @@
-[根目录](../../CLAUDE.md) > [unimed-modules](../) > **unimed-dh**
+[根目录](../../CLAUDE.md) > [unimed-dh](../) > **unimed-dh-core**
 
-# Unimed DH 数字人业务服务模块
+# Unimed DH Core 数字人业务服务模块
 
 ## 变更记录 (Changelog)
 

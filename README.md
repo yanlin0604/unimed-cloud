@@ -117,12 +117,18 @@ unimed-Cloud-Plus
 │  └─ unimed-demo        // 演示模块 [9401]
 │  └─ unimed-test-mq     // mq演示模块 [9402]
 ├─ unimed-gateway        // 网关模块 [8080]
-├─ unimed-modules        // 功能模块
+├─ unimed-modules        // 平台基础模块
 │  └─ unimed-gen                    // 代码生成模块 [9202]
 │  └─ unimed-job                    // 任务调度模块 [9203,9901]
 │  └─ unimed-resource               // 资源模块 [9204]
 │  └─ unimed-system                 // 系统模块 [9201]
 │  └─ unimed-workflow               // 工作流模块 [9205]
+├─ unimed-dh             // 数字人业务域
+│  └─ unimed-dh-core               // 数字人核心业务模块 [9206]
+│  └─ unimed-dh-relay              // 数字人中转模块 [9205]
+├─ unimed-chronic        // 慢病业务域
+│  └─ unimed-chronic-api           // 慢病接口模块
+│  └─ unimed-chronic-biz           // 慢病业务模块
 ├─ unimed-visual         // 可视化模块
 │  └─ unimed-monitor                // 服务监控模块 [9100]
 │  └─ unimed-nacos                  // nacos服务模块 [8848,9848,9849]
@@ -544,7 +550,7 @@ curl -X GET "http://nacos:8848/nacos/v1/cs/configs?export=true&group=DEFAULT_GRO
 - 编写相应的测试用例
 - 确保所有测试通过
 
-## mvn clean package -DskipTests -am "-pl" "unimed-gateway,unimed-auth,unimed-modules/unimed-system,unimed-modules/unimed-resource,unimed-modules/unimed-dh-relay,unimed-visual/unimed-nacos"
+## mvn clean package -DskipTests -am "-pl" "unimed-gateway,unimed-auth,unimed-modules/unimed-system,unimed-modules/unimed-resource,unimed-dh/unimed-dh-core,unimed-dh/unimed-dh-relay,unimed-visual/unimed-nacos"
 
 
 # 1. Gateway
@@ -559,10 +565,13 @@ docker build -t unimed-system:latest ./unimed-modules/unimed-system
 # 4. Resource (注意路径在 modules 下)
 docker build -t unimed-resource:latest ./unimed-modules/unimed-resource
 
-# 5. DH-Relay (注意路径在 modules 下)
-docker build -t unimed-dh-relay:latest ./unimed-modules/unimed-dh-relay
+# 5. DH Core (注意路径在 unimed-dh 下)
+docker build -t unimed-dh:latest ./unimed-dh/unimed-dh-core
 
-# 6. Nacos (注意路径在 visual 下)
+# 6. DH-Relay (注意路径在 unimed-dh 下)
+docker build -t unimed-dh-relay:latest ./unimed-dh/unimed-dh-relay
+
+# 7. Nacos (注意路径在 visual 下)
 docker build -t unimed-nacos:latest ./unimed-visual/unimed-nacos
 
 docker save -o unimed-images.tar `
@@ -570,6 +579,7 @@ docker save -o unimed-images.tar `
 unimed-auth:latest `
   unimed-system:latest `
 unimed-resource:latest `
+  unimed-dh:latest `
   unimed-dh-relay:latest `
 unimed-nacos:latest
 

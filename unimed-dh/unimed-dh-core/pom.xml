@@ -4,15 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.dromara</groupId>
-        <artifactId>unimed-modules</artifactId>
+        <artifactId>unimed-dh</artifactId>
         <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>unimed-dh</artifactId>
+    <artifactId>unimed-dh-core</artifactId>
 
     <description>
-        unimed-dh数字人业务微服务模块
+        unimed-dh-core数字人业务微服务模块
     </description>
 
     <dependencies>
@@ -94,3 +94,4 @@
     </build>
 
 </project>
+

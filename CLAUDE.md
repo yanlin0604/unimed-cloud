@@ -24,6 +24,8 @@ graph TD
     A["(根) Unimed-Cloud-Plus"] --> B["unimed-auth"];
     A --> C["unimed-gateway"];
     A --> D["unimed-modules"];
+    A --> Y["unimed-dh"];
+    A --> Z["unimed-chronic"];
     A --> E["unimed-api"];
     A --> F["unimed-common"];
     A --> G["unimed-visual"];
@@ -33,8 +35,10 @@ graph TD
     D --> K["unimed-job"];
     D --> L["unimed-resource"];
     D --> M["unimed-workflow"];
-    D --> N["unimed-dh"];
-    D --> O["unimed-dh-relay"];
+    Y --> N["unimed-dh-core"];
+    Y --> O["unimed-dh-relay"];
+    Z --> ZA["unimed-chronic-api"];
+    Z --> ZB["unimed-chronic-biz"];
     E --> P["unimed-api-system"];
     E --> Q["unimed-api-resource"];
     E --> R["unimed-api-workflow"];
@@ -49,8 +53,8 @@ graph TD
     click C "./unimed-gateway/CLAUDE.md" "网关"
     click I "./unimed-modules/unimed-system/CLAUDE.md" "系统管理"
     click M "./unimed-modules/unimed-workflow/CLAUDE.md" "工作流"
-    click N "./unimed-modules/unimed-dh/CLAUDE.md" "数字人业务"
-    click O "./unimed-modules/unimed-dh-relay/CLAUDE.md" "数字人中转"
+    click N "./unimed-dh/unimed-dh-core/CLAUDE.md" "数字人业务"
+    click O "./unimed-dh/unimed-dh-relay/CLAUDE.md" "数字人中转"
     click S "./unimed-visual/unimed-monitor/CLAUDE.md" "监控"
 ```
 
@@ -64,8 +68,10 @@ graph TD
 | unimed-modules/unimed-gen | 代码生成 | 9202 | 代码模板、表结构管理 |
 | unimed-modules/unimed-job | 任务调度 | 9203 | 定时任务、分布式任务 |
 | unimed-modules/unimed-resource | 资源服务 | 9204 | 文件存储、OSS、邮件短信 |
-| unimed-modules/unimed-dh-relay | 数字人中转 | 9205 | API 中转、WebRTC、AI 对话 |
-| unimed-modules/unimed-dh | 数字人业务 | 9206 | B端管理+C端门户+方言采集（dhcore 包） |
+| unimed-dh/unimed-dh-relay | 数字人中转 | 9205 | API 中转、WebRTC、AI 对话 |
+| unimed-dh/unimed-dh-core | 数字人业务 | 9206 | B端管理+C端门户+方言采集（dhcore 包） |
+| unimed-chronic/unimed-chronic-api | 慢病接口 | - | 慢病域 API 骨架 |
+| unimed-chronic/unimed-chronic-biz | 慢病业务 | - | 慢病域业务骨架 |
 | unimed-modules/unimed-workflow | 工作流 | 9207 | 流程定义、任务管理 |
 | unimed-visual/unimed-monitor | 监控中心 | 9100 | Spring Boot Admin |
 | unimed-visual/unimed-nacos | 注册中心 | 8848 | Nacos |
@@ -99,7 +105,7 @@ unimed-common-core、unimed-common-web、unimed-common-security、unimed-common-
 ### 构建命令
 ```bash
 mvn clean package -DskipTests
-mvn clean package -pl unimed-modules/unimed-dh -am -DskipTests
+mvn clean package -pl unimed-dh/unimed-dh-core -am -DskipTests
 mvn clean package -Pprod -DskipTests
 ```
 

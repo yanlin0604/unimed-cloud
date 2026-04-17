@@ -14,8 +14,6 @@
         <module>unimed-job</module>
         <module>unimed-resource</module>
         <module>unimed-workflow</module>
-        <module>unimed-dh-relay</module>
-        <module>unimed-dh</module>
     </modules>
 
     <artifactId>unimed-modules</artifactId>
