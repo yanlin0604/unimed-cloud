@@ -5,7 +5,7 @@
 ![Unimed-Cloud-Plus](https://img.shields.io/badge/Unimed--Cloud--Plus-2.5.1-brightgreen.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.7-blue.svg)
 ![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue.svg)
-![Java](https://img.shields.io/badge/Java-17+-orange.svg)
+![Java](https://img.shields.io/badge/Java-21-orange.svg)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)
 
 **基于 Spring Cloud 2025 & Spring Boot 3.5 的企业级微服务架构**
@@ -20,7 +20,7 @@ Unimed-Cloud-Plus 是基于 Dromara 开源组织开发的企业级微服务架�
 
 ### 🎯 设计理念
 
-- **现代化技术栈**：基于 Java 17+、Spring Boot 3.5、Spring Cloud 2025
+- **现代化技术栈**：基于 Java 21、Spring Boot 3.5、Spring Cloud 2025
 - **微服务架构**：模块化设计，服务独立部署，易于扩展
 - **开箱即用**：集成常用功能模块，快速搭建企业应用
 - **高性能**：采用 Redis、RocketMQ 等高性能组件
@@ -201,7 +201,7 @@ unimed-Cloud-Plus
 
 | 组件 | 版本要求 | 说明 |
 |------|----------|------|
-| JDK | 17+ | 推荐使用 OpenJDK 17 或 21 |
+| JDK | 21 | 推荐使用 OpenJDK 21（Liberica / Temurin 均可） |
 | Maven | 3.9.0+ | 项目构建工具 |
 | MySQL | 8.0+ | 主数据库 |
 | Redis | 7.0+ | 缓存和会话存储 |

@@ -1,0 +1,41 @@
+# Tomcat
+server:
+  port: 9207
+
+# Spring
+spring:
+  application:
+    # 应用名称
+    name: unimed-chronic
+  profiles:
+    # 环境配置
+    active: @profiles.active@
+
+chronic:
+  datasource:
+    # 默认主数据源使用独立慢病库
+    primary-db: unimed-chronic
+    # 系统库只允许通过只读方式兜底查询
+    system-read-enabled: true
+
+--- # nacos 配置
+spring:
+  cloud:
+    nacos:
+      # nacos 服务地址
+      server-addr: @nacos.server@
+      username: @nacos.username@
+      password: @nacos.password@
+      discovery:
+        # 注册组
+        group: @nacos.discovery.group@
+        namespace: ${spring.profiles.active}
+      config:
+        # 配置组
+        group: @nacos.config.group@
+        namespace: ${spring.profiles.active}
+  config:
+    import:
+      - optional:nacos:application-common.yml
+      - optional:nacos:datasource.yml
+      - optional:nacos:${spring.application.name}.yml

@@ -2,6 +2,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-04-20** - JDK 升级：所有服务 Dockerfile 统一升至 `bellsoft/liberica-openjdk-rocky:21.0.8-cds`（含 seata-server、snailjob-server），pom `java.version=21`；同步清理 `#FROM ...:17.0.16-cds` 历史注释
 - **2026-04-07** - 方言采集模块上线：新增 4 个控制器（DhDialectPrompt/DhDialectRecord/DhDialectInvite/PortalDialect）；3 张新表（dh_dialect_prompt/dh_dialect_record/dh_dialect_invite）；支持匿名提交、录音上传、邀请码管理、批量导入排序
 - **2026-03-04（第三次更新）** - unimed-dh 新增 B 端控制器（音色/素材/背景/生产/报表）和 C 端门户（认证/会员/钱包/充值/订单/创作/声音克隆）
 - **2026-03-04 09:57:40** - 识别 unimed-dh-relay、unimed-dh 重构为 dhcore、新增 unimed-api-auth
@@ -13,7 +14,7 @@
 
 ## 架构总览
 
-**技术栈**: Spring Boot 3.5.7 + Spring Cloud 2025.0.0 | Nacos + Dubbo | MySQL + MyBatis-Plus 3.5.14 | Redis + Redisson | Sa-Token 1.44.0 | Warm-Flow 1.8.2 | RocketMQ 2.3.4 | WebFlux
+**技术栈**: Java 21 + Spring Boot 3.5.7 + Spring Cloud 2025.0.0 | Nacos + Dubbo | MySQL + MyBatis-Plus 3.5.14 | Redis + Redisson | Sa-Token 1.44.0 | Warm-Flow 1.8.2 | RocketMQ 2.3.4 | WebFlux
 
 **架构模式**: 微服务 + Nacos 注册/配置 + Gateway 统一入口 + Dubbo RPC + Seata 分布式事务 + 多租户隔离
 
@@ -110,7 +111,7 @@ mvn clean package -Pprod -DskipTests
 ```
 
 ### Docker 部署
-所有可部署服务均提供 Dockerfile，基于 `eclipse-temurin:17-jre-alpine`。基础设施通过 `script/docker/docker-compose.yml` 一键部署。
+所有服务 Dockerfile 统一基于 `bellsoft/liberica-openjdk-rocky:21.0.8-cds`（JDK 21，启用 CDS 加速启动）。基础设施通过 `script/docker/docker-compose.yml` 一键部署。
 
 ## 测试策略
 
