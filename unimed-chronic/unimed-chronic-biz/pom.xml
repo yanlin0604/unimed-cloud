@@ -44,6 +44,27 @@
 
         <dependency>
             <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-idempotent</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-core</artifactId>
+        </dependency>
+
+        <!-- Validation for @Validated annotation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-job</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
             <artifactId>unimed-common-mybatis</artifactId>
         </dependency>
 

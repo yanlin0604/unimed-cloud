@@ -17,6 +17,10 @@ chronic:
     primary-db: unimed-chronic
     # 系统库只允许通过只读方式兜底查询
     system-read-enabled: true
+    # 服务启动时要求 nacos 中存在 chronic 与 system-master 两组库连接信息
+    required-configs:
+      - datasource.chronic
+      - datasource.system-master
 
 --- # nacos 配置
 spring:

@@ -1,0 +1,22 @@
+# 慢病业务模块配置
+# 此配置文件用于 Nacos 配置中心，请将内容复制到 Nacos 对应的配置中
+spring:
+  datasource:
+    dynamic:
+      # 慢病服务默认操作独立慢病库
+      primary: master
+      datasource:
+        # 慢病业务主库
+        master:
+          type: ${spring.datasource.type}
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: ${datasource.chronic.url}
+          username: ${datasource.chronic.username}
+          password: ${datasource.chronic.password}
+        # 系统库只读兜底查询
+        system-read:
+          type: ${spring.datasource.type}
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          url: ${datasource.system-master.url}
+          username: ${datasource.system-master.username}
+          password: ${datasource.system-master.password}

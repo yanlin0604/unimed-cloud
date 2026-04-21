@@ -1,0 +1,35 @@
+package org.dromara.chronic.domain.vo;
+
+import io.github.linpeilie.annotations.AutoMapper;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import org.dromara.chronic.domain.entity.ChPatientTag;
+
+import java.io.Serial;
+import java.io.Serializable;
+
+/**
+ * 患者标签视图对象 ch_patient_tag
+ *
+ * @author unimed
+ */
+@Schema(description = "患者标签视图对象")
+@Data
+@AutoMapper(target = ChPatientTag.class)
+public class ChPatientTagVo implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Schema(description = "主键ID")
+    private Long id;
+
+    @Schema(description = "患者ID")
+    private Long patientId;
+
+    @Schema(description = "标签类型")
+    private String tagType;
+
+    @Schema(description = "标签值")
+    private String tagValue;
+}

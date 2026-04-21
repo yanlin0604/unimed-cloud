@@ -1,0 +1,35 @@
+package org.dromara.chronic.domain.vo;
+
+import io.github.linpeilie.annotations.AutoMapper;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import org.dromara.chronic.domain.entity.ChManagePlanItem;
+
+import java.io.Serial;
+import java.io.Serializable;
+
+/**
+ * 管理方案子项视图对象
+ *
+ * @author unimed
+ */
+@Schema(description = "管理方案项视图对象")
+@Data
+@AutoMapper(target = ChManagePlanItem.class)
+public class ChManagePlanItemVo implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Schema(description = "主键ID")
+    private Long id;
+    @Schema(description = "方案ID")
+    private Long planId;
+    @Schema(description = "项类型")
+    private String itemType;
+    @Schema(description = "项内容")
+    private String itemContent;
+
+    @Schema(description = "机构ID")
+    private Long orgId;
+}

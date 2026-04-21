@@ -1,0 +1,48 @@
+package org.dromara.chronic.domain.vo;
+
+import io.github.linpeilie.annotations.AutoMapper;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import org.dromara.chronic.domain.entity.ChWarningEvent;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * 预警事件视图对象
+ *
+ * @author unimed
+ */
+@Schema(description = "预警事件视图对象")
+@Data
+@AutoMapper(target = ChWarningEvent.class)
+public class ChWarningEventVo implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Schema(description = "预警ID")
+    private Long warningId;
+    @Schema(description = "患者ID")
+    private Long patientId;
+    @Schema(description = "规则ID")
+    private Long ruleId;
+    @Schema(description = "预警级别")
+    private String warningLevel;
+    @Schema(description = "预警值")
+    private BigDecimal warningValue;
+    @Schema(description = "预警时间")
+    private Date warningTime;
+    @Schema(description = "事件状态")
+    private String eventStatus;
+    @Schema(description = "指派用户ID")
+    private Long assigneeUserId;
+    @Schema(description = "创建时间")
+    private Date createTime;
+
+    @Schema(description = "处置动作列表")
+    private List<ChWarningActionVo> actions;
+}

@@ -1,0 +1,75 @@
+package org.dromara.chronic.service.impl;
+
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.domain.bo.ChWarningRuleBo;
+import org.dromara.chronic.domain.entity.ChWarningRule;
+import org.dromara.chronic.domain.vo.ChWarningRuleVo;
+import org.dromara.chronic.mapper.ChWarningRuleMapper;
+import org.dromara.chronic.service.IChWarningRuleService;
+import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.utils.MapstructUtils;
+import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * 预警规则服务实现
+ *
+ * @author unimed
+ */
+@Service
+@RequiredArgsConstructor
+public class ChWarningRuleServiceImpl implements IChWarningRuleService {
+
+    private final ChWarningRuleMapper baseMapper;
+
+    @Override
+    public Long add(ChWarningRuleBo bo) {
+        ChWarningRule entity = MapstructUtils.convert(bo, ChWarningRule.class);
+        baseMapper.insert(entity);
+        return entity.getRuleId();
+    }
+
+    @Override
+    public Void update(ChWarningRuleBo bo) {
+        ChWarningRule existing = baseMapper.selectById(bo.getRuleId());
+        if (ObjectUtil.isNull(existing)) {
+            throw new ServiceException("预警规则不存在");
+        }
+        ChWarningRule entity = MapstructUtils.convert(bo, ChWarningRule.class);
+        baseMapper.updateById(entity);
+        return null;
+    }
+
+    @Override
+    public ChWarningRuleVo queryById(Long ruleId) {
+        return baseMapper.selectVoById(ruleId);
+    }
+
+    @Override
+    public TableDataInfo<ChWarningRuleVo> queryPageList(ChWarningRuleBo bo, PageQuery pageQuery) {
+        LambdaQueryWrapper<ChWarningRule> lqw = Wrappers.lambdaQuery();
+        lqw.eq(StringUtils.isNotBlank(bo.getDiseaseCode()), ChWarningRule::getDiseaseCode, bo.getDiseaseCode());
+        lqw.eq(StringUtils.isNotBlank(bo.getMetricType()), ChWarningRule::getMetricType, bo.getMetricType());
+        lqw.eq(StringUtils.isNotBlank(bo.getWarningLevel()), ChWarningRule::getWarningLevel, bo.getWarningLevel());
+        lqw.orderByDesc(ChWarningRule::getCreateTime);
+        Page<ChWarningRuleVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        return TableDataInfo.build(page);
+    }
+
+    @Override
+    public List<ChWarningRuleVo> queryByDiseaseCode(String diseaseCode) {
+        return baseMapper.selectVoList(
+            Wrappers.<ChWarningRule>lambdaQuery()
+                .eq(ChWarningRule::getDiseaseCode, diseaseCode)
+                .orderByAsc(ChWarningRule::getWarningLevel)
+        );
+    }
+}

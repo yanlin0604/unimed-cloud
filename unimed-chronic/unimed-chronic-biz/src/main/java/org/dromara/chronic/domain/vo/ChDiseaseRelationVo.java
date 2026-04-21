@@ -1,0 +1,34 @@
+package org.dromara.chronic.domain.vo;
+
+import io.github.linpeilie.annotations.AutoMapper;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import org.dromara.chronic.domain.entity.ChDiseaseRelation;
+
+import java.io.Serial;
+import java.io.Serializable;
+
+/**
+ * 病种关系视图对象
+ *
+ * @author unimed
+ */
+@Schema(description = "病种关系视图对象")
+@Data
+@AutoMapper(target = ChDiseaseRelation.class)
+public class ChDiseaseRelationVo implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Schema(description = "主键ID")
+    private Long id;
+    @Schema(description = "父级病种编码")
+    private String parentDiseaseCode;
+    @Schema(description = "并发症病种编码")
+    private String complicationDiseaseCode;
+    @Schema(description = "关系类型")
+    private String relationType;
+    @Schema(description = "是否启用")
+    private Boolean isActive;
+}
