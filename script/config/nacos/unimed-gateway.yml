@@ -86,6 +86,13 @@ spring:
                 - Path=/workflow/**
               filters:
                 - StripPrefix=1
+            # 慢病管理服务 (端口 9208)
+            - id: unimed-chronic
+              uri: lb://unimed-chronic
+              predicates:
+                - Path=/chronic/**
+              filters:
+                - StripPrefix=1
             # warm-flow服务
             - id: warm-flow
               uri: lb://unimed-workflow
