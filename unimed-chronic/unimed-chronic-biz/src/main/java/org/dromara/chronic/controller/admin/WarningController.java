@@ -12,6 +12,7 @@ import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,7 +52,7 @@ public class WarningController {
         @Parameter(description = "预警事件ID") @PathVariable Long warningId,
         @Parameter(description = "处理操作类型") @RequestParam String actionType,
         @Parameter(description = "处理详情") @RequestParam(required = false) String actionDetail) {
-        Long userId = null;
+        Long userId = LoginHelper.getUserId();
         return R.ok(warningManager.handleEvent(warningId, actionType, actionDetail, userId));
     }
 }

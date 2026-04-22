@@ -97,6 +97,29 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
     }
 
     @Override
+    public ChPatientContractVo queryCurrentContract(Long patientId) {
+        LambdaQueryWrapper<ChPatientContract> lqw = Wrappers.lambdaQuery();
+        lqw.eq(ChPatientContract::getPatientId, patientId);
+        lqw.eq(ChPatientContract::getContractStatus, "ACTIVE");
+        lqw.orderByDesc(ChPatientContract::getContractPeriodStart);
+        lqw.last("LIMIT 1");
+        ChPatientContractVo vo = contractMapper.selectVoOne(lqw);
+        if (vo != null) {
+            refreshContractState(vo);
+        }
+        return vo;
+    }
+
+    @Override
+    public ChPatientContractVo queryById(Long contractId) {
+        ChPatientContractVo vo = contractMapper.selectVoById(contractId);
+        if (vo != null) {
+            refreshContractState(vo);
+        }
+        return vo;
+    }
+
+    @Override
     public List<ChContractFulfillmentVo> queryFulfillmentList(Long contractId) {
         List<ChContractFulfillmentVo> list = fulfillmentMapper.selectVoList(
             Wrappers.<ChContractFulfillment>lambdaQuery()

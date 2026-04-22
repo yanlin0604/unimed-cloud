@@ -40,9 +40,9 @@ public class ChMedicationRecord extends TenantEntity {
 
     private Date stopDate;
 
-    private Integer dispenseQuantity;
+    private String dispenseQuantity;
 
-    private Integer prescriptionPeriod;
+    private String prescriptionPeriod;
 
     private Long prescriberUserId;
 

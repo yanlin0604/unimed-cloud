@@ -14,6 +14,7 @@ import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.mapper.ChWarningActionMapper;
 import org.dromara.chronic.mapper.ChWarningEventMapper;
 import org.dromara.chronic.service.IChWarningEventService;
+import org.dromara.chronic.support.rule.WarningStatusTransitionValidator;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -82,6 +83,29 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
 
     @Override
     public Void updateStatus(Long warningId, String newStatus) {
+        // 委托到含操作人上下文的重载方法，保持状态机校验一致性
+        return updateStatus(warningId, newStatus, null, null);
+    }
+
+    /**
+     * 将目标状态映射为对应的 action_type
+     */
+    private String mapStatusToActionType(String targetStatus) {
+        return switch (targetStatus) {
+            case "CONFIRMED" -> "CONFIRM";
+            case "PROCESSING" -> "HANDLE";
+            case "ESCALATED" -> "ESCALATE";
+            case "RESOLVED" -> "RESOLVE";
+            case "ARCHIVED" -> "ARCHIVE";
+            default -> "STATUS_CHANGE";
+        };
+    }
+
+    /**
+     * R4+R7: 更新预警事件状态（含操作人上下文），校验迁移合法性 + 自动写入 action
+     */
+    @Override
+    public Void updateStatus(Long warningId, String newStatus, Long actionUserId, String actionDetail) {
         if (!VALID_STATUSES.contains(newStatus)) {
             throw new ServiceException("无效的预警事件状态: " + newStatus);
         }
@@ -89,8 +113,24 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         if (ObjectUtil.isNull(entity)) {
             throw new ServiceException("预警事件不存在");
         }
+        WarningStatusTransitionValidator.validate(entity.getEventStatus(), newStatus);
+        String previousStatus = entity.getEventStatus();
         entity.setEventStatus(newStatus);
+        // R4: 如果提供了 assigneeUserId 则更新处理人
+        if (actionUserId != null) {
+            entity.setAssigneeUserId(actionUserId);
+        }
         eventMapper.updateById(entity);
+        // 自动写入 action 记录（含操作人上下文）
+        if (!previousStatus.equals(newStatus)) {
+            ChWarningAction action = new ChWarningAction();
+            action.setWarningId(warningId);
+            action.setActionType(mapStatusToActionType(newStatus));
+            action.setActionDetail(actionDetail != null ? actionDetail : "状态变更: " + previousStatus + " → " + newStatus);
+            action.setActionUserId(actionUserId);
+            action.setActionTime(new Date());
+            actionMapper.insert(action);
+        }
         return null;
     }
 

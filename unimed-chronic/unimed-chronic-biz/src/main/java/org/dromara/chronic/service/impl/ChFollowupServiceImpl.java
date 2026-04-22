@@ -65,7 +65,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             Wrappers.<ChFollowupTask>lambdaQuery()
                 .eq(ObjectUtil.isNotNull(assigneeUserId), ChFollowupTask::getAssigneeUserId, assigneeUserId)
                 .eq(taskStatus != null && !taskStatus.isBlank(), ChFollowupTask::getTaskStatus, taskStatus)
-                .orderByAsc(ChFollowupTask::getPlanDate)
+                .orderByAsc(ChFollowupTask::getPlanDueDate)
         );
         return TableDataInfo.build(page);
     }
@@ -100,7 +100,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             Wrappers.<ChFollowupTask>lambdaQuery()
                 .eq(ObjectUtil.isNotNull(assigneeUserId), ChFollowupTask::getAssigneeUserId, assigneeUserId)
                 .in(ChFollowupTask::getTaskStatus, List.of("PENDING", "REMINDING", "OVERDUE"))
-                .orderByAsc(ChFollowupTask::getPlanDate)
+                .orderByAsc(ChFollowupTask::getPlanDueDate)
         );
     }
 
@@ -128,7 +128,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         return followupTaskMapper.selectVoList(
             Wrappers.<ChFollowupTask>lambdaQuery()
                 .eq(ChFollowupTask::getPatientId, patientId)
-                .orderByAsc(ChFollowupTask::getPlanDate)
+                .orderByAsc(ChFollowupTask::getPlanDueDate)
         );
     }
 
@@ -149,7 +149,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setPatientId(plan.getPatientId());
             task.setPlanId(plan.getPlanId());
             task.setTaskRound(round);
-            task.setPlanDate(calendar.getTime());
+            task.setPlanDueDate(calendar.getTime());
             task.setTaskStatus("PENDING");
             task.setAssigneeUserId(assigneeUserId);
             followupTaskMapper.insert(task);

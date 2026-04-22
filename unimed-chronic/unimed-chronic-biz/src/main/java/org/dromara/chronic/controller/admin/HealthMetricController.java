@@ -66,4 +66,21 @@ public class HealthMetricController {
                                                   @RequestParam(required = false, defaultValue = "30") @Parameter(description = "查询条数") Integer limit) {
         return R.ok(metricRecordService.queryTrend(patientId, metricType, limit));
     }
+
+    @Operation(summary = "修改人工录入指标")
+    @SaCheckPermission("chronic:metric:edit")
+    @Log(title = "健康指标修改", businessType = BusinessType.UPDATE)
+    @PutMapping("/chronic/admin/health-metric/{metricId}")
+    public R<Void> edit(@PathVariable @Parameter(description = "健康指标ID") Long metricId,
+                       @Validated @RequestBody ChHealthMetricRecordBo bo) {
+        return R.ok(healthMetricManager.updateManualMetric(metricId, bo));
+    }
+
+    @Operation(summary = "删除人工录入指标")
+    @SaCheckPermission("chronic:metric:remove")
+    @Log(title = "健康指标删除", businessType = BusinessType.DELETE)
+    @DeleteMapping("/chronic/admin/health-metric/{metricId}")
+    public R<Void> remove(@PathVariable @Parameter(description = "健康指标ID") Long metricId) {
+        return R.ok(healthMetricManager.deleteManualMetric(metricId));
+    }
 }

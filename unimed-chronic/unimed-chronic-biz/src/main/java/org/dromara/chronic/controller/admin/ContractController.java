@@ -10,6 +10,8 @@ import org.dromara.chronic.domain.bo.ChPatientContractBo;
 import org.dromara.chronic.domain.vo.ChContractFulfillmentVo;
 import org.dromara.chronic.domain.vo.ChContractServicePackageVo;
 import org.dromara.chronic.domain.vo.ChPatientContractVo;
+import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
+import org.dromara.chronic.manager.ContractHistoryManager;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
@@ -36,6 +38,7 @@ import java.util.List;
 public class ContractController extends BaseController {
 
     private final IChPatientContractService patientContractService;
+    private final ContractHistoryManager contractHistoryManager;
 
     @Operation(summary = "分页查询签约")
     @SaCheckPermission("chronic:contract:list")
@@ -65,5 +68,28 @@ public class ContractController extends BaseController {
     @GetMapping("/{contractId}/fulfillment")
     public R<List<ChContractFulfillmentVo>> fulfillment(@Parameter(description = "签约ID") @PathVariable Long contractId) {
         return R.ok(patientContractService.queryFulfillmentList(contractId));
+    }
+
+    @Operation(summary = "签约时间线")
+    @SaCheckPermission("chronic:contract:query")
+    @GetMapping("/contract/{contractId}/timeline")
+    public TableDataInfo<ChPatientTimelineVo> timeline(@PathVariable Long contractId, PageQuery pageQuery) {
+        ChPatientContractVo contract = patientContractService.queryById(contractId);
+        return contractHistoryManager.queryContractTimeline(contract.getPatientId(), pageQuery);
+    }
+
+    @Operation(summary = "当前有效签约")
+    @SaCheckPermission("chronic:contract:query")
+    @GetMapping("/patient/{patientId}/contract/current")
+    public R<ChPatientContractVo> currentContract(@PathVariable Long patientId) {
+        return R.ok(patientContractService.queryCurrentContract(patientId));
+    }
+
+    @Operation(summary = "发送续约提醒")
+    @SaCheckPermission("chronic:contract:remind")
+    @Log(title = "续约提醒", businessType = BusinessType.UPDATE)
+    @PostMapping("/contract/{contractId}/renewal-remind")
+    public R<Void> renewalRemind(@PathVariable Long contractId) {
+        return R.ok(contractHistoryManager.sendRenewalReminder(contractId));
     }
 }

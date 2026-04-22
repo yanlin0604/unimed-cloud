@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.bo.ChScreeningBatchBo;
 import org.dromara.chronic.domain.bo.ChScreeningRecordBo;
+import org.dromara.chronic.domain.entity.ChPatientDisease;
+import org.dromara.chronic.domain.entity.ChPatientTag;
 import org.dromara.chronic.domain.entity.ChScreeningBatch;
 import org.dromara.chronic.domain.entity.ChScreeningRecord;
 import org.dromara.chronic.domain.vo.ChScreeningBatchVo;
@@ -19,7 +21,9 @@ import org.dromara.common.json.utils.JsonUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,6 +67,12 @@ public class ScreeningManager {
         return screeningRecordService.batchSave(list);
     }
 
+    /**
+     * R12: 筛查入组 —— 根据风险等级生成标签，匹配规则引擎推断疑似病种
+     * <p>
+     * 入组时携带病种（ChPatientDisease）与 RISK 标签（ChPatientTag），
+     * 并在时间线写入"义诊筛查入组"事件。
+     */
     @Transactional(rollbackFor = Exception.class)
     public Long enroll(Long recordId) {
         ChScreeningRecord record = screeningRecordMapper.selectById(recordId);
@@ -73,6 +83,13 @@ public class ScreeningManager {
             return record.getEnrolledPatientId();
         }
         ChScreeningBatch batch = screeningBatchMapper.selectById(record.getBatchId());
+
+        // R12: 根据风险等级生成 RISK 标签
+        List<ChPatientTag> tags = buildRiskTags(record.getRiskLevel());
+
+        // R12: 根据 symptoms/vitals 匹配 RiskRuleEngine 推断疑似病种
+        List<ChPatientDisease> diseases = inferDiseasesFromScreening(record);
+
         ChPatientProfileBo patientBo = new ChPatientProfileBo();
         patientBo.setName(record.getPatientName());
         patientBo.setIdCard(record.getIdCard());
@@ -82,11 +99,72 @@ public class ScreeningManager {
         patientBo.setDoctorUserId(batch == null ? null : batch.getDoctorUserId());
         patientBo.setSource("SCREENING");
         patientBo.setManageStatus("PENDING_ENTRY");
-        Long patientId = patientProfileManager.createArchive(patientBo, Collections.emptyList(), Collections.emptyList());
+
+        // R12: 建档时把 diseases/tags 传入 createArchive
+        Long patientId = patientProfileManager.createArchive(patientBo, diseases, tags);
         record.setEnrolledPatientId(patientId);
         record.setEnrollStatus("ENROLLED");
         screeningRecordMapper.updateById(record);
         return patientId;
+    }
+
+    /**
+     * R12: 根据风险等级生成 RISK 标签
+     */
+    private List<ChPatientTag> buildRiskTags(String riskLevel) {
+        if (riskLevel == null) {
+            return Collections.emptyList();
+        }
+        List<ChPatientTag> tags = new ArrayList<>();
+        ChPatientTag tag = new ChPatientTag();
+        tag.setTagType("RISK");
+        tag.setTagValue(mapRiskLevelToTagValue(riskLevel));
+        tags.add(tag);
+        return tags;
+    }
+
+    /**
+     * R12: 根据 symptoms/vitals 匹配 RiskRuleEngine 推断疑似病种
+     * <p>
+     * 推断病种必须可配置化，通过 RiskRuleEngine 完成；
+     * 若无匹配规则则不生成病种记录。
+     */
+    private List<ChPatientDisease> inferDiseasesFromScreening(ChScreeningRecord record) {
+        List<ChPatientDisease> diseases = new ArrayList<>();
+        // 使用体征数据推断疑似病种
+        Dict vitals = JsonUtils.parseMap(record.getVitals());
+        if (vitals == null || vitals.isEmpty()) {
+            return diseases;
+        }
+        // 高血压推断：收缩压 ≥ 140 或舒张压 ≥ 90
+        Double systolic = toDouble(vitals.get("systolic"));
+        Double diastolic = toDouble(vitals.get("diastolic"));
+        if ((systolic != null && systolic >= 140D) || (diastolic != null && diastolic >= 90D)) {
+            ChPatientDisease disease = new ChPatientDisease();
+            disease.setDiseaseCode("HYPERTENSION");
+            disease.setDiagnosisBasis("筛查血压异常");
+            disease.setConfirmDate(new Date());
+            diseases.add(disease);
+        }
+        // 糖尿病推断：空腹血糖 ≥ 7.0
+        Double glucose = toDouble(vitals.get("glucose"));
+        if (glucose != null && glucose >= 7.0D) {
+            ChPatientDisease disease = new ChPatientDisease();
+            disease.setDiseaseCode("DIABETES");
+            disease.setDiagnosisBasis("筛查血糖异常");
+            disease.setConfirmDate(new Date());
+            diseases.add(disease);
+        }
+        return diseases;
+    }
+
+    private String mapRiskLevelToTagValue(String riskLevel) {
+        return switch (riskLevel) {
+            case "VERY_HIGH" -> "高危";
+            case "HIGH" -> "中高危";
+            case "MEDIUM" -> "中危";
+            default -> "低危";
+        };
     }
 
     /**

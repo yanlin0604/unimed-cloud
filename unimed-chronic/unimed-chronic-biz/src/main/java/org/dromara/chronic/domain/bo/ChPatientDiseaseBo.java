@@ -11,6 +11,7 @@ import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 患者病种业务对象
@@ -52,4 +53,10 @@ public class ChPatientDiseaseBo extends BaseEntity {
 
     @Schema(description = "机构ID")
     private Long orgId;
+
+    @Schema(description = "管理级别")
+    private String manageLevel;
+
+    @Schema(description = "病种范围（查询用）")
+    private List<String> diseaseScope;
 }

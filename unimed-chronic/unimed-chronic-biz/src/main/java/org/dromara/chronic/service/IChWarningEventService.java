@@ -26,6 +26,16 @@ public interface IChWarningEventService {
 
     Void updateStatus(Long warningId, String newStatus);
 
+    /**
+     * 更新预警事件状态，同时写入操作人上下文的 action 记录
+     *
+     * @param warningId   预警事件ID
+     * @param newStatus   目标状态
+     * @param actionUserId 操作人用户ID
+     * @param actionDetail 操作详情
+     */
+    Void updateStatus(Long warningId, String newStatus, Long actionUserId, String actionDetail);
+
     Long addAction(ChWarningActionBo bo);
 
     List<ChWarningActionVo> queryActionsByWarningId(Long warningId);

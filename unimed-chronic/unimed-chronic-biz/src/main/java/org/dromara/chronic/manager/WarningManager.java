@@ -3,7 +3,6 @@ package org.dromara.chronic.manager;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.chronic.domain.bo.ChWarningActionBo;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
 import org.dromara.chronic.domain.entity.ChWarningRule;
@@ -50,6 +49,9 @@ public class WarningManager {
 
     /**
      * 处置预警事件（状态流转+记录动作）
+     * <p>
+     * C11: 状态更新与动作记录统一由 {@code updateStatus} 完成，
+     * 此处仅负责映射 actionType→newStatus 并注入操作人上下文。
      */
     @Transactional(rollbackFor = Exception.class)
     public Void handleEvent(Long warningId, String actionType, String actionDetail, Long actionUserId) {
@@ -61,13 +63,8 @@ public class WarningManager {
             case "RESOLVE" -> newStatus = "RESOLVED";
             default -> throw new org.dromara.common.core.exception.ServiceException("不支持的处置类型: " + actionType);
         }
-        warningEventService.updateStatus(warningId, newStatus);
-        ChWarningActionBo actionBo = new ChWarningActionBo();
-        actionBo.setWarningId(warningId);
-        actionBo.setActionType(actionType);
-        actionBo.setActionDetail(actionDetail);
-        actionBo.setActionUserId(actionUserId);
-        warningEventService.addAction(actionBo);
+        // updateStatus 内部完成状态校验 + 变更 + 自动写入 action 记录
+        warningEventService.updateStatus(warningId, newStatus, actionUserId, actionDetail);
         return null;
     }
 

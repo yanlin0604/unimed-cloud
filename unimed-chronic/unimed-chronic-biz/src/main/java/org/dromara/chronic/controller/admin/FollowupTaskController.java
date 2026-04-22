@@ -15,6 +15,7 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +42,9 @@ public class FollowupTaskController {
         return followupService.queryTaskPage(assigneeUserId, taskStatus, pageQuery);
     }
 
+    /**
+     * R14: 完成随访任务 —— 注入登录用户上下文
+     */
     @Operation(summary = "完成随访任务")
     @SaCheckPermission("chronic:followup-task:complete")
     @Log(title = "完成随访任务", businessType = BusinessType.UPDATE)
@@ -48,6 +52,7 @@ public class FollowupTaskController {
     @PostMapping("/chronic/admin/followup-task/{taskId}/complete")
     public R<Long> complete(@Parameter(description = "任务ID") @PathVariable Long taskId, @Validated @RequestBody ChFollowupRecordBo bo) {
         bo.setTaskId(taskId);
+        bo.setVisitorUserId(LoginHelper.getUserId());
         return R.ok(followupManager.completeTask(bo));
     }
 }

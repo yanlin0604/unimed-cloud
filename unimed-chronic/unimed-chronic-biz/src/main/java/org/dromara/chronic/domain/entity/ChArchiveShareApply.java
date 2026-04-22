@@ -31,9 +31,14 @@ public class ChArchiveShareApply extends TenantEntity {
     private String applyReason;
 
     /**
-     * 审批状态: PENDING/APPROVED/REJECTED
+     * 审批状态: PENDING/APPROVING/APPROVED/REJECTED/WITHDRAWN
      */
     private String approvalStatus;
+
+    /**
+     * 工作流实例ID（启动审批流程后回填）
+     */
+    private Long workflowInstanceId;
 
     @TableLogic
     private String delFlag;

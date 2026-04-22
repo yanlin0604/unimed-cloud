@@ -38,7 +38,7 @@ public class RiskRuleEngine {
             if (!hit) {
                 continue;
             }
-            totalScore += rule.getDimensionWeight() == null ? 0 : rule.getDimensionWeight();
+            totalScore += rule.getDimensionWeight() == null ? 0 : rule.getDimensionWeight().intValue();
             ChRiskFactorItem item = new ChRiskFactorItem();
             item.setFactorName(rule.getDimensionName());
             item.setFactorValue(String.valueOf(currentValue));

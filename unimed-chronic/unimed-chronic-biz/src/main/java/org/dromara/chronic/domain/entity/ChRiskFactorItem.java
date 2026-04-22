@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.dromara.common.tenant.core.TenantEntity;
 
+import java.math.BigDecimal;
+
 /**
  * 危险因子明细对象 ch_risk_factor_item
  *
@@ -28,7 +30,7 @@ public class ChRiskFactorItem extends TenantEntity {
 
     private String factorValue;
 
-    private Integer factorWeight;
+    private BigDecimal factorWeight;
 
     @TableLogic
     private String delFlag;

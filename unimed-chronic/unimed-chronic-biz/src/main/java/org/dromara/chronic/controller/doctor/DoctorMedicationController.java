@@ -7,12 +7,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChMedicationAdjustBo;
 import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
+import org.dromara.chronic.domain.vo.DrugInteractionCheckVo;
 import org.dromara.chronic.manager.MedicationManager;
 import org.dromara.chronic.service.IChMedicationService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +43,20 @@ public class DoctorMedicationController {
         return R.ok(medicationService.queryMedicationList(patientId));
     }
 
+    /**
+     * R14: 用药调整预览
+     */
+    @Operation(summary = "用药调整预览")
+    @SaCheckPermission("chronic:doctor:medication-adjust:add")
+    @PostMapping("/{patientId}/medication-adjust/preview")
+    public R<DrugInteractionCheckVo> previewAdjust(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @Validated @RequestBody ChMedicationAdjustBo bo) {
+        bo.setPatientId(patientId);
+        return R.ok(medicationManager.previewAdjust(bo));
+    }
+
+    /**
+     * R14: 新增用药调整 —— 注入登录用户上下文
+     */
     @Operation(summary = "新增用药调整")
     @SaCheckPermission("chronic:doctor:medication-adjust:add")
     @Log(title = "医生端用药调整", businessType = BusinessType.INSERT)
@@ -48,6 +64,7 @@ public class DoctorMedicationController {
     @PostMapping("/{patientId}/medication-adjust")
     public R<Long> adjust(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @Validated @RequestBody ChMedicationAdjustBo bo) {
         bo.setPatientId(patientId);
+        bo.setAdjusterUserId(LoginHelper.getUserId());
         return R.ok(medicationManager.adjustMedication(bo));
     }
 

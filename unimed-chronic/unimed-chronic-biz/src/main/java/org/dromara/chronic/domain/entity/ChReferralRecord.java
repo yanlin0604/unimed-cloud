@@ -44,6 +44,11 @@ public class ChReferralRecord extends TenantEntity {
      */
     private String referralType;
 
+    /**
+     * 转诊人用户ID
+     */
+    private Long referralUserId;
+
     @TableLogic
     private String delFlag;
 }

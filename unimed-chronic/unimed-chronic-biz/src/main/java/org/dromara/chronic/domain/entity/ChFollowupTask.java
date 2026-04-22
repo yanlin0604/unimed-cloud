@@ -30,9 +30,11 @@ public class ChFollowupTask extends TenantEntity {
 
     private Integer taskRound;
 
-    private Date planDate;
+    private Date planDueDate;
 
     private String taskStatus;
+
+    private String visitType;
 
     private Long assigneeUserId;
 

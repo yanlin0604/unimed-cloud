@@ -45,6 +45,11 @@ public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordSer
     }
 
     @Override
+    public ChHealthMetricRecord getById(Long metricId) {
+        return baseMapper.selectById(metricId);
+    }
+
+    @Override
     public ChHealthMetricRecordVo queryById(Long metricId) {
         return baseMapper.selectVoById(metricId);
     }
@@ -69,6 +74,19 @@ public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordSer
         lqw.orderByDesc(ChHealthMetricRecord::getCreateTime);
         lqw.last("LIMIT " + (limit != null ? limit : 30));
         return baseMapper.selectVoList(lqw);
+    }
+
+    @Override
+    public Void updateMetric(ChHealthMetricRecordBo bo) {
+        ChHealthMetricRecord entity = MapstructUtils.convert(bo, ChHealthMetricRecord.class);
+        baseMapper.updateById(entity);
+        return null;
+    }
+
+    @Override
+    public Void deleteMetric(Long metricId) {
+        baseMapper.deleteById(metricId);
+        return null;
     }
 
     /**

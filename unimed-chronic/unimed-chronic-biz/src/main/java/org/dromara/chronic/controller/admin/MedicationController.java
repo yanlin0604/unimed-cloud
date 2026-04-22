@@ -20,6 +20,7 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.web.core.BaseController;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -74,6 +75,20 @@ public class MedicationController extends BaseController {
         return R.ok(medicationService.queryAdjustList(patientId));
     }
 
+    /**
+     * R14: 用药调整预览 —— 只做相互作用检查，不持久化
+     */
+    @Operation(summary = "用药调整预览")
+    @SaCheckPermission("chronic:medication-adjust:add")
+    @PostMapping("/chronic/admin/patient/{patientId}/medication-adjust/preview")
+    public R<DrugInteractionCheckVo> previewAdjust(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated @RequestBody ChMedicationAdjustBo bo) {
+        bo.setPatientId(patientId);
+        return R.ok(medicationManager.previewAdjust(bo));
+    }
+
+    /**
+     * R14: 新增用药调整 —— 注入登录用户上下文
+     */
     @Operation(summary = "新增用药调整")
     @SaCheckPermission("chronic:medication-adjust:add")
     @Log(title = "用药调整", businessType = BusinessType.INSERT)
@@ -81,6 +96,7 @@ public class MedicationController extends BaseController {
     @PostMapping("/chronic/admin/patient/{patientId}/medication-adjust")
     public R<Long> adjust(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated @RequestBody ChMedicationAdjustBo bo) {
         bo.setPatientId(patientId);
+        bo.setAdjusterUserId(LoginHelper.getUserId());
         return R.ok(medicationManager.adjustMedication(bo));
     }
 

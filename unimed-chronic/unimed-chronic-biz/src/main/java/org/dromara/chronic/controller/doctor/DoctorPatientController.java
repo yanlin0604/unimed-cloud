@@ -9,6 +9,8 @@ import org.dromara.chronic.domain.bo.ChPatientContractBo;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
+import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
+import org.dromara.chronic.manager.ContractHistoryManager;
 import org.dromara.chronic.service.IChDoctorTeamService;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChPatientProfileService;
@@ -21,6 +23,8 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import java.util.Map;
 
@@ -39,6 +43,7 @@ public class DoctorPatientController extends BaseController {
     private final IChPatientProfileService patientProfileService;
     private final IChPatientContractService patientContractService;
     private final IChDoctorTeamService doctorTeamService;
+    private final ContractHistoryManager contractHistoryManager;
 
     /**
      * 我的患者列表
@@ -86,5 +91,15 @@ public class DoctorPatientController extends BaseController {
             return R.fail("teamId不能为空");
         }
         return toAjax(doctorTeamService.bindPatientTeam(patientId, teamId));
+    }
+
+    @Operation(summary = "签约历史")
+    @SaCheckPermission("chronic:doctor:patient:query")
+    @GetMapping("/{patientId}/contract/history")
+    public R<List<ChPatientTimelineVo>> contractHistory(
+            @Parameter(description = "患者ID", required = true) @PathVariable Long patientId,
+            @RequestParam(required = false) String eventType,
+            @RequestParam(required = false, defaultValue = "50") Integer limit) {
+        return R.ok(contractHistoryManager.queryContractHistory(patientId, eventType, limit));
     }
 }

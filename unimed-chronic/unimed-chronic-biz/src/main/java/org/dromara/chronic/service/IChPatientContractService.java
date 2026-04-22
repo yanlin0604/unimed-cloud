@@ -26,4 +26,8 @@ public interface IChPatientContractService {
     Long signContract(ChPatientContractBo bo);
 
     List<ChContractFulfillmentVo> queryFulfillmentList(Long contractId);
+
+    ChPatientContractVo queryCurrentContract(Long patientId);
+
+    ChPatientContractVo queryById(Long contractId);
 }

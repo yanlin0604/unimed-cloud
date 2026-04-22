@@ -84,10 +84,10 @@ public class ChPatientProfileVo implements Serializable {
     private String assistiveDevice;
 
     @Schema(description = "吸烟指数")
-    private BigDecimal smokingIndex;
+    private Integer smokingIndex;
 
     @Schema(description = "饮酒量")
-    private BigDecimal drinkingAmount;
+    private String drinkingAmount;
 
     @Schema(description = "机构ID")
     private Long orgId;

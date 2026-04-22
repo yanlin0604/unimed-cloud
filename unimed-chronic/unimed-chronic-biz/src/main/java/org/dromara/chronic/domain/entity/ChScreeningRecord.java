@@ -50,8 +50,6 @@ public class ChScreeningRecord extends TenantEntity {
 
     private String riskLevel;
 
-    private String conclusion;
-
     private String enrollStatus;
 
     private Long enrolledPatientId;

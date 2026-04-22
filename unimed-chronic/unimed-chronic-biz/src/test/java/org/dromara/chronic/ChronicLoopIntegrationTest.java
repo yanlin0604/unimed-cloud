@@ -28,7 +28,7 @@ import org.mockito.MockitoAnnotations;
  *
  * @author unimed
  */
-class ChronicLoopIntegrationTest {
+class ChronicLoopIntegrationTest  {
 
     @Mock
     private ChWarningEventMapper warningEventMapper;

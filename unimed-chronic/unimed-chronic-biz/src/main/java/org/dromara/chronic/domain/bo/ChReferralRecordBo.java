@@ -52,4 +52,7 @@ public class ChReferralRecordBo extends BaseEntity {
 
     @Schema(description = "转诊状态")
     private String referralStatus;
+
+    @Schema(description = "转诊人用户ID")
+    private Long referralUserId;
 }

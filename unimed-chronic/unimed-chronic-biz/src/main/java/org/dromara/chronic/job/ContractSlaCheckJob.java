@@ -1,15 +1,21 @@
 package org.dromara.chronic.job;
 
+import cn.hutool.core.lang.Dict;
 import com.aizuda.snailjob.client.job.core.annotation.JobExecutor;
 import com.aizuda.snailjob.client.job.core.dto.JobArgs;
 import com.aizuda.snailjob.common.log.SnailJobLog;
 import com.aizuda.snailjob.model.dto.ExecuteResult;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.domain.entity.ChContractFulfillment;
+import org.dromara.chronic.domain.entity.ChContractServicePackage;
 import org.dromara.chronic.domain.entity.ChPatientContract;
 import org.dromara.chronic.domain.entity.ChWarningEvent;
+import org.dromara.chronic.mapper.ChContractFulfillmentMapper;
+import org.dromara.chronic.mapper.ChContractServicePackageMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
 import org.dromara.chronic.mapper.ChWarningEventMapper;
+import org.dromara.common.json.utils.JsonUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -18,7 +24,9 @@ import java.util.List;
 /**
  * 签约SLA违约检测定时任务
  * <p>
- * 扫描生效签约，检测SLA违约情况，自动生成告警事件
+ * R6: 扫描生效签约，从 ch_contract_service_package.service_items 读取年度随访次数阈值，
+ * 与 ch_contract_fulfillment 已完成次数对比，结合到期天数判定 SLA 违约；
+ * 另行检测即将到期签约并发送续约提醒（幂等置位 expiry_remind_status）。
  *
  * @author unimed
  */
@@ -27,12 +35,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ContractSlaCheckJob {
 
+    /** 到期前 N 天开始预警 */
+    private static final long SLA_WARN_DAYS = 30;
+
     private final ChPatientContractMapper contractMapper;
     private final ChWarningEventMapper warningEventMapper;
+    private final ChContractServicePackageMapper packageMapper;
+    private final ChContractFulfillmentMapper fulfillmentMapper;
 
     public ExecuteResult jobExecute(JobArgs jobArgs) {
         SnailJobLog.LOCAL.info("签约SLA检测开始");
         int violations = 0;
+        int reminders = 0;
 
         List<ChPatientContract> activeContracts = contractMapper.selectList(
             Wrappers.<ChPatientContract>lambdaQuery()
@@ -40,39 +54,107 @@ public class ContractSlaCheckJob {
         );
 
         for (ChPatientContract contract : activeContracts) {
+            // —— SLA 违约检测 ——
             if (isSlaViolated(contract)) {
-                // 检查是否已有违约告警（防重复）
-                Long existingAlerts = warningEventMapper.selectCount(
+                // R6 AC3: 同一签约不重复生成，用 ruleId 存 contractId 做关联
+                Long slaAlertsForContract = warningEventMapper.selectCount(
                     Wrappers.<ChWarningEvent>lambdaQuery()
                         .eq(ChWarningEvent::getPatientId, contract.getPatientId())
+                        .eq(ChWarningEvent::getRuleId, contract.getContractId())
                         .eq(ChWarningEvent::getWarningLevel, "SLA_VIOLATION")
                         .eq(ChWarningEvent::getEventStatus, "NEW")
                 );
-                if (existingAlerts > 0) {
-                    continue;
+                if (slaAlertsForContract == 0) {
+                    ChWarningEvent event = new ChWarningEvent();
+                    event.setPatientId(contract.getPatientId());
+                    // ruleId 复用为 contractId，SLA 事件无预警规则来源
+                    event.setRuleId(contract.getContractId());
+                    event.setWarningLevel("SLA_VIOLATION");
+                    event.setEventStatus("NEW");
+                    event.setWarningTime(new Date());
+                    warningEventMapper.insert(event);
+                    violations++;
                 }
+            }
 
-                ChWarningEvent event = new ChWarningEvent();
-                event.setPatientId(contract.getPatientId());
-                event.setWarningLevel("SLA_VIOLATION");
-                event.setEventStatus("NEW");
-                event.setWarningTime(new Date());
-                warningEventMapper.insert(event);
-                violations++;
+            // —— 续约到期提醒（幂等） ——
+            if (shouldSendRenewalReminder(contract)) {
+                contract.setExpiryRemindStatus(true);
+                contractMapper.updateById(contract);
+                // TODO: 对接 RemoteMessageService 发送续约提醒通知
+                reminders++;
             }
         }
 
-        SnailJobLog.REMOTE.info("签约SLA检测完成, 违约告警数: {}", violations);
-        return ExecuteResult.success("检测SLA违约" + violations + "条");
+        SnailJobLog.REMOTE.info("签约SLA检测完成, 违约告警数: {}, 续约提醒数: {}", violations, reminders);
+        return ExecuteResult.success("SLA违约" + violations + "条, 续约提醒" + reminders + "条");
     }
 
+    /**
+     * R6: 数据驱动的 SLA 违约判定
+     * <p>
+     * 从签约关联的服务包 service_items JSON 中读取年度随访次数阈值，
+     * 与已完成履约次数比较，叠加到期天数条件。
+     */
     private boolean isSlaViolated(ChPatientContract contract) {
-        // 简化判断：签约到期前30天仍未完成最低随访次数则视为违约
-        // 实际规则应从ch_contract_service_package读取SLA配置
-        if (contract.getContractPeriodEnd() != null) {
-            long daysRemaining = (contract.getContractPeriodEnd().getTime() - System.currentTimeMillis()) / (24 * 60 * 60 * 1000);
-            return daysRemaining <= 30 && daysRemaining >= 0;
+        if (contract.getContractPeriodEnd() == null || contract.getPackageId() == null) {
+            return false;
         }
-        return false;
+        long daysRemaining = (contract.getContractPeriodEnd().getTime() - System.currentTimeMillis()) / (24 * 60 * 60 * 1000);
+        if (daysRemaining > SLA_WARN_DAYS || daysRemaining < 0) {
+            return false;
+        }
+        // 从服务包读取 SLA 阈值
+        Integer requiredFollowupCount = getRequiredFollowupCount(contract.getPackageId());
+        if (requiredFollowupCount == null || requiredFollowupCount <= 0) {
+            return false;
+        }
+        // 统计已完成随访次数
+        long doneCount = fulfillmentMapper.selectCount(
+            Wrappers.<ChContractFulfillment>lambdaQuery()
+                .eq(ChContractFulfillment::getContractId, contract.getContractId())
+                .eq(ChContractFulfillment::getFulfillmentStatus, "DONE")
+        );
+        return doneCount < requiredFollowupCount;
+    }
+
+    /**
+     * 从 ch_contract_service_package.service_items JSON 解析年度随访次数阈值
+     * <p>
+     * JSON 示例: {"annualFollowupCount": 4, "responseHours": 24}
+     */
+    private Integer getRequiredFollowupCount(Long packageId) {
+        ChContractServicePackage pkg = packageMapper.selectById(packageId);
+        if (pkg == null || pkg.getServiceItems() == null) {
+            return null;
+        }
+        try {
+            Dict items = JsonUtils.parseMap(pkg.getServiceItems());
+            if (items == null) {
+                return null;
+            }
+            Object count = items.get("annualFollowupCount");
+            if (count instanceof Number number) {
+                return number.intValue();
+            }
+            return null;
+        } catch (Exception ex) {
+            SnailJobLog.LOCAL.warn("解析 service_items JSON 失败 packageId={} msg={}", packageId, ex.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * R6: 到期前 30 天 + expiry_remind_status=false → 应发续约提醒
+     */
+    private boolean shouldSendRenewalReminder(ChPatientContract contract) {
+        if (contract.getContractPeriodEnd() == null) {
+            return false;
+        }
+        if (Boolean.TRUE.equals(contract.getExpiryRemindStatus())) {
+            return false; // 已提醒，幂等跳过
+        }
+        long daysRemaining = (contract.getContractPeriodEnd().getTime() - System.currentTimeMillis()) / (24 * 60 * 60 * 1000);
+        return daysRemaining <= SLA_WARN_DAYS && daysRemaining >= 0;
     }
 }

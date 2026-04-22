@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.dromara.common.tenant.core.TenantEntity;
 
+import java.math.BigDecimal;
+
 /**
  * 风险评估规则对象 ch_assessment_rule
  *
@@ -26,7 +28,7 @@ public class ChAssessmentRule extends TenantEntity {
 
     private String dimensionName;
 
-    private Integer dimensionWeight;
+    private BigDecimal dimensionWeight;
 
     /**
      * 阈值配置 JSON

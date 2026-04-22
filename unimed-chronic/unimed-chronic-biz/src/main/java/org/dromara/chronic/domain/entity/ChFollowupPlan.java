@@ -30,6 +30,8 @@ public class ChFollowupPlan extends TenantEntity {
 
     private Integer totalRounds;
 
+    private Integer currentRound;
+
     private String planStatus;
 
     @TableLogic

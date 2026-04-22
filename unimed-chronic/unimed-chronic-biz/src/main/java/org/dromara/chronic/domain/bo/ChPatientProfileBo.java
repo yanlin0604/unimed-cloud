@@ -153,13 +153,13 @@ public class ChPatientProfileBo extends BaseEntity {
      * 吸烟指数
      */
     @Schema(description = "吸烟指数")
-    private BigDecimal smokingIndex;
+    private Integer smokingIndex;
 
     /**
      * 饮酒量
      */
     @Schema(description = "饮酒量")
-    private BigDecimal drinkingAmount;
+    private String drinkingAmount;
 
     /**
      * 归属机构ID

@@ -16,6 +16,7 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,12 +33,16 @@ public class ReferralController {
 
     private final IChReferralService referralService;
 
+    /**
+     * R4: 新增转诊 —— 注入登录用户上下文
+     */
     @Operation(summary = "新增转诊")
     @SaCheckPermission("chronic:referral:add")
     @Log(title = "转诊", businessType = BusinessType.INSERT)
     @RepeatSubmit
     @PostMapping("/chronic/admin/referral")
     public R<Long> add(@Validated @RequestBody ChReferralRecordBo bo) {
+        bo.setReferralUserId(LoginHelper.getUserId());
         return R.ok(referralService.createReferral(bo));
     }
 
@@ -70,13 +75,6 @@ public class ReferralController {
     @PostMapping("/chronic/admin/archive-share")
     public R<Long> applyArchiveShare(@Validated @RequestBody ChArchiveShareApplyBo bo) {
         return R.ok(referralService.applyArchiveShare(bo));
-    }
-
-    @Operation(summary = "分页查询调档申请")
-    @SaCheckPermission("chronic:archive-share:list")
-    @GetMapping("/chronic/admin/archive-share/page")
-    public TableDataInfo<ChArchiveShareApplyVo> archiveSharePage(ChArchiveShareApplyBo bo, PageQuery pageQuery) {
-        return referralService.queryApplyPageList(bo, pageQuery);
     }
 
     @Operation(summary = "审批调档申请")
