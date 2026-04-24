@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChScreeningRecordBo;
+import org.dromara.chronic.domain.entity.ChScreeningBatch;
 import org.dromara.chronic.domain.entity.ChScreeningRecord;
 import org.dromara.chronic.domain.vo.ChScreeningRecordVo;
+import org.dromara.chronic.mapper.ChScreeningBatchMapper;
 import org.dromara.chronic.mapper.ChScreeningRecordMapper;
 import org.dromara.chronic.service.IChScreeningRecordService;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 义诊筛查记录服务实现
@@ -31,6 +35,7 @@ import java.util.List;
 public class ChScreeningRecordServiceImpl implements IChScreeningRecordService {
 
     private final ChScreeningRecordMapper baseMapper;
+    private final ChScreeningBatchMapper screeningBatchMapper;
 
     @Override
     public ChScreeningRecordVo saveRecord(ChScreeningRecordBo bo) {
@@ -82,6 +87,20 @@ public class ChScreeningRecordServiceImpl implements IChScreeningRecordService {
         lqw.eq(StringUtils.isNotBlank(bo.getEnrollStatus()), ChScreeningRecord::getEnrollStatus, bo.getEnrollStatus());
         lqw.orderByDesc(ChScreeningRecord::getUploadTime);
         Page<ChScreeningRecordVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        fillBatchNames(page.getRecords());
         return TableDataInfo.build(page);
+    }
+
+    private void fillBatchNames(List<ChScreeningRecordVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> batchIds = list.stream().map(ChScreeningRecordVo::getBatchId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!batchIds.isEmpty()) {
+            try {
+                screeningBatchMapper.selectBatchIds(batchIds).forEach(b ->
+                    list.stream().filter(v -> b.getBatchId().equals(v.getBatchId()))
+                        .forEach(v -> v.setBatchName(b.getBatchName())));
+            } catch (Exception e) { /* ignore */ }
+        }
     }
 }

@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChMedicationAdjust;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,4 +43,12 @@ public class ChMedicationAdjustVo implements Serializable {
     private Date pinVerifiedAt;
     @Schema(description = "调整人用户ID")
     private Long adjusterUserId;
+
+    @Schema(description = "调整类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "adjustType", other = ChronicDictTypeConstant.CHRONIC_ADJUST_TYPE)
+    private String adjustTypeName;
+
+    @Schema(description = "调整人昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "adjusterUserId")
+    private String adjusterNickName;
 }

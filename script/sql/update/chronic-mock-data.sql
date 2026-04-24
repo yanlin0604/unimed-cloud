@@ -253,10 +253,10 @@ INSERT INTO `ch_kpi_definition` (`kpi_id`, `kpi_code`, `kpi_name`, `kpi_formula`
 -- =============================================
 -- 15. 服务包
 -- =============================================
-INSERT INTO `ch_contract_service_package` (`package_id`, `package_name`, `package_type`, `service_items`, `price`, `tenant_id`, `create_by`, `create_time`) VALUES
-(5001, '基础型慢病签约包', 'BASIC',    '["年度体检1次","季度随访4次","健康咨询"]',                       120.00, @tid, @cb, @now),
-(5002, '进阶型慢病签约包', 'ADVANCED', '["年度体检1次","月度随访12次","健康咨询","设备监测","用药指导"]', 380.00, @tid, @cb, @now),
-(5003, '定制型慢病签约包', 'CUSTOM',   '["个性化定制"]',                                                 500.00, @tid, @cb, @now);
+INSERT INTO `ch_contract_service_package` (`package_id`, `package_name`, `package_type`, `service_items`, `price`, `is_active`, `tenant_id`, `create_by`, `create_time`) VALUES
+(5001, '基础型慢病签约包', 'BASIC',    '["年度体检1次","季度随访4次","健康咨询"]',                       120.00, 1, @tid, @cb, @now),
+(5002, '进阶型慢病签约包', 'ADVANCED', '["年度体检1次","月度随访12次","健康咨询","设备监测","用药指导"]', 380.00, 1, @tid, @cb, @now),
+(5003, '定制型慢病签约包', 'CUSTOM',   '["个性化定制"]',                                                 500.00, 1, @tid, @cb, @now);
 
 -- =============================================
 -- 16. 医生团队

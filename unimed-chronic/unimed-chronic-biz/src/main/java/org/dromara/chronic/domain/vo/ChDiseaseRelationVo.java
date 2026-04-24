@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChDiseaseRelation;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -31,4 +34,8 @@ public class ChDiseaseRelationVo implements Serializable {
     private String relationType;
     @Schema(description = "是否启用")
     private Boolean isActive;
+
+    @Schema(description = "关联类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "relationType", other = ChronicDictTypeConstant.CHRONIC_RELATION_TYPE)
+    private String relationTypeName;
 }

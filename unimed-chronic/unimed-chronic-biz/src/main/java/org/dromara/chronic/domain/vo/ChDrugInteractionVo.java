@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChDrugInteraction;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -33,4 +36,8 @@ public class ChDrugInteractionVo implements Serializable {
     private String description;
     @Schema(description = "临床建议")
     private String clinicalAdvice;
+
+    @Schema(description = "相互作用等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "interactionLevel", other = ChronicDictTypeConstant.CHRONIC_INTERACTION_LEVEL)
+    private String interactionLevelName;
 }

@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChReportInstance;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,4 +43,12 @@ public class ChReportInstanceVo implements Serializable {
     private String pushStatus;
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "报告类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "reportType", other = ChronicDictTypeConstant.CHRONIC_REPORT_TYPE)
+    private String reportTypeName;
+
+    @Schema(description = "推送状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "pushStatus", other = ChronicDictTypeConstant.CHRONIC_PUSH_STATUS)
+    private String pushStatusName;
 }

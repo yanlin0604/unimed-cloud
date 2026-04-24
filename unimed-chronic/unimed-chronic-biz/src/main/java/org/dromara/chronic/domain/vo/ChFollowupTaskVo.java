@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChFollowupTask;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -36,4 +39,16 @@ public class ChFollowupTaskVo implements Serializable {
     private String taskStatus;
     @Schema(description = "指派用户ID")
     private Long assigneeUserId;
+
+    @Schema(description = "任务状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "taskStatus", other = ChronicDictTypeConstant.CHRONIC_TASK_STATUS)
+    private String taskStatusName;
+
+    @Schema(description = "随访方式名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "visitType", other = ChronicDictTypeConstant.CHRONIC_VISIT_TYPE)
+    private String visitTypeName;
+
+    @Schema(description = "执行人昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "assigneeUserId")
+    private String assigneeNickName;
 }

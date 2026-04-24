@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChReferralRecord;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -42,4 +45,22 @@ public class ChReferralRecordVo implements Serializable {
     private String referralType;
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "转诊类别名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "referralCategory", other = ChronicDictTypeConstant.CHRONIC_REFERRAL_CATEGORY)
+    private String referralCategoryName;
+
+    @Schema(description = "转诊状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "referralStatus", other = ChronicDictTypeConstant.CHRONIC_REFERRAL_STATUS)
+    private String referralStatusName;
+
+    @Schema(description = "转诊类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "referralType", other = ChronicDictTypeConstant.CHRONIC_REFERRAL_TYPE)
+    private String referralTypeName;
+
+    @Schema(description = "转出机构名称")
+    private String fromOrgName;
+
+    @Schema(description = "转入机构名称")
+    private String toOrgName;
 }

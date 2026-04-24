@@ -277,6 +277,7 @@ CREATE TABLE `ch_contract_service_package` (
   `package_type`  VARCHAR(20)   DEFAULT NULL COMMENT '服务包类型(BASIC/ADVANCED/CUSTOM)',
   `service_items` JSON          DEFAULT NULL COMMENT '服务项目',
   `price`          DECIMAL(10,2) DEFAULT NULL COMMENT '价格',
+  `is_active`     TINYINT(1)     DEFAULT 1 COMMENT '是否启用',
   `create_dept`   BIGINT        DEFAULT NULL COMMENT '创建部门',
   `tenant_id`     BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`     BIGINT        DEFAULT NULL COMMENT '创建者',

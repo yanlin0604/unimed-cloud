@@ -1,11 +1,14 @@
 package org.dromara.chronic.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.common.helper.DiseaseNameHelper;
+import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChAssessmentRuleBo;
 import org.dromara.chronic.domain.bo.ChRiskAssessmentBo;
 import org.dromara.chronic.domain.entity.ChAssessmentRule;
@@ -33,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 风险评估服务实现
@@ -50,6 +54,8 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
     private final ChAssessmentRuleMapper assessmentRuleMapper;
     private final ChManageLevelRecordMapper manageLevelRecordMapper;
     private final RiskRuleEngine riskRuleEngine;
+    private final DiseaseNameHelper diseaseNameHelper;
+    private final OrgNameHelper orgNameHelper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -110,16 +116,19 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
         vo.setFactorItems(riskFactorItemMapper.selectVoList(
             Wrappers.<ChRiskFactorItem>lambdaQuery().eq(ChRiskFactorItem::getAssessmentId, entity.getAssessmentId())
         ));
+        fillRiskNames(java.util.Collections.singletonList(vo));
         return vo;
     }
 
     @Override
     public List<ChManageLevelRecordVo> queryHistory(Long patientId) {
-        return manageLevelRecordMapper.selectVoList(
+        List<ChManageLevelRecordVo> list = manageLevelRecordMapper.selectVoList(
             Wrappers.<ChManageLevelRecord>lambdaQuery()
                 .eq(ChManageLevelRecord::getPatientId, patientId)
                 .orderByDesc(ChManageLevelRecord::getChangeTime)
         );
+        fillManageLevelDiseaseNames(list);
+        return list;
     }
 
     @Override
@@ -149,5 +158,37 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
             "metricData", metricData,
             "factorData", factorData
         ));
+    }
+
+    private void fillManageLevelDiseaseNames(List<ChManageLevelRecordVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<String> diseaseCodes = list.stream().map(ChManageLevelRecordVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
+    private void fillRiskNames(List<ChRiskAssessmentVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> orgIds = list.stream().map(ChRiskAssessmentVo::getOrgId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!orgIds.isEmpty()) {
+            try {
+                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
+                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
+            } catch (Exception e) { /* ignore */ }
+        }
+        List<String> diseaseCodes = list.stream().map(ChRiskAssessmentVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
+        }
     }
 }

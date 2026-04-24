@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
 import org.dromara.chronic.domain.bo.ChFollowupPlanItemBo;
 import org.dromara.chronic.domain.bo.ChFollowupRecordBo;
@@ -22,14 +23,18 @@ import org.dromara.chronic.mapper.ChFollowupTaskMapper;
 import org.dromara.chronic.service.IChFollowupService;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 随访服务实现
@@ -44,6 +49,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     private final ChFollowupPlanItemMapper followupPlanItemMapper;
     private final ChFollowupTaskMapper followupTaskMapper;
     private final ChFollowupRecordMapper followupRecordMapper;
+    private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -120,6 +126,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         vo.setItemList(followupPlanItemMapper.selectVoList(
             Wrappers.<ChFollowupPlanItem>lambdaQuery().eq(ChFollowupPlanItem::getPlanId, plan.getPlanId())
         ));
+        fillFollowupPlanNames(Collections.singletonList(vo));
         return vo;
     }
 
@@ -154,6 +161,23 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setAssigneeUserId(assigneeUserId);
             followupTaskMapper.insert(task);
             calendar.add(Calendar.DAY_OF_MONTH, plan.getCycleDays());
+        }
+    }
+
+    private void fillFollowupPlanNames(List<ChFollowupPlanVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<String> diseaseCodes = list.stream()
+            .map(ChFollowupPlanVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank)
+            .distinct()
+            .collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) {
+                /* ignore */
+            }
         }
     }
 }

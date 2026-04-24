@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChEducationRule;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -30,5 +33,9 @@ public class ChEducationRuleVo implements Serializable {
 
     @Schema(description = "是否启用")
     private Boolean isActive;
+
+    @Schema(description = "推送渠道名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "pushChannel", other = ChronicDictTypeConstant.CHRONIC_PUSH_CHANNEL)
+    private String pushChannelName;
 
 }

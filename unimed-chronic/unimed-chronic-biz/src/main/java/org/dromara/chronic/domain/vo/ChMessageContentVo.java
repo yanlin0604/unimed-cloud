@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChMessageContent;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -36,5 +39,13 @@ public class ChMessageContentVo implements Serializable {
 
     @Schema(description = "语音时长")
     private Integer voiceDuration;
+
+    @Schema(description = "发送者类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "senderType", other = ChronicDictTypeConstant.CHRONIC_SENDER_TYPE)
+    private String senderTypeName;
+
+    @Schema(description = "内容类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "contentType", other = ChronicDictTypeConstant.CHRONIC_CONTENT_TYPE)
+    private String contentTypeName;
 
 }

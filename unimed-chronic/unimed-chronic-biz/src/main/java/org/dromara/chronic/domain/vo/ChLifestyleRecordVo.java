@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChLifestyleRecord;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,4 +43,24 @@ public class ChLifestyleRecordVo implements Serializable {
     private String complianceLevel;
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "吸烟状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "smokingStatus", other = ChronicDictTypeConstant.CHRONIC_SMOKING_STATUS)
+    private String smokingStatusName;
+
+    @Schema(description = "饮酒状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "drinkingStatus", other = ChronicDictTypeConstant.CHRONIC_DRINKING_STATUS)
+    private String drinkingStatusName;
+
+    @Schema(description = "运动频率名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "exerciseFreq", other = ChronicDictTypeConstant.CHRONIC_EXERCISE_FREQ)
+    private String exerciseFreqName;
+
+    @Schema(description = "心理状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "psychologicalStatus", other = ChronicDictTypeConstant.CHRONIC_PSYCHOLOGICAL_STATUS)
+    private String psychologicalStatusName;
+
+    @Schema(description = "依从性等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "complianceLevel", other = ChronicDictTypeConstant.CHRONIC_COMPLIANCE_LEVEL)
+    private String complianceLevelName;
 }

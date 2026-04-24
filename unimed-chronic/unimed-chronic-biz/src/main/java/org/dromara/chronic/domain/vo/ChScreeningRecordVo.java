@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChScreeningRecord;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -52,4 +55,19 @@ public class ChScreeningRecordVo implements Serializable {
     private Long enrolledPatientId;
     @Schema(description = "上传时间")
     private Date uploadTime;
+
+    @Schema(description = "风险等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "riskLevel", other = ChronicDictTypeConstant.CHRONIC_RISK_LEVEL)
+    private String riskLevelName;
+
+    @Schema(description = "入组状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "enrollStatus", other = ChronicDictTypeConstant.CHRONIC_ENROLL_STATUS)
+    private String enrollStatusName;
+
+    @Schema(description = "性别名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "gender", other = ChronicDictTypeConstant.CHRONIC_GENDER)
+    private String genderName;
+
+    @Schema(description = "批次名称")
+    private String batchName;
 }

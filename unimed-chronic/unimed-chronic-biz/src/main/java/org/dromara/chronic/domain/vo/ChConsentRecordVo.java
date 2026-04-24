@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChConsentRecord;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -45,4 +48,8 @@ public class ChConsentRecordVo implements Serializable {
 
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "同意类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "consentType", other = ChronicDictTypeConstant.CHRONIC_CONSENT_TYPE)
+    private String consentTypeName;
 }

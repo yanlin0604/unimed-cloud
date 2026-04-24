@@ -38,4 +38,7 @@ public class ChFollowupQuestionnaireVo implements Serializable {
     private Boolean isActive;
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "病种名称")
+    private String diseaseName;
 }

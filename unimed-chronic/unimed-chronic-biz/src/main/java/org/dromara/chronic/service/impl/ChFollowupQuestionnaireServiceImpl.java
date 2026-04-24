@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChFollowupAnswerBo;
 import org.dromara.chronic.domain.bo.ChFollowupQuestionnaireBo;
 import org.dromara.chronic.domain.entity.ChFollowupAnswer;
@@ -26,7 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 随访问卷服务实现
@@ -40,6 +44,7 @@ public class ChFollowupQuestionnaireServiceImpl implements IChFollowupQuestionna
 
     private final ChFollowupQuestionnaireMapper questionnaireMapper;
     private final ChFollowupAnswerMapper answerMapper;
+    private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -68,7 +73,11 @@ public class ChFollowupQuestionnaireServiceImpl implements IChFollowupQuestionna
 
     @Override
     public ChFollowupQuestionnaireVo queryById(Long questionnaireId) {
-        return questionnaireMapper.selectVoById(questionnaireId);
+        ChFollowupQuestionnaireVo vo = questionnaireMapper.selectVoById(questionnaireId);
+        if (vo != null) {
+            fillQuestionnaireDiseaseNames(Collections.singletonList(vo));
+        }
+        return vo;
     }
 
     @Override
@@ -80,17 +89,20 @@ public class ChFollowupQuestionnaireServiceImpl implements IChFollowupQuestionna
         lqw.eq(ObjectUtil.isNotNull(bo.getIsActive()), ChFollowupQuestionnaire::getIsActive, bo.getIsActive());
         lqw.orderByDesc(ChFollowupQuestionnaire::getCreateTime);
         Page<ChFollowupQuestionnaireVo> page = questionnaireMapper.selectVoPage(pageQuery.build(), lqw);
+        fillQuestionnaireDiseaseNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
     @Override
     public List<ChFollowupQuestionnaireVo> queryByDiseaseCode(String diseaseCode) {
-        return questionnaireMapper.selectVoList(
+        List<ChFollowupQuestionnaireVo> list = questionnaireMapper.selectVoList(
             Wrappers.<ChFollowupQuestionnaire>lambdaQuery()
                 .eq(ChFollowupQuestionnaire::getDiseaseCode, diseaseCode)
                 .eq(ChFollowupQuestionnaire::getIsActive, true)
                 .orderByDesc(ChFollowupQuestionnaire::getVersion)
         );
+        fillQuestionnaireDiseaseNames(list);
+        return list;
     }
 
     @Override
@@ -144,6 +156,18 @@ public class ChFollowupQuestionnaireServiceImpl implements IChFollowupQuestionna
             } catch (Exception e2) {
                 throw new ServiceException("questions JSON 格式不合法");
             }
+        }
+    }
+
+    private void fillQuestionnaireDiseaseNames(List<ChFollowupQuestionnaireVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<String> diseaseCodes = list.stream().map(ChFollowupQuestionnaireVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
         }
     }
 }

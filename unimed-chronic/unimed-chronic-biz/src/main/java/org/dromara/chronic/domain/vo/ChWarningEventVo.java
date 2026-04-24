@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChWarningEvent;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -45,4 +48,16 @@ public class ChWarningEventVo implements Serializable {
 
     @Schema(description = "处置动作列表")
     private List<ChWarningActionVo> actions;
+
+    @Schema(description = "预警等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "warningLevel", other = ChronicDictTypeConstant.CHRONIC_WARNING_LEVEL)
+    private String warningLevelName;
+
+    @Schema(description = "事件状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "eventStatus", other = ChronicDictTypeConstant.CHRONIC_EVENT_STATUS)
+    private String eventStatusName;
+
+    @Schema(description = "处理人昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "assigneeUserId")
+    private String assigneeNickName;
 }

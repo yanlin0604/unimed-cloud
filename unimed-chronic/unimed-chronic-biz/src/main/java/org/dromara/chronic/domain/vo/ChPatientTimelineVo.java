@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChPatientTimeline;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -39,4 +42,8 @@ public class ChPatientTimelineVo implements Serializable {
 
     @Schema(description = "事件时间")
     private Date eventTime;
+
+    @Schema(description = "事件类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "eventType", other = ChronicDictTypeConstant.CHRONIC_EVENT_TYPE)
+    private String eventTypeName;
 }

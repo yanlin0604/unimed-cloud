@@ -2,6 +2,9 @@ package org.dromara.chronic.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -116,4 +119,47 @@ public class ChPatientDetailVo implements Serializable {
 
     @Schema(description = "最新时间线")
     private ChPatientTimelineVo latestTimeline;
+
+    @Schema(description = "性别名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "gender", other = ChronicDictTypeConstant.CHRONIC_GENDER)
+    private String genderName;
+
+    @Schema(description = "民族名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "nation", other = ChronicDictTypeConstant.CHRONIC_NATION)
+    private String nationName;
+
+    @Schema(description = "职业名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "occupation", other = ChronicDictTypeConstant.CHRONIC_OCCUPATION)
+    private String occupationName;
+
+    @Schema(description = "文化程度名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "educationLevel", other = ChronicDictTypeConstant.CHRONIC_EDUCATION_LEVEL)
+    private String educationLevelName;
+
+    @Schema(description = "管理状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "manageStatus", other = ChronicDictTypeConstant.CHRONIC_MANAGE_STATUS)
+    private String manageStatusName;
+
+    @Schema(description = "患者来源名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "source", other = ChronicDictTypeConstant.CHRONIC_PATIENT_SOURCE)
+    private String sourceName;
+
+    @Schema(description = "残疾类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "disabilityType", other = ChronicDictTypeConstant.CHRONIC_DISABILITY_TYPE)
+    private String disabilityTypeName;
+
+    @Schema(description = "残疾等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "disabilityLevel", other = ChronicDictTypeConstant.CHRONIC_DISABILITY_LEVEL)
+    private String disabilityLevelName;
+
+    @Schema(description = "机构名称")
+    private String orgName;
+
+    @Schema(description = "部门名称")
+    @Translation(type = TransConstant.DEPT_ID_TO_NAME, mapper = "deptId")
+    private String deptName;
+
+    @Schema(description = "管理医生昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "doctorUserId")
+    private String doctorNickName;
 }

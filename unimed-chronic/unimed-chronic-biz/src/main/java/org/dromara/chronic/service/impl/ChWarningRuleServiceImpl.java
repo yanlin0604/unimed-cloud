@@ -1,10 +1,13 @@
 package org.dromara.chronic.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.common.helper.DiseaseNameHelper;
+import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChWarningRuleBo;
 import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningRuleVo;
@@ -17,7 +20,10 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 预警规则服务实现
@@ -29,6 +35,8 @@ import java.util.List;
 public class ChWarningRuleServiceImpl implements IChWarningRuleService {
 
     private final ChWarningRuleMapper baseMapper;
+    private final OrgNameHelper orgNameHelper;
+    private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     public Long add(ChWarningRuleBo bo) {
@@ -50,7 +58,11 @@ public class ChWarningRuleServiceImpl implements IChWarningRuleService {
 
     @Override
     public ChWarningRuleVo queryById(Long ruleId) {
-        return baseMapper.selectVoById(ruleId);
+        ChWarningRuleVo vo = baseMapper.selectVoById(ruleId);
+        if (vo != null) {
+            fillWarningRuleNames(Collections.singletonList(vo));
+        }
+        return vo;
     }
 
     @Override
@@ -61,15 +73,38 @@ public class ChWarningRuleServiceImpl implements IChWarningRuleService {
         lqw.eq(StringUtils.isNotBlank(bo.getWarningLevel()), ChWarningRule::getWarningLevel, bo.getWarningLevel());
         lqw.orderByDesc(ChWarningRule::getCreateTime);
         Page<ChWarningRuleVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        fillWarningRuleNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
     @Override
     public List<ChWarningRuleVo> queryByDiseaseCode(String diseaseCode) {
-        return baseMapper.selectVoList(
+        List<ChWarningRuleVo> list = baseMapper.selectVoList(
             Wrappers.<ChWarningRule>lambdaQuery()
                 .eq(ChWarningRule::getDiseaseCode, diseaseCode)
                 .orderByAsc(ChWarningRule::getWarningLevel)
         );
+        fillWarningRuleNames(list);
+        return list;
+    }
+
+    private void fillWarningRuleNames(List<ChWarningRuleVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> orgIds = list.stream().map(ChWarningRuleVo::getOrgId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!orgIds.isEmpty()) {
+            try {
+                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
+                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
+            } catch (Exception e) { /* ignore */ }
+        }
+        List<String> diseaseCodes = list.stream().map(ChWarningRuleVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
+        }
     }
 }

@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChHealthEducationDelivery;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -43,5 +46,17 @@ public class ChHealthEducationDeliveryVo implements Serializable {
 
     @Schema(description = "停留时长")
     private Integer stayDuration;
+
+    @Schema(description = "触发类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "triggerType", other = ChronicDictTypeConstant.CHRONIC_TRIGGER_TYPE)
+    private String triggerTypeName;
+
+    @Schema(description = "推送渠道名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "pushChannel", other = ChronicDictTypeConstant.CHRONIC_PUSH_CHANNEL)
+    private String pushChannelName;
+
+    @Schema(description = "推送状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "deliveryStatus", other = ChronicDictTypeConstant.CHRONIC_DELIVERY_STATUS)
+    private String deliveryStatusName;
 
 }

@@ -7,12 +7,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.common.helper.DiseaseNameHelper;
+import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChPatientTag;
 import org.dromara.chronic.domain.entity.ChPatientTimeline;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
+import org.dromara.chronic.domain.vo.ChPatientDiseaseVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
 import org.dromara.chronic.mapper.ChPatientDiseaseMapper;
@@ -28,8 +31,10 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 患者主档案服务实现
@@ -44,10 +49,13 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
     private final ChPatientDiseaseMapper patientDiseaseMapper;
     private final ChPatientTagMapper patientTagMapper;
     private final ChPatientTimelineMapper patientTimelineMapper;
+    private final OrgNameHelper orgNameHelper;
+    private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     public TableDataInfo<ChPatientProfileVo> queryPageList(ChPatientProfileBo bo, PageQuery pageQuery) {
         Page<ChPatientProfileVo> result = baseMapper.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
+        fillOrgName(result.getRecords());
         return TableDataInfo.build(result);
     }
 
@@ -58,9 +66,11 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
             throw new ServiceException("患者档案不存在");
         }
         ChPatientDetailVo detailVo = BeanUtil.copyProperties(profile, ChPatientDetailVo.class);
-        detailVo.setDiseaseList(patientDiseaseMapper.selectVoList(
+        List<ChPatientDiseaseVo> diseaseList = patientDiseaseMapper.selectVoList(
             Wrappers.<ChPatientDisease>lambdaQuery().eq(ChPatientDisease::getPatientId, patientId)
-        ));
+        );
+        fillPatientDiseaseNames(diseaseList);
+        detailVo.setDiseaseList(diseaseList);
         detailVo.setTags(patientTagMapper.selectVoList(
             Wrappers.<ChPatientTag>lambdaQuery().eq(ChPatientTag::getPatientId, patientId)
         ));
@@ -70,6 +80,8 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
                 .orderByDesc(ChPatientTimeline::getEventTime)
         );
         detailVo.setLatestTimeline(CollUtil.isEmpty(timelines) ? null : timelines.get(0));
+        // 回填机构名称
+        fillDetailOrgName(detailVo);
         return detailVo;
     }
 
@@ -145,5 +157,52 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
             ).stream().map(obj -> Long.valueOf(String.valueOf(obj))).toList());
         }
         return CollUtil.distinct(patientIds);
+    }
+
+    private void fillOrgName(List<ChPatientProfileVo> records) {
+        if (CollUtil.isEmpty(records)) return;
+        List<Long> orgIds = records.stream()
+            .map(ChPatientProfileVo::getOrgId)
+            .filter(ObjectUtil::isNotNull)
+            .distinct()
+            .collect(Collectors.toList());
+        if (!orgIds.isEmpty()) {
+            try {
+                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
+                records.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
+            } catch (Exception e) {
+                /* ignore */
+            }
+        }
+    }
+
+    private void fillDetailOrgName(ChPatientDetailVo detailVo) {
+        if (detailVo == null || detailVo.getOrgId() == null) return;
+        try {
+            Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(Collections.singletonList(detailVo.getOrgId()));
+            detailVo.setOrgName(orgNameMap.get(detailVo.getOrgId()));
+        } catch (Exception e) {
+            /* ignore */
+        }
+    }
+
+    private void fillPatientDiseaseNames(List<ChPatientDiseaseVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> orgIds = list.stream().map(ChPatientDiseaseVo::getOrgId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!orgIds.isEmpty()) {
+            try {
+                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
+                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
+            } catch (Exception e) { /* ignore */ }
+        }
+        List<String> diseaseCodes = list.stream().map(ChPatientDiseaseVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
+        }
     }
 }

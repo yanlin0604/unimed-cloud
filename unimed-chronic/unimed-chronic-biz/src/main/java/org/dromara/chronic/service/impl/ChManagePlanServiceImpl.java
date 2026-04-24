@@ -1,22 +1,30 @@
 package org.dromara.chronic.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.common.helper.DiseaseNameHelper;
+import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChManagePlanBo;
 import org.dromara.chronic.domain.bo.ChManagePlanItemBo;
 import org.dromara.chronic.domain.entity.ChManagePlan;
 import org.dromara.chronic.domain.entity.ChManagePlanItem;
+import org.dromara.chronic.domain.vo.ChManagePlanItemVo;
 import org.dromara.chronic.domain.vo.ChManagePlanVo;
 import org.dromara.chronic.mapper.ChManagePlanItemMapper;
 import org.dromara.chronic.mapper.ChManagePlanMapper;
 import org.dromara.chronic.service.IChManagePlanService;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
+import org.dromara.common.core.utils.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 管理方案服务实现
@@ -29,6 +37,8 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
 
     private final ChManagePlanMapper managePlanMapper;
     private final ChManagePlanItemMapper managePlanItemMapper;
+    private final OrgNameHelper orgNameHelper;
+    private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -92,11 +102,14 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
                 .eq(ChManagePlan::getPatientId, patientId)
                 .orderByDesc(ChManagePlan::getCreateTime)
         );
-        plans.forEach(plan -> plan.setItemList(
-            managePlanItemMapper.selectVoList(
+        plans.forEach(plan -> {
+            List<ChManagePlanItemVo> items = managePlanItemMapper.selectVoList(
                 Wrappers.<ChManagePlanItem>lambdaQuery().eq(ChManagePlanItem::getPlanId, plan.getPlanId())
-            )
-        ));
+            );
+            fillPlanItemOrgNames(items);
+            plan.setItemList(items);
+        });
+        fillPlanNames(plans);
         return plans;
     }
 
@@ -107,5 +120,49 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
         List<ChManagePlanItem> items = MapstructUtils.convert(itemList, ChManagePlanItem.class);
         items.forEach(item -> item.setPlanId(planId));
         managePlanItemMapper.insertBatch(items);
+    }
+
+    private void fillPlanNames(List<ChManagePlanVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        // orgName
+        List<Long> orgIds = list.stream()
+            .map(ChManagePlanVo::getOrgId)
+            .filter(ObjectUtil::isNotNull)
+            .distinct()
+            .collect(Collectors.toList());
+        if (!orgIds.isEmpty()) {
+            try {
+                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
+                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
+            } catch (Exception e) {
+                /* ignore */
+            }
+        }
+        // diseaseName
+        List<String> diseaseCodes = list.stream()
+            .map(ChManagePlanVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank)
+            .distinct()
+            .collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) {
+                /* ignore */
+            }
+        }
+    }
+
+    private void fillPlanItemOrgNames(List<ChManagePlanItemVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> orgIds = list.stream().map(ChManagePlanItemVo::getOrgId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!orgIds.isEmpty()) {
+            try {
+                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
+                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
+            } catch (Exception e) { /* ignore */ }
+        }
     }
 }

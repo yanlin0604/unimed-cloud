@@ -1,11 +1,13 @@
 package org.dromara.chronic.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChHealthExamBo;
 import org.dromara.chronic.domain.bo.ChHealthExamItemBo;
 import org.dromara.chronic.domain.entity.ChHealthExam;
@@ -23,7 +25,10 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 体检检验服务实现
@@ -37,6 +42,7 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
 
     private final ChHealthExamMapper examMapper;
     private final ChHealthExamItemMapper itemMapper;
+    private final OrgNameHelper orgNameHelper;
 
     @Override
     public Long createExam(ChHealthExamBo bo) {
@@ -62,6 +68,7 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
         ChHealthExamVo vo = examMapper.selectVoById(examId);
         if (vo != null) {
             vo.setItems(queryItemsByExamId(examId));
+            fillExamOrgNames(Collections.singletonList(vo));
         }
         return vo;
     }
@@ -74,16 +81,19 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
         lqw.eq(StringUtils.isNotBlank(bo.getSpecialCategory()), ChHealthExam::getSpecialCategory, bo.getSpecialCategory());
         lqw.orderByDesc(ChHealthExam::getExamDate);
         Page<ChHealthExamVo> page = examMapper.selectVoPage(pageQuery.build(), lqw);
+        fillExamOrgNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
     @Override
     public List<ChHealthExamVo> queryByPatientId(Long patientId) {
-        return examMapper.selectVoList(
+        List<ChHealthExamVo> list = examMapper.selectVoList(
             Wrappers.<ChHealthExam>lambdaQuery()
                 .eq(ChHealthExam::getPatientId, patientId)
                 .orderByDesc(ChHealthExam::getExamDate)
         );
+        fillExamOrgNames(list);
+        return list;
     }
 
     @Override
@@ -122,5 +132,17 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
                 .eq(ChHealthExamItem::getExamId, examId)
                 .orderByAsc(ChHealthExamItem::getId)
         );
+    }
+
+    private void fillExamOrgNames(List<ChHealthExamVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> orgIds = list.stream().map(ChHealthExamVo::getExamOrgId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!orgIds.isEmpty()) {
+            try {
+                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
+                list.forEach(v -> v.setExamOrgName(orgNameMap.get(v.getExamOrgId())));
+            } catch (Exception e) { /* ignore */ }
+        }
     }
 }

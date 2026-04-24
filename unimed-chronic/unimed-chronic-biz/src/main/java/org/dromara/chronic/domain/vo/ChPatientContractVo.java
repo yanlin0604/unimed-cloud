@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChPatientContract;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -44,4 +47,22 @@ public class ChPatientContractVo implements Serializable {
     private String contractStatus;
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "签约类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "contractType", other = ChronicDictTypeConstant.CHRONIC_CONTRACT_TYPE)
+    private String contractTypeName;
+
+    @Schema(description = "续约状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "renewalStatus", other = ChronicDictTypeConstant.CHRONIC_RENEWAL_STATUS)
+    private String renewalStatusName;
+
+    @Schema(description = "合同状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "contractStatus", other = ChronicDictTypeConstant.CHRONIC_CONTRACT_STATUS)
+    private String contractStatusName;
+
+    @Schema(description = "团队名称")
+    private String teamName;
+
+    @Schema(description = "服务包名称")
+    private String packageName;
 }

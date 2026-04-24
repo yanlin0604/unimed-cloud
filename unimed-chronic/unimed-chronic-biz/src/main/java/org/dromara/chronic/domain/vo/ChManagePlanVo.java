@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChManagePlan;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -41,4 +44,14 @@ public class ChManagePlanVo implements Serializable {
     private Date createTime;
     @Schema(description = "子项列表")
     private List<ChManagePlanItemVo> itemList;
+
+    @Schema(description = "方案状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "planStatus", other = ChronicDictTypeConstant.CHRONIC_PLAN_STATUS)
+    private String planStatusName;
+
+    @Schema(description = "病种名称")
+    private String diseaseName;
+
+    @Schema(description = "机构名称")
+    private String orgName;
 }

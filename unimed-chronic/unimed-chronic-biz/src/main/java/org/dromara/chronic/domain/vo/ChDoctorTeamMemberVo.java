@@ -25,8 +25,16 @@ public class ChDoctorTeamMemberVo implements Serializable {
     private Long id;
     @Schema(description = "团队ID")
     private Long teamId;
+    @Schema(description = "团队名称")
+    private String teamName;
     @Schema(description = "用户ID")
     private Long userId;
+    @Schema(description = "用户名称")
+    private String userName;
+    @Schema(description = "用户昵称")
+    private String nickName;
     @Schema(description = "成员角色")
     private String memberRole;
+    @Schema(description = "成员角色名称")
+    private String memberRoleName;
 }

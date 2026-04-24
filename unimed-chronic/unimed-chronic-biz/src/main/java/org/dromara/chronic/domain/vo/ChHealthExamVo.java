@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChHealthExam;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -45,4 +48,15 @@ public class ChHealthExamVo implements Serializable {
      */
     @Schema(description = "检验项列表（聚合视图）")
     private List<ChHealthExamItemVo> items;
+
+    @Schema(description = "体检类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "examType", other = ChronicDictTypeConstant.CHRONIC_EXAM_TYPE)
+    private String examTypeName;
+
+    @Schema(description = "专项类别名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "specialCategory", other = ChronicDictTypeConstant.CHRONIC_SPECIAL_CATEGORY)
+    private String specialCategoryName;
+
+    @Schema(description = "体检机构名称")
+    private String examOrgName;
 }

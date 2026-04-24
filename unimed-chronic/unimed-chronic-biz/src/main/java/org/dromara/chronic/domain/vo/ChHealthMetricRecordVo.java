@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -49,4 +52,24 @@ public class ChHealthMetricRecordVo implements Serializable {
     private String dataSource;
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "指标类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "metricType", other = ChronicDictTypeConstant.CHRONIC_METRIC_TYPE)
+    private String metricTypeName;
+
+    @Schema(description = "测量场景名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "measureScene", other = ChronicDictTypeConstant.CHRONIC_MEASURE_SCENE)
+    private String measureSceneName;
+
+    @Schema(description = "测量时段名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "measurePeriod", other = ChronicDictTypeConstant.CHRONIC_MEASURE_PERIOD)
+    private String measurePeriodName;
+
+    @Schema(description = "测量体位名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "measurePosture", other = ChronicDictTypeConstant.CHRONIC_MEASURE_POSTURE)
+    private String measurePostureName;
+
+    @Schema(description = "数据来源名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "dataSource", other = ChronicDictTypeConstant.CHRONIC_DATA_SOURCE)
+    private String dataSourceName;
 }

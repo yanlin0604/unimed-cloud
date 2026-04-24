@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChScreeningBatch;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -38,4 +41,15 @@ public class ChScreeningBatchVo implements Serializable {
     private String notes;
     @Schema(description = "状态")
     private String status;
+
+    @Schema(description = "批次状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "status", other = ChronicDictTypeConstant.CHRONIC_SCREENING_STATUS)
+    private String statusName;
+
+    @Schema(description = "机构名称")
+    private String orgName;
+
+    @Schema(description = "负责医生昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "doctorUserId")
+    private String doctorNickName;
 }

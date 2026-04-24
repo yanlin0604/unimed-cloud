@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChRiskAssessment;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -41,4 +44,18 @@ public class ChRiskAssessmentVo implements Serializable {
     private Date createTime;
     @Schema(description = "风险因子项列表")
     private List<ChRiskFactorItemVo> factorItems;
+
+    @Schema(description = "风险等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "riskLevel", other = ChronicDictTypeConstant.CHRONIC_RISK_LEVEL)
+    private String riskLevelName;
+
+    @Schema(description = "病种名称")
+    private String diseaseName;
+
+    @Schema(description = "评估人昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "assessorUserId")
+    private String assessorNickName;
+
+    @Schema(description = "机构名称")
+    private String orgName;
 }

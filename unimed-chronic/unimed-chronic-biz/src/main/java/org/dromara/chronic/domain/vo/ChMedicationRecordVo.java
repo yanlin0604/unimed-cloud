@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChMedicationRecord;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -50,4 +53,20 @@ public class ChMedicationRecordVo implements Serializable {
     private Boolean prescriberVerified;
     @Schema(description = "状态")
     private String status;
+
+    @Schema(description = "用药状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "status", other = ChronicDictTypeConstant.CHRONIC_MEDICATION_STATUS)
+    private String statusName;
+
+    @Schema(description = "用药频次名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "frequency", other = ChronicDictTypeConstant.CHRONIC_FREQUENCY)
+    private String frequencyName;
+
+    @Schema(description = "给药途径名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "route", other = ChronicDictTypeConstant.CHRONIC_ROUTE)
+    private String routeName;
+
+    @Schema(description = "开方医生昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "prescriberUserId")
+    private String prescriberNickName;
 }

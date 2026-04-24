@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChEncounterRecord;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -62,4 +65,19 @@ public class ChEncounterRecordVo implements Serializable {
 
     @Schema(description = "诊断列表")
     private List<ChEncounterDiagnosisVo> diagnosisList;
+
+    @Schema(description = "就诊类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "encounterType", other = ChronicDictTypeConstant.CHRONIC_ENCOUNTER_TYPE)
+    private String encounterTypeName;
+
+    @Schema(description = "来源类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "sourceType", other = ChronicDictTypeConstant.CHRONIC_SOURCE_TYPE)
+    private String sourceTypeName;
+
+    @Schema(description = "提交状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "submitStatus", other = ChronicDictTypeConstant.CHRONIC_SUBMIT_STATUS)
+    private String submitStatusName;
+
+    @Schema(description = "病种名称")
+    private String diseaseName;
 }

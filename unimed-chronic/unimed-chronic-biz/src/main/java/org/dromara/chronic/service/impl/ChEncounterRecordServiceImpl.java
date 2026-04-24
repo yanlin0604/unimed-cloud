@@ -1,11 +1,13 @@
 package org.dromara.chronic.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChEncounterDiagnosisBo;
 import org.dromara.chronic.domain.bo.ChEncounterRecordBo;
 import org.dromara.chronic.domain.entity.ChEncounterDiagnosis;
@@ -23,7 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 诊疗记录服务实现
@@ -37,6 +42,7 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
 
     private final ChEncounterRecordMapper baseMapper;
     private final ChEncounterDiagnosisMapper diagnosisMapper;
+    private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -85,6 +91,7 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
                 Wrappers.<ChEncounterDiagnosis>lambdaQuery()
                     .eq(ChEncounterDiagnosis::getEncounterId, encounterId)
             ));
+            fillEncounterDiseaseNames(Collections.singletonList(vo));
         }
         return vo;
     }
@@ -98,6 +105,7 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
         lqw.eq(StringUtils.isNotBlank(bo.getSubmitStatus()), ChEncounterRecord::getSubmitStatus, bo.getSubmitStatus());
         lqw.orderByDesc(ChEncounterRecord::getEncounterTime);
         Page<ChEncounterRecordVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        fillEncounterDiseaseNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
@@ -143,5 +151,17 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
         lqw.eq(ChEncounterRecord::getSourceBizNo, sourceBizNo);
         lqw.eq(ChEncounterRecord::getPatientId, patientId);
         return baseMapper.selectOne(lqw, false);
+    }
+
+    private void fillEncounterDiseaseNames(List<ChEncounterRecordVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<String> diseaseCodes = list.stream().map(ChEncounterRecordVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
+        }
     }
 }

@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChWarningAction;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -34,4 +37,12 @@ public class ChWarningActionVo implements Serializable {
     private Long actionUserId;
     @Schema(description = "处置时间")
     private Date actionTime;
+
+    @Schema(description = "处置类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "actionType", other = ChronicDictTypeConstant.CHRONIC_ACTION_TYPE)
+    private String actionTypeName;
+
+    @Schema(description = "处置人昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "actionUserId")
+    private String actionNickName;
 }

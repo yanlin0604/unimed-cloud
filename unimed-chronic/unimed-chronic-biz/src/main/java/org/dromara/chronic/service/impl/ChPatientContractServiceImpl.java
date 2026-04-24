@@ -1,5 +1,6 @@
 package org.dromara.chronic.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,12 +12,14 @@ import org.dromara.chronic.domain.bo.ChContractServicePackageBo;
 import org.dromara.chronic.domain.bo.ChPatientContractBo;
 import org.dromara.chronic.domain.entity.ChContractFulfillment;
 import org.dromara.chronic.domain.entity.ChContractServicePackage;
+import org.dromara.chronic.domain.entity.ChDoctorTeam;
 import org.dromara.chronic.domain.entity.ChPatientContract;
 import org.dromara.chronic.domain.vo.ChContractFulfillmentVo;
 import org.dromara.chronic.domain.vo.ChContractServicePackageVo;
 import org.dromara.chronic.domain.vo.ChPatientContractVo;
 import org.dromara.chronic.mapper.ChContractFulfillmentMapper;
 import org.dromara.chronic.mapper.ChContractServicePackageMapper;
+import org.dromara.chronic.mapper.ChDoctorTeamMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.common.core.exception.ServiceException;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 患者签约服务实现
@@ -40,6 +44,7 @@ import java.util.*;
 public class ChPatientContractServiceImpl implements IChPatientContractService {
 
     private final ChPatientContractMapper contractMapper;
+    private final ChDoctorTeamMapper teamMapper;
     private final ChContractServicePackageMapper packageMapper;
     private final ChContractFulfillmentMapper fulfillmentMapper;
 
@@ -54,6 +59,7 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
         lqw.orderByDesc(ChPatientContract::getCreateTime);
         Page<ChPatientContractVo> page = contractMapper.selectVoPage(pageQuery.build(), lqw);
         page.getRecords().forEach(this::refreshContractState);
+        fillContractNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
@@ -74,6 +80,8 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
         if (entity.getIsActive() == null) {
             entity.setIsActive(Boolean.TRUE);
         }
+        // 确保 serviceItems 为有效的 JSON 数组格式
+        entity.setServiceItems(resolveServiceItemsForStorage(bo.getServiceItems()));
         return packageMapper.insert(entity) > 0;
     }
 
@@ -106,6 +114,7 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
         ChPatientContractVo vo = contractMapper.selectVoOne(lqw);
         if (vo != null) {
             refreshContractState(vo);
+            fillContractName(vo);
         }
         return vo;
     }
@@ -115,6 +124,7 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
         ChPatientContractVo vo = contractMapper.selectVoById(contractId);
         if (vo != null) {
             refreshContractState(vo);
+            fillContractName(vo);
         }
         return vo;
     }
@@ -210,5 +220,79 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
             }
         }
         return new ArrayList<>(Arrays.asList(StringUtils.split(serviceItems, ",")));
+    }
+
+    /**
+     * 确保服务项目以有效 JSON 数组格式存储
+     * 
+     * @param serviceItems 输入的服务项目（可能是逗号分隔文本或 JSON 数组）
+     * @return 有效 JSON 数组字符串，如 ["体检","咨询"]
+     */
+    private String resolveServiceItemsForStorage(String serviceItems) {
+        if (StringUtils.isBlank(serviceItems)) {
+            return "[]";
+        }
+        String trimmed = serviceItems.trim();
+        // 已经是有效的 JSON 数组，直接返回
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+                JsonUtils.parseObject(trimmed, Object.class);
+                return trimmed;
+            } catch (Exception e) {
+                // JSON 格式无效，转为逗号切分处理
+            }
+        }
+        // 逗号分隔或其他格式，转为 JSON 数组
+        List<String> items = new ArrayList<>();
+        for (String part : StringUtils.split(serviceItems, ",")) {
+            String item = part.trim();
+            if (StringUtils.isNotBlank(item)) {
+                items.add(item);
+            }
+        }
+        return "[" + items.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(",")) + "]";
+    }
+
+    /**
+     * 批量回填签约VO的团队名称和服务包名称
+     */
+    private void fillContractNames(List<ChPatientContractVo> list) {
+        if (CollUtil.isEmpty(list)) {
+            return;
+        }
+        // teamName
+        List<Long> teamIds = list.stream().map(ChPatientContractVo::getTeamId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!teamIds.isEmpty()) {
+            try {
+                teamMapper.selectBatchIds(teamIds).forEach(t ->
+                    list.stream().filter(v -> t.getTeamId().equals(v.getTeamId()))
+                        .forEach(v -> v.setTeamName(t.getTeamName())));
+            } catch (Exception e) {
+                // 查询失败不影响主流程
+            }
+        }
+        // packageName
+        List<Long> packageIds = list.stream().map(ChPatientContractVo::getPackageId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!packageIds.isEmpty()) {
+            try {
+                packageMapper.selectBatchIds(packageIds).forEach(p ->
+                    list.stream().filter(v -> p.getPackageId().equals(v.getPackageId()))
+                        .forEach(v -> v.setPackageName(p.getPackageName())));
+            } catch (Exception e) {
+                // 查询失败不影响主流程
+            }
+        }
+    }
+
+    /**
+     * 单条签约VO回填团队名称和服务包名称
+     */
+    private void fillContractName(ChPatientContractVo vo) {
+        if (vo == null) {
+            return;
+        }
+        fillContractNames(List.of(vo));
     }
 }

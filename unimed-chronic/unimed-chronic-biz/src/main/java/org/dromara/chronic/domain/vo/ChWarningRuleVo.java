@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChWarningRule;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -47,4 +50,18 @@ public class ChWarningRuleVo implements Serializable {
     private Long orgId;
     @Schema(description = "创建时间")
     private Date createTime;
+
+    @Schema(description = "预警等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "warningLevel", other = ChronicDictTypeConstant.CHRONIC_WARNING_LEVEL)
+    private String warningLevelName;
+
+    @Schema(description = "指标类型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "metricType", other = ChronicDictTypeConstant.CHRONIC_METRIC_TYPE)
+    private String metricTypeName;
+
+    @Schema(description = "病种名称")
+    private String diseaseName;
+
+    @Schema(description = "机构名称")
+    private String orgName;
 }
