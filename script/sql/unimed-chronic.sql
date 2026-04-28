@@ -546,6 +546,9 @@ CREATE TABLE `ch_manage_plan_item` (
   `plan_id`      BIGINT        DEFAULT NULL COMMENT '方案ID',
   `item_type`    VARCHAR(20)   DEFAULT NULL COMMENT '项类型(MEDICATION/DIET/EXERCISE/PSYCHOLOGY/FOLLOWUP/MONITOR)',
   `item_content` JSON          DEFAULT NULL COMMENT '项内容',
+  `target_metric_type` VARCHAR(50) DEFAULT NULL COMMENT '目标指标类型(如 SYSTOLIC_BP, FASTING_GLUCOSE)',
+  `target_min_value` DECIMAL(10,2) DEFAULT NULL COMMENT '目标下限值',
+  `target_max_value` DECIMAL(10,2) DEFAULT NULL COMMENT '目标上限值',
   `create_dept` BIGINT        DEFAULT NULL COMMENT '创建部门',
   `tenant_id`    BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`    BIGINT        DEFAULT NULL COMMENT '创建者',
@@ -1501,3 +1504,50 @@ CREATE TABLE `ch_encounter_diagnosis` (
   INDEX `idx_ed_patient_id` (`patient_id`),
   INDEX `idx_ed_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='诊疗诊断表';
+
+-- ----------------------------
+-- 63. 医生自定义管理分组表
+-- ----------------------------
+CREATE TABLE `ch_doctor_custom_group` (
+    `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `group_name`  VARCHAR(100) NOT NULL                COMMENT '分组名称',
+    `doctor_id`   BIGINT       NOT NULL                COMMENT '创建/所属医生ID',
+    `description` VARCHAR(255)                         COMMENT '分组描述',
+    `create_time` DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `create_by`   VARCHAR(64)                          COMMENT '创建人',
+    `update_by`   VARCHAR(64)                          COMMENT '更新人',
+    PRIMARY KEY (`id`),
+    INDEX `idx_doctor_id` (`doctor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='医生自定义管理分组表';
+
+-- ----------------------------
+-- 64. 医生分组成员关联表
+-- ----------------------------
+CREATE TABLE `ch_doctor_group_member` (
+    `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `group_id`    BIGINT       NOT NULL                COMMENT '分组ID',
+    `patient_id`  BIGINT       NOT NULL                COMMENT '患者ID',
+    `create_time` DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
+    `create_by`   VARCHAR(64)                          COMMENT '创建人',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_group_patient` (`group_id`, `patient_id`),
+    INDEX `idx_patient_id` (`patient_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='医生分组成员关联表';
+
+-- ----------------------------
+-- 65. 管理路径进度表
+-- ----------------------------
+CREATE TABLE `ch_clinical_pathway_status` (
+    `id`               BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `patient_id`       BIGINT       NOT NULL                COMMENT '患者ID',
+    `disease_code`     VARCHAR(50)  NOT NULL                COMMENT '病种编码',
+    `current_stage`    VARCHAR(50)  NOT NULL                COMMENT '当前所处阶段 (如: SCREENING, FIRST_EVAL, PLAN_EXECUTING, RE_EVAL)',
+    `stage_start_time` DATETIME                             COMMENT '进入当前阶段时间',
+    `stage_deadline`   DATETIME                             COMMENT '阶段截止/逾期时间',
+    `milestone_json`   JSON                                 COMMENT '里程碑达成记录(JSON结构)',
+    `create_time`      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    `update_time`      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_patient_disease` (`patient_id`, `disease_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理路径进度表';
