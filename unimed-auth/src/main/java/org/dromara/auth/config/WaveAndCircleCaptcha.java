@@ -20,6 +20,13 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class WaveAndCircleCaptcha extends AbstractCaptcha {
 
+    /** 字体颜色（null 表示使用多彩随机色） */
+    private Color fontColor;
+
+    public void setFontColor(Color fontColor) {
+        this.fontColor = fontColor;
+    }
+
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -74,7 +81,21 @@ public class WaveAndCircleCaptcha extends AbstractCaptcha {
             g.setComposite(this.textAlpha);
         }
 
-        GraphicsUtil.drawStringColourful(g, code, this.font, this.width, this.height);
+        if (this.fontColor != null) {
+            // 固定颜色模式（如纯黑色）
+            g.setColor(this.fontColor);
+            g.setFont(this.font);
+            FontMetrics fontMetrics = g.getFontMetrics();
+            int charWidth = fontMetrics.stringWidth(code) / code.length();
+            int x = (this.width - fontMetrics.stringWidth(code)) / 2;
+            int y = (this.height - fontMetrics.getHeight()) / 2 + fontMetrics.getAscent();
+            for (int i = 0; i < code.length(); i++) {
+                g.drawString(String.valueOf(code.charAt(i)), x + i * charWidth, y);
+            }
+        } else {
+            // 多彩随机色（默认）
+            GraphicsUtil.drawStringColourful(g, code, this.font, this.width, this.height);
+        }
     }
 
     protected void drawInterfere(Graphics2D g) {

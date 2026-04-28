@@ -76,6 +76,12 @@ INSERT INTO sys_dict_type VALUES(138, '000000', '推送渠道', 'chronic_push_ch
 INSERT INTO sys_dict_type VALUES(139, '000000', 'ICD版本', 'chronic_icd_version',             103, 1, sysdate(), null, null, '慢病ICD版本列表');
 INSERT INTO sys_dict_type VALUES(140, '000000', '附件业务类型', 'chronic_biz_type',         103, 1, sysdate(), null, null, '慢病附件业务类型列表');
 INSERT INTO sys_dict_type VALUES(141, '000000', 'KPI分类', 'chronic_kpi_category',           103, 1, sysdate(), null, null, '慢病KPI分类列表');
+INSERT INTO sys_dict_type VALUES(142, '000000', '指标类型', 'chronic_metric_type',          103, 1, sysdate(), null, null, '慢病健康指标类型列表');
+INSERT INTO sys_dict_type VALUES(143, '000000', '民族', 'chronic_nation',               103, 1, sysdate(), null, null, '慢病民族字典');
+INSERT INTO sys_dict_type VALUES(144, '000000', '职业', 'chronic_occupation',           103, 1, sysdate(), null, null, '慢病职业字典');
+INSERT INTO sys_dict_type VALUES(145, '000000', '文化程度', 'chronic_education_level',      103, 1, sysdate(), null, null, '慢病文化程度字典');
+INSERT INTO sys_dict_type VALUES(146, '000000', '残疾类型', 'chronic_disability_type',      103, 1, sysdate(), null, null, '慢病残疾类型字典');
+INSERT INTO sys_dict_type VALUES(147, '000000', '残疾等级', 'chronic_disability_level',     103, 1, sysdate(), null, null, '慢病残疾等级字典');
 
 
 -- ----------------------------
@@ -318,3 +324,112 @@ INSERT INTO sys_dict_data VALUES(249, '000000', 5, '其他',         'OTHER',   
 INSERT INTO sys_dict_data VALUES(250, '000000', 1, '管理率',       'MANAGEMENT_RATE',  'chronic_kpi_category', '', '', 'N', 103, 1, sysdate(), null, null, '管理率');
 INSERT INTO sys_dict_data VALUES(251, '000000', 2, '依从率',       'COMPLIANCE_RATE',  'chronic_kpi_category', '', '', 'N', 103, 1, sysdate(), null, null, '依从率');
 INSERT INTO sys_dict_data VALUES(252, '000000', 3, '控制率',       'CONTROL_RATE',     'chronic_kpi_category', '', '', 'N', 103, 1, sysdate(), null, null, '控制率');
+
+-- 142 chronic_metric_type 指标类型
+INSERT INTO sys_dict_data VALUES(253, '000000', 1,  '收缩压',      'BP_SYSTOLIC',      'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '收缩压');
+INSERT INTO sys_dict_data VALUES(254, '000000', 2,  '舒张压',      'BP_DIASTOLIC',     'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '舒张压');
+INSERT INTO sys_dict_data VALUES(255, '000000', 3,  '血糖',        'BLOOD_GLUCOSE',    'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '血糖');
+INSERT INTO sys_dict_data VALUES(256, '000000', 4,  '心率',        'HEART_RATE',       'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '心率');
+INSERT INTO sys_dict_data VALUES(257, '000000', 5,  '血氧',        'SPO2',             'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '血氧饱和度');
+INSERT INTO sys_dict_data VALUES(258, '000000', 6,  '体温',        'TEMPERATURE',      'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '体温');
+INSERT INTO sys_dict_data VALUES(259, '000000', 7,  '心电图',      'ECG',              'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '心电图');
+INSERT INTO sys_dict_data VALUES(260, '000000', 8,  '体重',        'WEIGHT',           'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '体重');
+INSERT INTO sys_dict_data VALUES(261, '000000', 9,  'BMI',         'BMI',              'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '身体质量指数');
+INSERT INTO sys_dict_data VALUES(262, '000000', 10, '腰围',        'WAIST',            'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '腰围');
+INSERT INTO sys_dict_data VALUES(263, '000000', 11, '血脂',        'LIPID',            'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '血脂');
+INSERT INTO sys_dict_data VALUES(264, '000000', 12, '尿酸',        'URIC_ACID',        'chronic_metric_type', '', '', 'N', 103, 1, sysdate(), null, null, '尿酸');
+
+-- 143 chronic_nation 民族
+INSERT INTO sys_dict_data VALUES(265, '000000', 1,  '汉族',        'HAN',              'chronic_nation', '', '', 'Y', 103, 1, sysdate(), null, null, '汉族');
+INSERT INTO sys_dict_data VALUES(266, '000000', 2,  '蒙古族',      'MONGOL',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '蒙古族');
+INSERT INTO sys_dict_data VALUES(267, '000000', 3,  '回族',        'HUI',              'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '回族');
+INSERT INTO sys_dict_data VALUES(268, '000000', 4,  '藏族',        'TIBETAN',          'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '藏族');
+INSERT INTO sys_dict_data VALUES(269, '000000', 5,  '维吾尔族',    'UYGUR',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '维吾尔族');
+INSERT INTO sys_dict_data VALUES(270, '000000', 6,  '苗族',        'MIAO',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '苗族');
+INSERT INTO sys_dict_data VALUES(271, '000000', 7,  '彝族',        'YI',               'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '彝族');
+INSERT INTO sys_dict_data VALUES(272, '000000', 8,  '壮族',        'ZHUANG',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '壮族');
+INSERT INTO sys_dict_data VALUES(273, '000000', 9,  '布依族',      'BUYEI',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '布依族');
+INSERT INTO sys_dict_data VALUES(274, '000000', 10, '朝鲜族',      'KOREAN',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '朝鲜族');
+INSERT INTO sys_dict_data VALUES(275, '000000', 11, '满族',        'MANCHU',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '满族');
+INSERT INTO sys_dict_data VALUES(276, '000000', 12, '侗族',        'DONG',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '侗族');
+INSERT INTO sys_dict_data VALUES(277, '000000', 13, '瑶族',        'YAO',              'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '瑶族');
+INSERT INTO sys_dict_data VALUES(278, '000000', 14, '白族',        'BAI',              'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '白族');
+INSERT INTO sys_dict_data VALUES(279, '000000', 15, '土家族',      'TUJIA',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '土家族');
+INSERT INTO sys_dict_data VALUES(280, '000000', 16, '哈尼族',      'HANI',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '哈尼族');
+INSERT INTO sys_dict_data VALUES(281, '000000', 17, '哈萨克族',    'KAZAK',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '哈萨克族');
+INSERT INTO sys_dict_data VALUES(282, '000000', 18, '傣族',        'DAI',              'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '傣族');
+INSERT INTO sys_dict_data VALUES(283, '000000', 19, '黎族',        'LI',               'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '黎族');
+INSERT INTO sys_dict_data VALUES(284, '000000', 20, '傈僳族',      'LISU',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '傈僳族');
+INSERT INTO sys_dict_data VALUES(285, '000000', 21, '佤族',        'WA',               'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '佤族');
+INSERT INTO sys_dict_data VALUES(286, '000000', 22, '畲族',        'SHE',              'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '畲族');
+INSERT INTO sys_dict_data VALUES(287, '000000', 23, '高山族',      'GAOSHAN',          'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '高山族');
+INSERT INTO sys_dict_data VALUES(288, '000000', 24, '拉祜族',      'LAHU',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '拉祜族');
+INSERT INTO sys_dict_data VALUES(289, '000000', 25, '水族',        'SHUI',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '水族');
+INSERT INTO sys_dict_data VALUES(290, '000000', 26, '东乡族',      'DONGXIANG',        'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '东乡族');
+INSERT INTO sys_dict_data VALUES(291, '000000', 27, '纳西族',      'NAXI',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '纳西族');
+INSERT INTO sys_dict_data VALUES(292, '000000', 28, '景颇族',      'JINGPO',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '景颇族');
+INSERT INTO sys_dict_data VALUES(293, '000000', 29, '柯尔克孜族',  'KIRGIZ',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '柯尔克孜族');
+INSERT INTO sys_dict_data VALUES(294, '000000', 30, '土族',        'TU',               'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '土族');
+INSERT INTO sys_dict_data VALUES(295, '000000', 31, '达斡尔族',    'DAUR',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '达斡尔族');
+INSERT INTO sys_dict_data VALUES(296, '000000', 32, '仫佬族',      'MULAO',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '仫佬族');
+INSERT INTO sys_dict_data VALUES(297, '000000', 33, '羌族',        'QIANG',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '羌族');
+INSERT INTO sys_dict_data VALUES(298, '000000', 34, '布朗族',      'BULANG',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '布朗族');
+INSERT INTO sys_dict_data VALUES(299, '000000', 35, '撒拉族',      'SALAR',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '撒拉族');
+INSERT INTO sys_dict_data VALUES(300, '000000', 36, '毛南族',      'MAONAN',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '毛南族');
+INSERT INTO sys_dict_data VALUES(301, '000000', 37, '仡佬族',      'GELO',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '仡佬族');
+INSERT INTO sys_dict_data VALUES(302, '000000', 38, '锡伯族',      'XIBE',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '锡伯族');
+INSERT INTO sys_dict_data VALUES(303, '000000', 39, '阿昌族',      'ACHANG',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '阿昌族');
+INSERT INTO sys_dict_data VALUES(304, '000000', 40, '普米族',      'PUMI',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '普米族');
+INSERT INTO sys_dict_data VALUES(305, '000000', 41, '塔吉克族',    'TAJIK',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '塔吉克族');
+INSERT INTO sys_dict_data VALUES(306, '000000', 42, '怒族',        'NU',               'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '怒族');
+INSERT INTO sys_dict_data VALUES(307, '000000', 43, '乌孜别克族',  'UZBEK',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '乌孜别克族');
+INSERT INTO sys_dict_data VALUES(308, '000000', 44, '俄罗斯族',    'RUSSIAN',          'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '俄罗斯族');
+INSERT INTO sys_dict_data VALUES(309, '000000', 45, '鄂温克族',    'EWENKI',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '鄂温克族');
+INSERT INTO sys_dict_data VALUES(310, '000000', 46, '德昂族',      'DEANG',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '德昂族');
+INSERT INTO sys_dict_data VALUES(311, '000000', 47, '保安族',      'BONAN',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '保安族');
+INSERT INTO sys_dict_data VALUES(312, '000000', 48, '裕固族',      'YUGUR',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '裕固族');
+INSERT INTO sys_dict_data VALUES(313, '000000', 49, '京族',        'GIN',              'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '京族');
+INSERT INTO sys_dict_data VALUES(314, '000000', 50, '塔塔尔族',    'TATAR',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '塔塔尔族');
+INSERT INTO sys_dict_data VALUES(315, '000000', 51, '独龙族',      'DERUNG',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '独龙族');
+INSERT INTO sys_dict_data VALUES(316, '000000', 52, '鄂伦春族',    'OROQEN',           'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '鄂伦春族');
+INSERT INTO sys_dict_data VALUES(317, '000000', 53, '赫哲族',      'HEZHE',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '赫哲族');
+INSERT INTO sys_dict_data VALUES(318, '000000', 54, '门巴族',      'MONBA',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '门巴族');
+INSERT INTO sys_dict_data VALUES(319, '000000', 55, '珞巴族',      'LHOBA',            'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '珞巴族');
+INSERT INTO sys_dict_data VALUES(320, '000000', 56, '基诺族',      'JINO',             'chronic_nation', '', '', 'N', 103, 1, sysdate(), null, null, '基诺族');
+
+-- 144 chronic_occupation 职业
+INSERT INTO sys_dict_data VALUES(321, '000000', 1,  '国家机关/党群组织/企业/事业单位负责人', 'GOVERNMENT', 'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '负责人');
+INSERT INTO sys_dict_data VALUES(322, '000000', 2,  '专业技术人员', 'TECHNICIAN',       'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '专业技术人员');
+INSERT INTO sys_dict_data VALUES(323, '000000', 3,  '办事人员',     'CLERK',            'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '办事人员');
+INSERT INTO sys_dict_data VALUES(324, '000000', 4,  '商业/服务业人员', 'BUSINESS',         'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '商业服务业');
+INSERT INTO sys_dict_data VALUES(325, '000000', 5,  '农/林/牧/渔/水利业生产人员', 'FARMER', 'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '农林牧渔');
+INSERT INTO sys_dict_data VALUES(326, '000000', 6,  '生产/运输设备操作人员', 'WORKER',     'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '生产运输工人');
+INSERT INTO sys_dict_data VALUES(327, '000000', 7,  '军人',         'SOLDIER',          'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '军人');
+INSERT INTO sys_dict_data VALUES(328, '000000', 8,  '学生',         'STUDENT',          'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '学生');
+INSERT INTO sys_dict_data VALUES(329, '000000', 9,  '离退休人员',   'RETIRED',          'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '离退休人员');
+INSERT INTO sys_dict_data VALUES(330, '000000', 10, '失业/无业/其他', 'UNEMPLOYED',       'chronic_occupation', '', '', 'N', 103, 1, sysdate(), null, null, '失业无业其他');
+
+-- 145 chronic_education_level 文化程度
+INSERT INTO sys_dict_data VALUES(331, '000000', 1,  '研究生',       'POSTGRADUATE',     'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '研究生及以上');
+INSERT INTO sys_dict_data VALUES(332, '000000', 2,  '大学本科',     'UNDERGRADUATE',    'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '大学本科');
+INSERT INTO sys_dict_data VALUES(333, '000000', 3,  '大学专科/高职', 'COLLEGE',          'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '大学专科或高职');
+INSERT INTO sys_dict_data VALUES(334, '000000', 4,  '中等职业教育', 'VOCATIONAL',       'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '中专/技校/职高');
+INSERT INTO sys_dict_data VALUES(335, '000000', 5,  '普通高中',     'HIGH_SCHOOL',      'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '普通高中');
+INSERT INTO sys_dict_data VALUES(336, '000000', 6,  '初中',         'JUNIOR_HIGH',      'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '初中');
+INSERT INTO sys_dict_data VALUES(337, '000000', 7,  '小学',         'PRIMARY',          'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '小学');
+INSERT INTO sys_dict_data VALUES(338, '000000', 8,  '文盲或半文盲', 'ILLITERATE',       'chronic_education_level', '', '', 'N', 103, 1, sysdate(), null, null, '文盲半文盲');
+
+-- 146 chronic_disability_type 残疾类型
+INSERT INTO sys_dict_data VALUES(339, '000000', 1,  '视力残疾',     'VISION',           'chronic_disability_type', '', '', 'N', 103, 1, sysdate(), null, null, '视力残疾');
+INSERT INTO sys_dict_data VALUES(340, '000000', 2,  '听力残疾',     'HEARING',          'chronic_disability_type', '', '', 'N', 103, 1, sysdate(), null, null, '听力残疾');
+INSERT INTO sys_dict_data VALUES(341, '000000', 3,  '言语残疾',     'SPEECH',           'chronic_disability_type', '', '', 'N', 103, 1, sysdate(), null, null, '言语残疾');
+INSERT INTO sys_dict_data VALUES(342, '000000', 4,  '肢体残疾',     'PHYSICAL',         'chronic_disability_type', '', '', 'N', 103, 1, sysdate(), null, null, '肢体残疾');
+INSERT INTO sys_dict_data VALUES(343, '000000', 5,  '智力残疾',     'INTELLECTUAL',     'chronic_disability_type', '', '', 'N', 103, 1, sysdate(), null, null, '智力残疾');
+INSERT INTO sys_dict_data VALUES(344, '000000', 6,  '精神残疾',     'MENTAL',           'chronic_disability_type', '', '', 'N', 103, 1, sysdate(), null, null, '精神残疾');
+INSERT INTO sys_dict_data VALUES(345, '000000', 7,  '多重残疾',     'MULTIPLE',         'chronic_disability_type', '', '', 'N', 103, 1, sysdate(), null, null, '多重残疾');
+
+-- 147 chronic_disability_level 残疾等级
+INSERT INTO sys_dict_data VALUES(346, '000000', 1,  '一级（极重度）', 'LEVEL_1',          'chronic_disability_level', '', '', 'N', 103, 1, sysdate(), null, null, '极重度');
+INSERT INTO sys_dict_data VALUES(347, '000000', 2,  '二级（重度）',   'LEVEL_2',          'chronic_disability_level', '', '', 'N', 103, 1, sysdate(), null, null, '重度');
+INSERT INTO sys_dict_data VALUES(348, '000000', 3,  '三级（中度）',   'LEVEL_3',          'chronic_disability_level', '', '', 'N', 103, 1, sysdate(), null, null, '中度');
+INSERT INTO sys_dict_data VALUES(349, '000000', 4,  '四级（轻度）',   'LEVEL_4',          'chronic_disability_level', '', '', 'N', 103, 1, sysdate(), null, null, '轻度');

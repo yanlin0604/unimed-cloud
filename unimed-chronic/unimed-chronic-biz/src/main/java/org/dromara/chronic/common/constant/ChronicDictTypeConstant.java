@@ -131,7 +131,7 @@ public final class ChronicDictTypeConstant {
     /** 预警等级 (LOW/MEDIUM/HIGH/CRITICAL) */
     public static final String CHRONIC_WARNING_LEVEL = "chronic_warning_level";
     /** 预警事件状态 (NEW/CONFIRMED/PROCESSING/ESCALATED/RESOLVED/ARCHIVED) */
-    public static final String CHRONIC_EVENT_STATUS = "chronic_event_status";
+    public static final String CHRONIC_EVENT_STATUS = "chronic_warning_event_status";
     /** 预警处置类型 (CONFIRM/HANDLE/ESCALATE/RESOLVE) */
     public static final String CHRONIC_ACTION_TYPE = "chronic_action_type";
 

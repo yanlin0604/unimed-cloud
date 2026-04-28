@@ -73,6 +73,7 @@ public class CaptchaController {
         }
         WaveAndCircleCaptcha captcha = new WaveAndCircleCaptcha(160, 60);
         // captcha.setBackground(Color.WHITE); // 不设置就是透明底
+        captcha.setFontColor(Color.BLACK);   // 不设置就是随机颜色字体
         captcha.setFont(new Font("Arial", Font.BOLD, 45));
         captcha.setGenerator(codeGenerator);
         captcha.createCode();
