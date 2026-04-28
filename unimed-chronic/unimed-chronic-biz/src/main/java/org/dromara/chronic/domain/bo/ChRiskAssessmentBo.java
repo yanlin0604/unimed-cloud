@@ -47,7 +47,4 @@ public class ChRiskAssessmentBo extends BaseEntity {
 
     @Schema(description = "评估人ID")
     private Long assessorUserId;
-
-    @Schema(description = "机构ID")
-    private Long orgId;
 }

@@ -16,27 +16,34 @@ CREATE TABLE `ch_patient_profile` (
   `id_card`          VARCHAR(18)   DEFAULT NULL COMMENT '身份证号',
   `gender`           CHAR(1)       DEFAULT NULL COMMENT '性别',
   `birthday`         DATE          DEFAULT NULL COMMENT '出生日期',
+  `age`              INT           DEFAULT NULL COMMENT '年龄',
   `phone`            VARCHAR(20)   DEFAULT NULL COMMENT '联系电话',
   `address`          VARCHAR(200)  DEFAULT NULL COMMENT '居住地址',
+  `permanent_address` VARCHAR(255) DEFAULT NULL COMMENT '户籍地址',
   `gis_lng`          DECIMAL(10,6) DEFAULT NULL COMMENT '经度',
   `gis_lat`          DECIMAL(10,6) DEFAULT NULL COMMENT '纬度',
   `nation`           VARCHAR(20)   DEFAULT NULL COMMENT '民族',
   `occupation`       VARCHAR(50)   DEFAULT NULL COMMENT '职业',
   `education_level`  VARCHAR(20)   DEFAULT NULL COMMENT '文化程度',
-  `surgery_history`  TEXT          DEFAULT NULL COMMENT '手术史',
-  `trauma_history`   TEXT          DEFAULT NULL COMMENT '外伤史',
-  `transfusion_history` TEXT       DEFAULT NULL COMMENT '输血史',
-  `genetic_history`  TEXT          DEFAULT NULL COMMENT '遗传史',
   `disability_type`  VARCHAR(50)   DEFAULT NULL COMMENT '残疾类型',
   `disability_level` VARCHAR(20)   DEFAULT NULL COMMENT '残疾等级',
   `assistive_device` VARCHAR(100)  DEFAULT NULL COMMENT '辅助器具',
   `smoking_index`    INT           DEFAULT NULL COMMENT '吸烟指数',
   `drinking_amount`  VARCHAR(50)   DEFAULT NULL COMMENT '饮酒量',
-  `org_id`           BIGINT        DEFAULT NULL COMMENT '管理机构ID',
+  `height`           DECIMAL(5,1)  DEFAULT NULL COMMENT '身高(cm)',
+  `weight`           DECIMAL(5,1)  DEFAULT NULL COMMENT '体重(kg)',
+  `blood_type`       VARCHAR(20)   DEFAULT NULL COMMENT '血型',
+  `marital_status`   VARCHAR(20)   DEFAULT NULL COMMENT '婚姻状况',
+  `past_medical_history` TEXT      DEFAULT NULL COMMENT '既往史(JSON数组)',
+  `allergy_history`  TEXT          DEFAULT NULL COMMENT '过敏史(JSON数组)',
+  `family_history`   TEXT          DEFAULT NULL COMMENT '家族病史(JSON数组)',
   `dept_id`          BIGINT        DEFAULT NULL COMMENT '管理科室ID',
   `doctor_user_id`   BIGINT        DEFAULT NULL COMMENT '责任医生用户ID',
   `manage_status`    VARCHAR(20)   DEFAULT NULL COMMENT '管理状态(PENDING_ENTRY/MANAGED/FOLLOWUP_OVERDUE/WARNING_ACTIVE/REFERRING/PAUSED/CLOSED)',
   `source`           VARCHAR(20)   DEFAULT NULL COMMENT '来源(OUTPATIENT/SCREENING/HIS_SYNC/TRANSFER)',
+  `insurance_type`   VARCHAR(50)   DEFAULT NULL COMMENT '医保类型',
+  `emergency_contact_name`  VARCHAR(50) DEFAULT NULL COMMENT '紧急联系人姓名',
+  `emergency_contact_phone` VARCHAR(20) DEFAULT NULL COMMENT '紧急联系人电话',
   `create_dept`     BIGINT        DEFAULT NULL COMMENT '创建部门',
   `tenant_id`        BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`        BIGINT        DEFAULT NULL COMMENT '创建者',
@@ -45,9 +52,8 @@ CREATE TABLE `ch_patient_profile` (
   `update_time`      DATETIME      DEFAULT NULL COMMENT '更新时间',
   `del_flag`         CHAR(1)       DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`patient_id`),
-  INDEX `idx_patient_org_id` (`org_id`),
-  INDEX `idx_patient_tenant_id` (`tenant_id`),
-  INDEX `idx_patient_tenant_org` (`tenant_id`, `org_id`)
+  INDEX `idx_patient_dept_id` (`dept_id`),
+  INDEX `idx_patient_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='患者档案表';
 
 -- ----------------------------
@@ -63,7 +69,6 @@ CREATE TABLE `ch_patient_disease` (
   `is_complication`     TINYINT(1)    DEFAULT NULL COMMENT '是否并发症',
   `parent_disease_code` VARCHAR(32)   DEFAULT NULL COMMENT '父级疾病编码',
   `create_dept`      BIGINT        DEFAULT NULL COMMENT '创建部门',
-  `org_id`              BIGINT        DEFAULT NULL COMMENT '机构ID',
   `tenant_id`           BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`           BIGINT        DEFAULT NULL COMMENT '创建者',
   `create_time`         DATETIME      DEFAULT NULL COMMENT '创建时间',
@@ -73,7 +78,7 @@ CREATE TABLE `ch_patient_disease` (
   PRIMARY KEY (`id`),
   INDEX `idx_pd_patient_id` (`patient_id`),
   INDEX `idx_pd_tenant_id` (`tenant_id`),
-  INDEX `idx_pd_tenant_org_disease` (`tenant_id`, `org_id`, `disease_code`)
+  INDEX `idx_pd_tenant_disease` (`tenant_id`, `disease_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='患者疾病关联表';
 
 -- ----------------------------
@@ -133,7 +138,6 @@ CREATE TABLE `ch_disease_config` (
   `monitor_items`          JSON          DEFAULT NULL COMMENT '监测项目',
 `is_active`       TINYINT(1)    DEFAULT 1 COMMENT '是否启用',
   `create_dept`    BIGINT        DEFAULT NULL COMMENT '创建部门',
-  `org_id`         BIGINT        DEFAULT NULL COMMENT '机构ID',
   `tenant_id`         BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`              BIGINT        DEFAULT NULL COMMENT '创建者',
   `create_time`            DATETIME      DEFAULT NULL COMMENT '创建时间',
@@ -194,7 +198,6 @@ CREATE TABLE `ch_screening_batch` (
   `batch_id`        BIGINT        NOT NULL AUTO_INCREMENT COMMENT '批次ID',
   `batch_name`      VARCHAR(100)  DEFAULT NULL COMMENT '批次名称',
   `activity_date`   DATE          DEFAULT NULL COMMENT '活动日期',
-  `org_id`          BIGINT        DEFAULT NULL COMMENT '机构ID',
   `doctor_user_id`  BIGINT        DEFAULT NULL COMMENT '医生用户ID',
   `location`        VARCHAR(200)  DEFAULT NULL COMMENT '筛查地点',
   `notes`          TEXT          DEFAULT NULL COMMENT '备注',
@@ -206,9 +209,7 @@ CREATE TABLE `ch_screening_batch` (
   `update_time`     DATETIME      DEFAULT NULL COMMENT '更新时间',
   `del_flag`        CHAR(1)       DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`batch_id`),
-  INDEX `idx_sb_org_id` (`org_id`),
-  INDEX `idx_sb_tenant_id` (`tenant_id`),
-  INDEX `idx_sb_tenant_org` (`tenant_id`, `org_id`)
+  INDEX `idx_sb_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='筛查批次表';
 
 -- ----------------------------
@@ -318,7 +319,6 @@ CREATE TABLE `ch_contract_fulfillment` (
 CREATE TABLE `ch_doctor_team` (
   `team_id`        BIGINT        NOT NULL AUTO_INCREMENT COMMENT '团队ID',
   `team_name`      VARCHAR(100)  DEFAULT NULL COMMENT '团队名称',
-  `org_id`         BIGINT        DEFAULT NULL COMMENT '机构ID',
   `dept_id`        BIGINT        DEFAULT NULL COMMENT '科室ID',
   `leader_user_id` BIGINT        DEFAULT NULL COMMENT '队长用户ID',
   `team_status`    VARCHAR(20)   DEFAULT NULL COMMENT '团队状态(ACTIVE/DISSOLVED)',
@@ -330,9 +330,8 @@ CREATE TABLE `ch_doctor_team` (
   `update_time`    DATETIME      DEFAULT NULL COMMENT '更新时间',
   `del_flag`       CHAR(1)       DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`team_id`),
-  INDEX `idx_dt_org_id` (`org_id`),
-  INDEX `idx_dt_tenant_id` (`tenant_id`),
-  INDEX `idx_dt_tenant_org` (`tenant_id`, `org_id`)
+  INDEX `idx_dt_dept_id` (`dept_id`),
+  INDEX `idx_dt_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='医生团队表';
 
 -- ----------------------------
@@ -441,7 +440,6 @@ CREATE TABLE `ch_risk_assessment` (
   `risk_level`        VARCHAR(20)   DEFAULT NULL COMMENT '风险等级(LOW/MEDIUM/HIGH/VERY_HIGH)',
   `assessment_report` TEXT          DEFAULT NULL COMMENT '评估报告',
   `assessor_user_id`  BIGINT        DEFAULT NULL COMMENT '评估人用户ID',
-  `org_id`            BIGINT        DEFAULT NULL COMMENT '机构ID',
   `create_dept`     BIGINT        DEFAULT NULL COMMENT '创建部门',
   `tenant_id`       BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`       BIGINT        DEFAULT NULL COMMENT '创建者',
@@ -452,7 +450,7 @@ CREATE TABLE `ch_risk_assessment` (
   PRIMARY KEY (`assessment_id`),
   INDEX `idx_ra_patient_id` (`patient_id`),
   INDEX `idx_ra_tenant_id` (`tenant_id`),
-  INDEX `idx_ra_tenant_org_disease` (`tenant_id`, `org_id`, `disease_code`)
+  INDEX `idx_ra_tenant_disease` (`tenant_id`, `disease_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='风险评估表';
 
 -- ----------------------------
@@ -528,7 +526,6 @@ CREATE TABLE `ch_manage_plan` (
   `disease_code`  VARCHAR(32)   DEFAULT NULL COMMENT '疾病编码',
   `plan_status`   VARCHAR(20)   DEFAULT NULL COMMENT '方案状态(DRAFT/ACTIVE/DISABLED/HISTORY)',
   `create_dept`  BIGINT        DEFAULT NULL COMMENT '创建部门',
-  `org_id`       BIGINT        DEFAULT NULL COMMENT '机构ID',
   `tenant_id`     BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`     BIGINT        DEFAULT NULL COMMENT '创建者',
   `create_time`   DATETIME      DEFAULT NULL COMMENT '创建时间',
@@ -538,7 +535,7 @@ CREATE TABLE `ch_manage_plan` (
   PRIMARY KEY (`plan_id`),
   INDEX `idx_mp_patient_id` (`patient_id`),
   INDEX `idx_mp_tenant_id` (`tenant_id`),
-  INDEX `idx_mp_tenant_org_disease` (`tenant_id`, `org_id`, `disease_code`)
+  INDEX `idx_mp_tenant_disease` (`tenant_id`, `disease_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理方案表';
 
 -- ----------------------------
@@ -550,7 +547,6 @@ CREATE TABLE `ch_manage_plan_item` (
   `item_type`    VARCHAR(20)   DEFAULT NULL COMMENT '项类型(MEDICATION/DIET/EXERCISE/PSYCHOLOGY/FOLLOWUP/MONITOR)',
   `item_content` JSON          DEFAULT NULL COMMENT '项内容',
   `create_dept` BIGINT        DEFAULT NULL COMMENT '创建部门',
-  `org_id`      BIGINT        DEFAULT NULL COMMENT '机构ID',
   `tenant_id`    BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`    BIGINT        DEFAULT NULL COMMENT '创建者',
   `create_time`  DATETIME      DEFAULT NULL COMMENT '创建时间',
@@ -865,7 +861,6 @@ CREATE TABLE `ch_warning_rule` (
   `time_window_end`    TIME          DEFAULT NULL COMMENT '时间窗口结束',
   `recovery_rule`      JSON          DEFAULT NULL COMMENT '恢复规则',
   `create_dept`     BIGINT        DEFAULT NULL COMMENT '创建部门',
-  `org_id`          BIGINT        DEFAULT NULL COMMENT '机构ID',
   `tenant_id`          BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`          BIGINT        DEFAULT NULL COMMENT '创建者',
   `create_time`        DATETIME      DEFAULT NULL COMMENT '创建时间',
@@ -874,7 +869,7 @@ CREATE TABLE `ch_warning_rule` (
   `del_flag`           CHAR(1)       DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`rule_id`),
   INDEX `idx_wr_tenant_id` (`tenant_id`),
-  INDEX `idx_wr_tenant_org_disease` (`tenant_id`, `org_id`, `disease_code`)
+  INDEX `idx_wr_tenant_disease` (`tenant_id`, `disease_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='预警规则表';
 
 -- ----------------------------

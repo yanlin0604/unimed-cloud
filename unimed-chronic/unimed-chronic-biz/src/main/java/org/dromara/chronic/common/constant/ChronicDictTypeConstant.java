@@ -30,6 +30,10 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_MANAGE_STATUS = "chronic_manage_status";
     /** 患者来源 (OUTPATIENT/SCREENING/HIS_SYNC/TRANSFER) */
     public static final String CHRONIC_PATIENT_SOURCE = "chronic_patient_source";
+    /** 血型 (A/B/AB/O/RH_NEGATIVE/UNKNOWN) */
+    public static final String CHRONIC_BLOOD_TYPE = "chronic_blood_type";
+    /** 婚姻状况 (UNMARRIED/MARRIED/DIVORCED/WIDOWED/OTHER) */
+    public static final String CHRONIC_MARITAL_STATUS = "chronic_marital_status";
 
     // ==================== 签约 ====================
 
@@ -83,8 +87,9 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_FOLLOWUP_ITEM_TYPE = "chronic_followup_item_type";
     /** 随访方式 (PHONE/VIDEO/OFFLINE/SELF_FILL/ADMIN_PROXY) */
     public static final String CHRONIC_VISIT_TYPE = "chronic_visit_type";
-    /** 随访任务状态 (PENDING/REMINDING/DONE/OVERDUE/CANCELLED) */
-    public static final String CHRONIC_TASK_STATUS = "chronic_task_status";
+    /** 随访任务状态 (PENDING/PROCESSING/COMPLETED/CANCELED/OVERDUE) */
+    public static final String CHRONIC_FOLLOWUP_TASK_STATUS = "chronic_followup_task_status";
+
 
     // ==================== 健康指标 ====================
 

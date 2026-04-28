@@ -32,14 +32,7 @@ public class ChManagePlanItemVo implements Serializable {
     private String itemType;
     @Schema(description = "项内容")
     private String itemContent;
-
-    @Schema(description = "机构ID")
-    private Long orgId;
-
     @Schema(description = "项类型名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "itemType", other = ChronicDictTypeConstant.CHRONIC_PLAN_ITEM_TYPE)
     private String itemTypeName;
-
-    @Schema(description = "机构名称")
-    private String orgName;
 }

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
-import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChWarningRuleBo;
 import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningRuleVo;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 public class ChWarningRuleServiceImpl implements IChWarningRuleService {
 
     private final ChWarningRuleMapper baseMapper;
-    private final OrgNameHelper orgNameHelper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
@@ -90,14 +88,6 @@ public class ChWarningRuleServiceImpl implements IChWarningRuleService {
 
     private void fillWarningRuleNames(List<ChWarningRuleVo> list) {
         if (CollUtil.isEmpty(list)) return;
-        List<Long> orgIds = list.stream().map(ChWarningRuleVo::getOrgId)
-            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
-        if (!orgIds.isEmpty()) {
-            try {
-                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
-                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
-            } catch (Exception e) { /* ignore */ }
-        }
         List<String> diseaseCodes = list.stream().map(ChWarningRuleVo::getDiseaseCode)
             .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
         if (!diseaseCodes.isEmpty()) {

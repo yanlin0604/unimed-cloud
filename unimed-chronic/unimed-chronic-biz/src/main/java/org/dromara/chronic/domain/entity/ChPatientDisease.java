@@ -61,12 +61,6 @@ public class ChPatientDisease extends TenantEntity {
      * 主病编码
      */
     private String parentDiseaseCode;
-
-    /**
-     * 机构ID
-     */
-    private Long orgId;
-
     /**
      * 删除标志
      */

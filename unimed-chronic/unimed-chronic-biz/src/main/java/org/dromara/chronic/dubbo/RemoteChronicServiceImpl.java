@@ -48,7 +48,7 @@ public class RemoteChronicServiceImpl implements RemoteChronicService {
         summary.put("patientId", patient.getPatientId());
         summary.put("name", patient.getName());
         summary.put("manageStatus", patient.getManageStatus());
-        summary.put("orgId", patient.getOrgId());
+        summary.put("deptId", patient.getDeptId());
 
         // R5: 补齐 riskLevel（从最新风险评估记录读取）
         ChRiskAssessment latestAssessment = riskAssessmentMapper.selectOne(
@@ -106,20 +106,20 @@ public class RemoteChronicServiceImpl implements RemoteChronicService {
     }
 
     @Override
-    public Long getActiveWarningCount(Long orgId) {
-        // R5: 按 orgId 过滤 —— 使用 apply 参数化子查询避免 SQL 注入
+    public Long getActiveWarningCount(Long deptId) {
+        // R5: 按 deptId 过滤 —— 使用 apply 参数化子查询避免 SQL 注入
         return warningEventMapper.selectCount(
             Wrappers.<ChWarningEvent>lambdaQuery()
-                .apply("patient_id IN (SELECT patient_id FROM ch_patient_profile WHERE org_id = {0} AND del_flag = '0')", orgId)
+                .apply("patient_id IN (SELECT patient_id FROM ch_patient_profile WHERE dept_id = {0} AND del_flag = '0')", deptId)
                 .in(ChWarningEvent::getEventStatus, "NEW", "CONFIRMED", "PROCESSING")
         );
     }
 
     @Override
-    public Long getManagedPatientCount(Long orgId) {
+    public Long getManagedPatientCount(Long deptId) {
         return patientProfileMapper.selectCount(
             Wrappers.<ChPatientProfile>lambdaQuery()
-                .eq(ChPatientProfile::getOrgId, orgId)
+                .eq(ChPatientProfile::getDeptId, deptId)
                 .eq(ChPatientProfile::getManageStatus, "MANAGED")
         );
     }

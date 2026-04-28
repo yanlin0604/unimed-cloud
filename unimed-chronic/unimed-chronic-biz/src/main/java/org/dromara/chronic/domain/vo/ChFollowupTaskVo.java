@@ -41,7 +41,7 @@ public class ChFollowupTaskVo implements Serializable {
     private Long assigneeUserId;
 
     @Schema(description = "任务状态名称")
-    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "taskStatus", other = ChronicDictTypeConstant.CHRONIC_TASK_STATUS)
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "taskStatus", other = ChronicDictTypeConstant.CHRONIC_FOLLOWUP_TASK_STATUS)
     private String taskStatusName;
 
     @Schema(description = "随访方式名称")

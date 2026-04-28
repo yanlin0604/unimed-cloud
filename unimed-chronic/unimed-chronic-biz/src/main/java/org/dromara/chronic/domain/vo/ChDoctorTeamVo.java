@@ -29,8 +29,6 @@ public class ChDoctorTeamVo implements Serializable {
     private Long teamId;
     @Schema(description = "团队名称")
     private String teamName;
-    @Schema(description = "机构ID")
-    private Long orgId;
     @Schema(description = "科室ID")
     private Long deptId;
     @Schema(description = "负责人用户ID")
@@ -43,10 +41,6 @@ public class ChDoctorTeamVo implements Serializable {
     @Schema(description = "团队状态名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "teamStatus", other = ChronicDictTypeConstant.CHRONIC_TEAM_STATUS)
     private String teamStatusName;
-
-    @Schema(description = "机构名称")
-    private String orgName;
-
     @Schema(description = "部门名称")
     @Translation(type = TransConstant.DEPT_ID_TO_NAME, mapper = "deptId")
     private String deptName;

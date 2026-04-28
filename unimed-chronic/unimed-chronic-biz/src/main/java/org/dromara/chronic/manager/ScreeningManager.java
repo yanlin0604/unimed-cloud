@@ -95,7 +95,6 @@ public class ScreeningManager {
         patientBo.setIdCard(record.getIdCard());
         patientBo.setPhone(record.getPhone());
         patientBo.setGender(record.getGender());
-        patientBo.setOrgId(batch == null ? null : batch.getOrgId());
         patientBo.setDoctorUserId(batch == null ? null : batch.getDoctorUserId());
         patientBo.setSource("SCREENING");
         patientBo.setManageStatus("PENDING_ENTRY");

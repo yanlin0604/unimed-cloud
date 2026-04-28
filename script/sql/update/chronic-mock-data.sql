@@ -135,16 +135,16 @@ INSERT INTO `ch_icd_dict` (`icd_code`, `icd_version`, `icd_name_cn`, `icd_name_e
 -- =============================================
 -- 4. 病种配置（9 病种）
 -- =============================================
-INSERT INTO `ch_disease_config` (`disease_code`, `disease_name`, `disease_category`, `is_primary`, `parent_disease_code`, `monitor_items`, `is_active`, `org_id`, `tenant_id`, `create_by`, `create_time`) VALUES
-('HYPERTENSION',   '高血压',           'PRIMARY', 1, NULL,           '["SBP","DBP","HR"]',                  1, 3001, @tid, @cb, @now),
-('DIABETES',       '糖尿病',           'PRIMARY', 1, NULL,           '["FBG","PBG","HBA1C"]',               1, 3001, @tid, @cb, @now),
-('HYPERLIPIDEMIA', '高血脂',           'PRIMARY', 1, NULL,           '["TC","TG","LDL","HDL"]',             1, 3001, @tid, @cb, @now),
-('CHD',            '冠心病',           'PRIMARY', 1, NULL,           '["ECG","BP","HR"]',                   1, 3001, @tid, @cb, @now),
-('STROKE',         '脑卒中',           'PRIMARY', 1, NULL,           '["BP","NIHSS","MRS"]',                1, 3001, @tid, @cb, @now),
-('NEPHROTIC',      '肾病综合征',       'PRIMARY', 1, NULL,           '["EGFR","URINE_PROTEIN","CREATININE"]', 1, 3001, @tid, @cb, @now),
-('FUNDUS',         '眼底病变',         'COMPLICATION', 0, 'DIABETES','["DR_GRADE","VISION"]',               1, 3001, @tid, @cb, @now),
-('NEUROPATHY',     '周围神经病变',     'COMPLICATION', 0, 'DIABETES','["TCSS","NERVE_CONDUCTION"]',         1, 3001, @tid, @cb, @now),
-('VASCULOPATHY',   '周围血管病变',     'COMPLICATION', 0, 'DIABETES','["ABI","ANKLE_ARM"]',                 1, 3001, @tid, @cb, @now);
+INSERT INTO `ch_disease_config` (`disease_code`, `disease_name`, `disease_category`, `is_primary`, `parent_disease_code`, `monitor_items`, `is_active`, `tenant_id`, `create_by`, `create_time`) VALUES
+('HYPERTENSION',   '高血压',           'PRIMARY', 1, NULL,           '["SBP","DBP","HR"]',                  1, @tid, @cb, @now),
+('DIABETES',       '糖尿病',           'PRIMARY', 1, NULL,           '["FBG","PBG","HBA1C"]',               1, @tid, @cb, @now),
+('HYPERLIPIDEMIA', '高血脂',           'PRIMARY', 1, NULL,           '["TC","TG","LDL","HDL"]',             1, @tid, @cb, @now),
+('CHD',            '冠心病',           'PRIMARY', 1, NULL,           '["ECG","BP","HR"]',                   1, @tid, @cb, @now),
+('STROKE',         '脑卒中',           'PRIMARY', 1, NULL,           '["BP","NIHSS","MRS"]',                1, @tid, @cb, @now),
+('NEPHROTIC',      '肾病综合征',       'PRIMARY', 1, NULL,           '["EGFR","URINE_PROTEIN","CREATININE"]', 1, @tid, @cb, @now),
+('FUNDUS',         '眼底病变',         'COMPLICATION', 0, 'DIABETES','["DR_GRADE","VISION"]',               1, @tid, @cb, @now),
+('NEUROPATHY',     '周围神经病变',     'COMPLICATION', 0, 'DIABETES','["TCSS","NERVE_CONDUCTION"]',         1, @tid, @cb, @now),
+('VASCULOPATHY',   '周围血管病变',     'COMPLICATION', 0, 'DIABETES','["ABI","ANKLE_ARM"]',                 1, @tid, @cb, @now);
 
 -- =============================================
 -- 5. 病种关联关系（主病-并发症）
@@ -182,15 +182,15 @@ INSERT INTO `ch_assessment_rule` (`rule_id`, `disease_code`, `dimension_name`, `
 -- =============================================
 -- 8. 预警规则（各病种关键指标阈值）
 -- =============================================
-INSERT INTO `ch_warning_rule` (`rule_id`, `disease_code`, `metric_type`, `warning_level`, `threshold_min`, `threshold_max`, `consecutive_window`, `org_id`, `tenant_id`, `create_by`, `create_time`) VALUES
-(8001, 'HYPERTENSION', 'SBP',   'HIGH',     140, 179, 3, 3001, @tid, @cb, @now),
-(8002, 'HYPERTENSION', 'SBP',   'CRITICAL', 180, 300, 1, 3001, @tid, @cb, @now),
-(8003, 'HYPERTENSION', 'DBP',   'HIGH',     90,  109, 3, 3001, @tid, @cb, @now),
-(8004, 'HYPERTENSION', 'DBP',   'CRITICAL', 110, 200, 1, 3001, @tid, @cb, @now),
-(8011, 'DIABETES',     'FBG',   'HIGH',     7.0, 11.0, 3, 3001, @tid, @cb, @now),
-(8012, 'DIABETES',     'FBG',   'CRITICAL', 16.7, 40,  1, 3001, @tid, @cb, @now),
-(8013, 'DIABETES',     'FBG',   'CRITICAL', 0,   3.9,  1, 3001, @tid, @cb, @now),
-(8021, 'CHD',          'HR',    'HIGH',     100, 150, 3, 3001, @tid, @cb, @now);
+INSERT INTO `ch_warning_rule` (`rule_id`, `disease_code`, `metric_type`, `warning_level`, `threshold_min`, `threshold_max`, `consecutive_window`, `tenant_id`, `create_by`, `create_time`) VALUES
+(8001, 'HYPERTENSION', 'SBP',   'HIGH',     140, 179, 3, @tid, @cb, @now),
+(8002, 'HYPERTENSION', 'SBP',   'CRITICAL', 180, 300, 1, @tid, @cb, @now),
+(8003, 'HYPERTENSION', 'DBP',   'HIGH',     90,  109, 3, @tid, @cb, @now),
+(8004, 'HYPERTENSION', 'DBP',   'CRITICAL', 110, 200, 1, @tid, @cb, @now),
+(8011, 'DIABETES',     'FBG',   'HIGH',     7.0, 11.0, 3, @tid, @cb, @now),
+(8012, 'DIABETES',     'FBG',   'CRITICAL', 16.7, 40,  1, @tid, @cb, @now),
+(8013, 'DIABETES',     'FBG',   'CRITICAL', 0,   3.9,  1, @tid, @cb, @now),
+(8021, 'CHD',          'HR',    'HIGH',     100, 150, 3, @tid, @cb, @now);
 
 -- =============================================
 -- 9. 随访问卷（国家公卫第3版标准）
@@ -261,10 +261,10 @@ INSERT INTO `ch_contract_service_package` (`package_id`, `package_name`, `packag
 -- =============================================
 -- 16. 医生团队
 -- =============================================
-INSERT INTO `ch_doctor_team` (`team_id`, `team_name`, `org_id`, `dept_id`, `leader_user_id`, `team_status`, `tenant_id`, `create_by`, `create_time`) VALUES
-(4001, '省立医院心内科家医团队', 3001, 100001, 2001, 'ACTIVE',    @tid, @cb, @now),
-(4002, '省立医院内分泌科团队',   3001, 100002, 2002, 'ACTIVE',    @tid, @cb, @now),
-(4003, '大明湖社区卫生家医团队', 3004, 100003, 2003, 'ACTIVE',    @tid, @cb, @now);
+INSERT INTO `ch_doctor_team` (`team_id`, `team_name`, `dept_id`, `leader_user_id`, `team_status`, `tenant_id`, `create_by`, `create_time`) VALUES
+(4001, '省立医院心内科家医团队', 100001, 2001, 'ACTIVE',    @tid, @cb, @now),
+(4002, '省立医院内分泌科团队',   100002, 2002, 'ACTIVE',    @tid, @cb, @now),
+(4003, '大明湖社区卫生家医团队', 100003, 2003, 'ACTIVE',    @tid, @cb, @now);
 
 INSERT INTO `ch_doctor_team_member` (`team_id`, `user_id`, `member_role`, `tenant_id`, `create_by`, `create_time`) VALUES
 (4001, 2001, 'LEADER', @tid, @cb, @now),
@@ -286,37 +286,37 @@ INSERT INTO `ch_doctor_wechat_bind` (`user_id`, `openid`, `unionid`, `bind_time`
 -- 17. 患者档案（10 个患者，覆盖 9 病种）
 -- =============================================
 INSERT INTO `ch_patient_profile`
-(`patient_id`, `name`, `id_card`, `gender`, `birthday`, `phone`, `address`, `gis_lng`, `gis_lat`, `nation`, `occupation`, `education_level`, `surgery_history`, `trauma_history`, `transfusion_history`, `genetic_history`, `disability_type`, `disability_level`, `assistive_device`, `smoking_index`, `drinking_amount`, `org_id`, `dept_id`, `doctor_user_id`, `manage_status`, `source`, `tenant_id`, `create_by`, `create_time`) VALUES
-(1001, '张建国', '370102196501011234', 'M', '1965-01-01', '13800000001', '济南市历下区大明湖路88号',  117.017, 36.675, '汉族', '退休工人', '初中', '阑尾炎手术2010年', NULL, NULL, '父亲高血压',        NULL, NULL, NULL, 400, '每日白酒2两', 3001, 100001, 2001, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
-(1002, '李淑芬', '370102195803152345', 'F', '1958-03-15', '13800000002', '济南市历下区泉城路20号',    117.020, 36.668, '汉族', '退休教师', '本科', NULL,             NULL, NULL, '母亲糖尿病',          NULL, NULL, NULL,   0, '不饮酒',      3001, 100002, 2002, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
-(1003, '王立军', '370103197206104567', 'M', '1972-06-10', '13800000003', '济南市市中区经四路100号',    117.000, 36.650, '汉族', '公司职员', '大专', NULL,             NULL, NULL, NULL,                NULL, NULL, NULL, 600, '每周啤酒5次', 3002, 100001, 2004, 'WARNING_ACTIVE',   'HIS_SYNC',   @tid, @cb, @now),
-(1004, '刘秀英', '370102194511236789', 'F', '1945-11-23', '13800000004', '济南市历下区解放路50号',    117.025, 36.672, '汉族', '退休',     '高中', '胆囊切除2018年',   NULL, '2015年输血200ml','父亲冠心病',    NULL, NULL, NULL,   0, '不饮酒',      3001, 100001, 2001, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
-(1005, '陈国强', '370112196808287890', 'M', '1968-08-28', '13800000005', '济南市历城区工业南路38号',  117.080, 36.678, '汉族', '工程师',   '本科', NULL,             '2020年车祸轻伤', NULL,       NULL,                NULL, NULL, NULL, 350, '每周白酒3次', 3001, 100003, 2005, 'FOLLOWUP_OVERDUE', 'OUTPATIENT', @tid, @cb, @now),
-(1006, '赵玉兰', '370104195207198901', 'F', '1952-07-19', '13800000006', '济南市槐荫区经十路200号',    117.040, 36.668, '汉族', '退休',     '初中', NULL,             NULL, NULL, '兄弟脑卒中',          '视力',   '三级', '助视器',   0, '不饮酒',      3003, 100004, 2003, 'MANAGED',          'SCREENING',  @tid, @cb, @now),
-(1007, '孙建华', '370105196003029012', 'M', '1960-03-02', '13800000007', '济南市天桥区清河路88号',    117.030, 36.690, '汉族', '退休',     '初中', '心脏支架2022年',   NULL, NULL, NULL,                NULL, NULL, NULL, 500, '每日白酒3两', 3002, 100001, 2004, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
-(1008, '周美华', '370102195109130123', 'F', '1951-09-13', '13800000008', '济南市历下区趵突泉北路66号',117.018, 36.670, '汉族', '退休医生', '本科', NULL,             NULL, NULL, '家族性高脂血症',      NULL, NULL, NULL,   0, '不饮酒',      3001, 100002, 2002, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
-(1009, '黄志刚', '370113197501234567', 'M', '1975-01-23', '13800000009', '济南市长清区大学路10号',    117.120, 36.550, '汉族', '教师',     '硕士', NULL,             NULL, NULL, NULL,                NULL, NULL, NULL, 200, '每周啤酒2次', 3001, 100001, 2001, 'PENDING_ENTRY',    'SCREENING',  @tid, @cb, @now),
-(1010, '吴桂珍', '370102194810055678', 'F', '1948-10-05', '13800000010', '济南市历下区文化东路156号',117.028, 36.665, '汉族', '退休',     '小学', NULL,             NULL, NULL, NULL,                NULL, NULL, NULL,   0, '不饮酒',      3001, 100002, 2002, 'REFERRING',        'TRANSFER',   @tid, @cb, @now);
+(`patient_id`, `name`, `id_card`, `gender`, `age`, `birthday`, `phone`, `address`, `gis_lng`, `gis_lat`, `nation`, `occupation`, `education_level`, `disability_type`, `disability_level`, `assistive_device`, `smoking_index`, `drinking_amount`, `height`, `weight`, `blood_type`, `marital_status`, `past_medical_history`, `allergy_history`, `family_history`, `dept_id`, `doctor_user_id`, `manage_status`, `source`, `tenant_id`, `create_by`, `create_time`) VALUES
+(1001, '张建国', '370102196501011234', '1', 61, '1965-01-01', '13800000001', '济南市历下区大明湖路88号',  117.017, 36.675, 'HAN', 'WORKER', 'JUNIOR_HIGH', NULL, NULL, NULL, 400, '每日白酒2两', 172.0, 78.5, 'A', 'MARRIED', '[{"disease":"阑尾炎","surgery":"阑尾切除术","year":"2010"}]', NULL, '[{"relation":"父亲","disease":"高血压"}]', 100001, 2001, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
+(1002, '李淑芬', '370102195803152345', '0', 68, '1958-03-15', '13800000002', '济南市历下区泉城路20号',    117.020, 36.668, 'HAN', 'RETIRED', 'UNDERGRADUATE', NULL, NULL, NULL,   0, '不饮酒',      158.0, 62.0, 'O', 'MARRIED', NULL, '[{"allergen":"青霉素","reaction":"皮疹"}]', '[{"relation":"母亲","disease":"糖尿病"}]', 100002, 2002, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
+(1003, '王立军', '370103197206104567', '1', 53, '1972-06-10', '13800000003', '济南市市中区经四路100号',    117.000, 36.650, 'HAN', 'CLERK', 'COLLEGE', NULL, NULL, NULL, 600, '每周啤酒5次', 175.0, 88.0, 'B', 'MARRIED', NULL, NULL, NULL, 100001, 2004, 'WARNING_ACTIVE',   'HIS_SYNC',   @tid, @cb, @now),
+(1004, '刘秀英', '370102194511236789', '0', 80, '1945-11-23', '13800000004', '济南市历下区解放路50号',    117.025, 36.672, 'HAN', 'RETIRED', 'HIGH_SCHOOL', NULL, NULL, NULL,   0, '不饮酒',      155.0, 55.0, 'AB', 'WIDOWED', '[{"disease":"胆囊结石","surgery":"胆囊切除术","year":"2018"},{"disease":"贫血","treatment":"输血200ml","year":"2015"}]', NULL, '[{"relation":"父亲","disease":"冠心病"}]', 100001, 2001, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
+(1005, '陈国强', '370112196808287890', '1', 57, '1968-08-28', '13800000005', '济南市历城区工业南路38号',  117.080, 36.678, 'HAN', 'TECHNICIAN', 'UNDERGRADUATE', NULL, NULL, NULL, 350, '每周白酒3次', 178.0, 82.0, 'A', 'MARRIED', '[{"disease":"车祸外伤","year":"2020","detail":"轻伤"}]', NULL, NULL, 100003, 2005, 'FOLLOWUP_OVERDUE', 'OUTPATIENT', @tid, @cb, @now),
+(1006, '赵玉兰', '370104195207198901', '0', 73, '1952-07-19', '13800000006', '济南市槐荫区经十路200号',    117.040, 36.668, 'HAN', 'RETIRED', 'JUNIOR_HIGH', 'VISION', 'LEVEL_3', '助视器',   0, '不饮酒',      152.0, 58.0, 'O', 'MARRIED', NULL, NULL, '[{"relation":"兄弟","disease":"脑卒中"}]', 100004, 2003, 'MANAGED',          'SCREENING',  @tid, @cb, @now),
+(1007, '孙建华', '370105196003029012', '1', 66, '1960-03-02', '13800000007', '济南市天桥区清河路88号',    117.030, 36.690, 'HAN', 'RETIRED', 'JUNIOR_HIGH', NULL, NULL, NULL, 500, '每日白酒3两', 170.0, 75.0, 'B', 'MARRIED', '[{"disease":"冠心病","surgery":"心脏支架植入术","year":"2022"}]', NULL, NULL, 100001, 2004, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
+(1008, '周美华', '370102195109130123', '0', 74, '1951-09-13', '13800000008', '济南市历下区趵突泉北路66号',117.018, 36.670, 'HAN', 'RETIRED', 'UNDERGRADUATE', NULL, NULL, NULL,   0, '不饮酒',      160.0, 65.0, 'A', 'MARRIED', NULL, '[{"allergen":"磺胺类药物","reaction":"过敏性皮炎"}]', '[{"relation":"家族","disease":"家族性高脂血症"}]', 100002, 2002, 'MANAGED',          'OUTPATIENT', @tid, @cb, @now),
+(1009, '黄志刚', '370113197501234567', '1', 51, '1975-01-23', '13800000009', '济南市长清区大学路10号',    117.120, 36.550, 'HAN', 'TECHNICIAN', 'POSTGRADUATE', NULL, NULL, NULL, 200, '每周啤酒2次', 176.0, 80.0, 'O', 'MARRIED', NULL, NULL, NULL, 100001, 2001, 'PENDING_ENTRY',    'SCREENING',  @tid, @cb, @now),
+(1010, '吴桂珍', '370102194810055678', '0', 77, '1948-10-05', '13800000010', '济南市历下区文化东路156号',117.028, 36.665, 'HAN', 'RETIRED', 'PRIMARY', NULL, NULL, NULL,   0, '不饮酒',      150.0, 52.0, 'B', 'WIDOWED', '[{"disease":"糖尿病","year":"2014","detail":"10年病史"}]', '[{"allergen":"碘造影剂","reaction":"过敏反应"}]', NULL, 100002, 2002, 'REFERRING',        'TRANSFER',   @tid, @cb, @now);
 
 -- =============================================
 -- 18. 患者疾病关联
 -- =============================================
-INSERT INTO `ch_patient_disease` (`patient_id`, `disease_code`, `icd_code`, `diagnosis_basis`, `confirm_date`, `is_complication`, `parent_disease_code`, `org_id`, `tenant_id`, `create_by`, `create_time`) VALUES
-(1001, 'HYPERTENSION',   'I10',   '诊室血压连续3次>140/90', '2020-03-15', 0, NULL,       3001, @tid, @cb, @now),
-(1002, 'DIABETES',       'E11',   '空腹血糖>7.0mmol/L',    '2018-06-20', 0, NULL,       3001, @tid, @cb, @now),
-(1002, 'FUNDUS',         'H36.0', '糖尿病病史+眼底检查',    '2022-09-10', 1, 'DIABETES', 3001, @tid, @cb, @now),
-(1003, 'HYPERTENSION',   'I10',   'HIS确诊同步',           '2023-05-01', 0, NULL,       3002, @tid, @cb, @now),
-(1003, 'DIABETES',       'E11',   'HIS确诊同步',           '2023-05-01', 0, NULL,       3002, @tid, @cb, @now),
-(1004, 'CHD',            'I25',   '冠脉造影+病史',         '2019-11-08', 0, NULL,       3001, @tid, @cb, @now),
-(1005, 'HYPERLIPIDEMIA', 'E78',   'TC>6.2mmol/L',          '2021-04-12', 0, NULL,       3001, @tid, @cb, @now),
-(1006, 'STROKE',         'I63',   '头颅CT+病史',           '2022-01-15', 0, NULL,       3003, @tid, @cb, @now),
-(1007, 'CHD',            'I25',   '心脏支架术后',           '2022-03-20', 0, NULL,       3002, @tid, @cb, @now),
-(1007, 'HYPERTENSION',   'I10',   '合并高血压',             '2020-07-08', 0, NULL,       3002, @tid, @cb, @now),
-(1008, 'HYPERLIPIDEMIA', 'E78',   '家族性高脂血症',         '2015-08-22', 0, NULL,       3001, @tid, @cb, @now),
-(1009, 'NEPHROTIC',      'N04',   '24h尿蛋白>3.5g',         '2023-12-05', 0, NULL,       3001, @tid, @cb, @now),
-(1010, 'DIABETES',       'E11',   '糖尿病10年病史',         '2014-02-10', 0, NULL,       3001, @tid, @cb, @now),
-(1010, 'NEUROPATHY',     'G63.2', '糖尿病+神经传导检查',    '2023-06-18', 1, 'DIABETES', 3001, @tid, @cb, @now),
-(1010, 'VASCULOPATHY',   'I79.2', '糖尿病+ABI<0.9',         '2023-06-18', 1, 'DIABETES', 3001, @tid, @cb, @now);
+INSERT INTO `ch_patient_disease` (`patient_id`, `disease_code`, `icd_code`, `diagnosis_basis`, `confirm_date`, `is_complication`, `parent_disease_code`, `tenant_id`, `create_by`, `create_time`) VALUES
+(1001, 'HYPERTENSION',   'I10',   '诊室血压连续3次>140/90', '2020-03-15', 0, NULL, @tid, @cb, @now),
+(1002, 'DIABETES',       'E11',   '空腹血糖>7.0mmol/L',    '2018-06-20', 0, NULL, @tid, @cb, @now),
+(1002, 'FUNDUS',         'H36.0', '糖尿病病史+眼底检查',    '2022-09-10', 1, 'DIABETES', @tid, @cb, @now),
+(1003, 'HYPERTENSION',   'I10',   'HIS确诊同步',           '2023-05-01', 0, NULL, @tid, @cb, @now),
+(1003, 'DIABETES',       'E11',   'HIS确诊同步',           '2023-05-01', 0, NULL, @tid, @cb, @now),
+(1004, 'CHD',            'I25',   '冠脉造影+病史',         '2019-11-08', 0, NULL, @tid, @cb, @now),
+(1005, 'HYPERLIPIDEMIA', 'E78',   'TC>6.2mmol/L',          '2021-04-12', 0, NULL, @tid, @cb, @now),
+(1006, 'STROKE',         'I63',   '头颅CT+病史',           '2022-01-15', 0, NULL, @tid, @cb, @now),
+(1007, 'CHD',            'I25',   '心脏支架术后',           '2022-03-20', 0, NULL, @tid, @cb, @now),
+(1007, 'HYPERTENSION',   'I10',   '合并高血压',             '2020-07-08', 0, NULL, @tid, @cb, @now),
+(1008, 'HYPERLIPIDEMIA', 'E78',   '家族性高脂血症',         '2015-08-22', 0, NULL, @tid, @cb, @now),
+(1009, 'NEPHROTIC',      'N04',   '24h尿蛋白>3.5g',         '2023-12-05', 0, NULL, @tid, @cb, @now),
+(1010, 'DIABETES',       'E11',   '糖尿病10年病史',         '2014-02-10', 0, NULL, @tid, @cb, @now),
+(1010, 'NEUROPATHY',     'G63.2', '糖尿病+神经传导检查',    '2023-06-18', 1, 'DIABETES', @tid, @cb, @now),
+(1010, 'VASCULOPATHY',   'I79.2', '糖尿病+ABI<0.9',         '2023-06-18', 1, 'DIABETES', @tid, @cb, @now);
 
 -- =============================================
 -- 19. 患者标签
@@ -428,14 +428,14 @@ INSERT INTO `ch_medication_adjust` (`med_id`, `patient_id`, `adjust_type`, `adju
 -- =============================================
 -- 27. 风险评估
 -- =============================================
-INSERT INTO `ch_risk_assessment` (`assessment_id`, `patient_id`, `disease_code`, `risk_level`, `assessment_report`, `assessor_user_id`, `org_id`, `tenant_id`, `create_by`, `create_time`) VALUES
-(27001, 1001, 'HYPERTENSION', 'HIGH',      '血压长期偏高，吸烟+年龄风险',         2001, 3001, @tid, @cb, '2024-09-15 10:00:00'),
-(27002, 1002, 'DIABETES',     'VERY_HIGH', '血糖+HbA1c双高，已出现眼底病变',      2002, 3001, @tid, @cb, '2024-10-20 10:30:00'),
-(27003, 1003, 'HYPERTENSION', 'VERY_HIGH', '血压危急值+合并糖尿病',               2004, 3002, @tid, @cb, '2025-01-06 09:00:00'),
-(27004, 1003, 'DIABETES',     'HIGH',      '血糖控制不理想',                      2004, 3002, @tid, @cb, '2025-01-06 09:15:00'),
-(27005, 1004, 'CHD',          'HIGH',      '冠心病+独居老人，需要强化管理',       2001, 3001, @tid, @cb, '2024-11-10 10:00:00'),
-(27006, 1005, 'HYPERLIPIDEMIA','MEDIUM',   'TC偏高，依从性尚可',                   2005, 3001, @tid, @cb, '2024-08-20 14:00:00'),
-(27007, 1010, 'DIABETES',     'VERY_HIGH', '糖尿病10年+神经+血管并发症',          2002, 3001, @tid, @cb, '2024-12-01 09:00:00');
+INSERT INTO `ch_risk_assessment` (`assessment_id`, `patient_id`, `disease_code`, `risk_level`, `assessment_report`, `assessor_user_id`, `tenant_id`, `create_by`, `create_time`) VALUES
+(27001, 1001, 'HYPERTENSION', 'HIGH',      '血压长期偏高，吸烟+年龄风险',         2001, @tid, @cb, '2024-09-15 10:00:00'),
+(27002, 1002, 'DIABETES',     'VERY_HIGH', '血糖+HbA1c双高，已出现眼底病变',      2002, @tid, @cb, '2024-10-20 10:30:00'),
+(27003, 1003, 'HYPERTENSION', 'VERY_HIGH', '血压危急值+合并糖尿病',               2004, @tid, @cb, '2025-01-06 09:00:00'),
+(27004, 1003, 'DIABETES',     'HIGH',      '血糖控制不理想',                      2004, @tid, @cb, '2025-01-06 09:15:00'),
+(27005, 1004, 'CHD',          'HIGH',      '冠心病+独居老人，需要强化管理',       2001, @tid, @cb, '2024-11-10 10:00:00'),
+(27006, 1005, 'HYPERLIPIDEMIA','MEDIUM',   'TC偏高，依从性尚可',                   2005, @tid, @cb, '2024-08-20 14:00:00'),
+(27007, 1010, 'DIABETES',     'VERY_HIGH', '糖尿病10年+神经+血管并发症',          2002, @tid, @cb, '2024-12-01 09:00:00');
 
 -- =============================================
 -- 28. 风险因子项
@@ -466,26 +466,26 @@ INSERT INTO `ch_manage_level_record` (`patient_id`, `disease_code`, `old_level`,
 -- =============================================
 -- 30. 管理方案 + 方案项
 -- =============================================
-INSERT INTO `ch_manage_plan` (`plan_id`, `patient_id`, `disease_code`, `plan_status`, `org_id`, `tenant_id`, `create_by`, `create_time`) VALUES
-(30001, 1001, 'HYPERTENSION', 'ACTIVE',  3001, @tid, @cb, @now),
-(30002, 1002, 'DIABETES',     'ACTIVE',  3001, @tid, @cb, @now),
-(30003, 1003, 'HYPERTENSION', 'ACTIVE',  3002, @tid, @cb, @now),
-(30004, 1003, 'DIABETES',     'ACTIVE',  3002, @tid, @cb, @now),
-(30005, 1004, 'CHD',          'ACTIVE',  3001, @tid, @cb, @now),
-(30006, 1010, 'DIABETES',     'ACTIVE',  3001, @tid, @cb, @now),
-(30007, 1001, 'HYPERTENSION', 'HISTORY', 3001, @tid, @cb, @now);
+INSERT INTO `ch_manage_plan` (`plan_id`, `patient_id`, `disease_code`, `plan_status`, `tenant_id`, `create_by`, `create_time`) VALUES
+(30001, 1001, 'HYPERTENSION', 'ACTIVE', @tid, @cb, @now),
+(30002, 1002, 'DIABETES',     'ACTIVE', @tid, @cb, @now),
+(30003, 1003, 'HYPERTENSION', 'ACTIVE', @tid, @cb, @now),
+(30004, 1003, 'DIABETES',     'ACTIVE', @tid, @cb, @now),
+(30005, 1004, 'CHD',          'ACTIVE', @tid, @cb, @now),
+(30006, 1010, 'DIABETES',     'ACTIVE', @tid, @cb, @now),
+(30007, 1001, 'HYPERTENSION', 'HISTORY', @tid, @cb, @now);
 
-INSERT INTO `ch_manage_plan_item` (`plan_id`, `item_type`, `item_content`, `org_id`, `tenant_id`, `create_by`, `create_time`) VALUES
-(30001, 'MEDICATION', '{"drugs":["氨氯地平5mg QD","缬沙坦80mg QD"]}',     3001, @tid, @cb, @now),
-(30001, 'DIET',       '{"principles":["低盐","每日盐<6g","低脂"]}',       3001, @tid, @cb, @now),
-(30001, 'EXERCISE',   '{"type":"快走","freq":"5次/周","duration":"30分钟"}',3001, @tid, @cb, @now),
-(30001, 'FOLLOWUP',   '{"cycle":"月度","method":"PHONE"}',                  3001, @tid, @cb, @now),
-(30001, 'MONITOR',    '{"metrics":["SBP","DBP"],"freq":"每日1次"}',         3001, @tid, @cb, @now),
-(30002, 'MEDICATION', '{"drugs":["二甲双胍500mg TID","格列美脲2mg QD"]}',  3001, @tid, @cb, @now),
-(30002, 'DIET',       '{"principles":["糖尿病饮食","控碳水"]}',             3001, @tid, @cb, @now),
-(30002, 'FOLLOWUP',   '{"cycle":"月度","method":"PHONE"}',                  3001, @tid, @cb, @now),
-(30006, 'MEDICATION', '{"drugs":["胰岛素12U TID","普瑞巴林75mg BID"]}',    3001, @tid, @cb, @now),
-(30006, 'PSYCHOLOGY', '{"advice":"疼痛心理支持"}',                          3001, @tid, @cb, @now);
+INSERT INTO `ch_manage_plan_item` (`plan_id`, `item_type`, `item_content`, `tenant_id`, `create_by`, `create_time`) VALUES
+(30001, 'MEDICATION', '{"drugs":["氨氯地平5mg QD","缬沙坦80mg QD"]}', @tid, @cb, @now),
+(30001, 'DIET',       '{"principles":["低盐","每日盐<6g","低脂"]}', @tid, @cb, @now),
+(30001, 'EXERCISE',   '{"type":"快走","freq":"5次/周","duration":"30分钟"}', @tid, @cb, @now),
+(30001, 'FOLLOWUP',   '{"cycle":"月度","method":"PHONE"}', @tid, @cb, @now),
+(30001, 'MONITOR',    '{"metrics":["SBP","DBP"],"freq":"每日1次"}', @tid, @cb, @now),
+(30002, 'MEDICATION', '{"drugs":["二甲双胍500mg TID","格列美脲2mg QD"]}', @tid, @cb, @now),
+(30002, 'DIET',       '{"principles":["糖尿病饮食","控碳水"]}', @tid, @cb, @now),
+(30002, 'FOLLOWUP',   '{"cycle":"月度","method":"PHONE"}', @tid, @cb, @now),
+(30006, 'MEDICATION', '{"drugs":["胰岛素12U TID","普瑞巴林75mg BID"]}', @tid, @cb, @now),
+(30006, 'PSYCHOLOGY', '{"advice":"疼痛心理支持"}', @tid, @cb, @now);
 
 -- =============================================
 -- 31. 随访计划 + 任务 + 记录
@@ -577,12 +577,12 @@ INSERT INTO `ch_device_raw_record` (`device_id`, `patient_id`, `raw_data`, `pars
 -- 35. 生活方式
 -- =============================================
 INSERT INTO `ch_lifestyle_record` (`patient_id`, `smoking_status`, `drinking_status`, `exercise_freq`, `diet_habit`, `psychological_status`, `compliance_level`, `tenant_id`, `create_by`, `create_time`) VALUES
-(1001, 'SMOKING',        'DRINKING_LIGHT', '3_TIMES_WEEK', '口味偏咸',     'NORMAL',  'MODERATE', @tid, @cb, DATE_SUB(@now, INTERVAL 30 DAY)),
-(1001, 'SMOKING_REDUCED','DRINKING_LIGHT', '5_TIMES_WEEK', '逐渐减盐',     'NORMAL',  'GOOD',     @tid, @cb, @now),
-(1002, 'NEVER',          'NEVER',          '5_TIMES_WEEK', '控糖严格',     'ANXIOUS', 'GOOD',     @tid, @cb, @now),
-(1003, 'SMOKING',        'DRINKING_HEAVY', 'RARELY',       '饮食不规律',   'NORMAL',  'POOR',     @tid, @cb, @now),
-(1004, 'QUIT_5_YEARS',   'NEVER',          '3_TIMES_WEEK', '少盐少油',     'DEPRESSED','GOOD',    @tid, @cb, @now),
-(1010, 'NEVER',          'NEVER',          'RARELY',       '糖尿病饮食',   'NORMAL',  'MODERATE', @tid, @cb, @now);
+(1001, 'CURRENT',  'CURRENT',  '3_TIMES_WEEK', '口味偏咸',     'NORMAL',  'FAIR',  @tid, @cb, DATE_SUB(@now, INTERVAL 30 DAY)),
+(1001, 'CURRENT',  'CURRENT',  '5_TIMES_WEEK', '逐渐减盐',     'NORMAL',  'GOOD',  @tid, @cb, @now),
+(1002, 'NEVER',    'NEVER',    '5_TIMES_WEEK', '控糖严格',     'ANXIOUS', 'GOOD',  @tid, @cb, @now),
+(1003, 'CURRENT',  'CURRENT',  'RARELY',       '饮食不规律',   'NORMAL',  'POOR',  @tid, @cb, @now),
+(1004, 'FORMER',   'NEVER',    '3_TIMES_WEEK', '少盐少油',     'DEPRESSED','GOOD', @tid, @cb, @now),
+(1010, 'NEVER',    'NEVER',    'RARELY',       '糖尿病饮食',   'NORMAL',  'FAIR',  @tid, @cb, @now);
 
 -- =============================================
 -- 36. 体检记录 + 体检项目（含并发症专项）
@@ -635,9 +635,9 @@ INSERT INTO `ch_warning_action` (`warning_id`, `action_type`, `action_detail`, `
 -- =============================================
 -- 38. 筛查批次 + 记录
 -- =============================================
-INSERT INTO `ch_screening_batch` (`batch_id`, `batch_name`, `activity_date`, `org_id`, `doctor_user_id`, `location`, `notes`, `tenant_id`, `create_by`, `create_time`) VALUES
-(38001, '2024春季大明湖社区义诊', '2024-04-15', 3004, 2003, '大明湖公园入口广场', '春季爱心义诊筛查',  @tid, @cb, @now),
-(38002, '2025冬季槐荫区慢病筛查', '2025-01-10', 3003, 2007, '槐荫区党群服务中心', '冬季心脑血管筛查',  @tid, @cb, @now);
+INSERT INTO `ch_screening_batch` (`batch_id`, `batch_name`, `activity_date`, `doctor_user_id`, `location`, `notes`, `tenant_id`, `create_by`, `create_time`) VALUES
+(38001, '2024春季大明湖社区义诊', '2024-04-15', 2003, '大明湖公园入口广场', '春季爱心义诊筛查',  @tid, @cb, @now),
+(38002, '2025冬季槐荫区慢病筛查', '2025-01-10', 2007, '槐荫区党群服务中心', '冬季心脑血管筛查',  @tid, @cb, @now);
 
 INSERT INTO `ch_screening_record` (`batch_id`, `offline_uuid`, `patient_name`, `id_card`, `phone`, `gender`, `age`, `symptoms`, `vitals`, `risk_level`, `enroll_status`, `enrolled_patient_id`, `tenant_id`, `create_by`, `create_time`) VALUES
 (38001, 'uuid-screening-001', '刘老太',  '370102195011110001', '13888880001', 'F', 74, '["头晕","心慌"]',         '{"sbp":165,"dbp":95,"fbg":7.2}', 'HIGH',      'ENROLLED', 1006, @tid, @cb, @now),

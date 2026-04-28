@@ -52,8 +52,6 @@ public class ChWarningRule extends TenantEntity {
      */
     private String recoveryRule;
 
-    private Long orgId;
-
     @TableLogic
     private String delFlag;
 }

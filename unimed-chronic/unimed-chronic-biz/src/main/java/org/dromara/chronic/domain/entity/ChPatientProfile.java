@@ -49,6 +49,11 @@ public class ChPatientProfile extends TenantEntity {
     private Date birthday;
 
     /**
+     * 年龄
+     */
+    private Integer age;
+
+    /**
      * 联系电话
      */
     private String phone;
@@ -84,26 +89,6 @@ public class ChPatientProfile extends TenantEntity {
     private String educationLevel;
 
     /**
-     * 手术史
-     */
-    private String surgeryHistory;
-
-    /**
-     * 外伤史
-     */
-    private String traumaHistory;
-
-    /**
-     * 输血史
-     */
-    private String transfusionHistory;
-
-    /**
-     * 遗传病史
-     */
-    private String geneticHistory;
-
-    /**
      * 残疾类型
      */
     private String disabilityType;
@@ -129,10 +114,39 @@ public class ChPatientProfile extends TenantEntity {
     private String drinkingAmount;
 
     /**
-     * 归属机构ID
+     * 身高(cm)
      */
-    private Long orgId;
+    private BigDecimal height;
 
+    /**
+     * 体重(kg)
+     */
+    private BigDecimal weight;
+
+    /**
+     * 血型
+     */
+    private String bloodType;
+
+    /**
+     * 婚姻状况
+     */
+    private String maritalStatus;
+
+    /**
+     * 既往史（JSON 数组，存储既往疾病诊断列表）
+     */
+    private String pastMedicalHistory;
+
+    /**
+     * 过敏史（JSON 数组，存储过敏原及反应描述）
+     */
+    private String allergyHistory;
+
+    /**
+     * 家族病史（JSON 数组，存储家族成员患病情况）
+     */
+    private String familyHistory;
     /**
      * 归属科室ID
      */
@@ -152,6 +166,26 @@ public class ChPatientProfile extends TenantEntity {
      * 档案来源
      */
     private String source;
+
+    /**
+     * 医保类型
+     */
+    private String insuranceType;
+
+    /**
+     * 紧急联系人姓名
+     */
+    private String emergencyContactName;
+
+    /**
+     * 紧急联系人电话
+     */
+    private String emergencyContactPhone;
+
+    /**
+     * 户籍地址
+     */
+    private String permanentAddress;
 
     /**
      * 删除标志

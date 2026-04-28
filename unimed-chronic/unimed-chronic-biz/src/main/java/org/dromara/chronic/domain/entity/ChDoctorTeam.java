@@ -24,8 +24,6 @@ public class ChDoctorTeam extends TenantEntity {
 
     private String teamName;
 
-    private Long orgId;
-
     private Long deptId;
 
     private Long leaderUserId;

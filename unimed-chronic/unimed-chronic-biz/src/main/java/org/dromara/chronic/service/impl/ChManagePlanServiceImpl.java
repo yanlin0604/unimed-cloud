@@ -5,7 +5,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
-import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChManagePlanBo;
 import org.dromara.chronic.domain.bo.ChManagePlanItemBo;
 import org.dromara.chronic.domain.entity.ChManagePlan;
@@ -37,7 +36,6 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
 
     private final ChManagePlanMapper managePlanMapper;
     private final ChManagePlanItemMapper managePlanItemMapper;
-    private final OrgNameHelper orgNameHelper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
@@ -106,7 +104,6 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
             List<ChManagePlanItemVo> items = managePlanItemMapper.selectVoList(
                 Wrappers.<ChManagePlanItem>lambdaQuery().eq(ChManagePlanItem::getPlanId, plan.getPlanId())
             );
-            fillPlanItemOrgNames(items);
             plan.setItemList(items);
         });
         fillPlanNames(plans);
@@ -124,20 +121,6 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
 
     private void fillPlanNames(List<ChManagePlanVo> list) {
         if (CollUtil.isEmpty(list)) return;
-        // orgName
-        List<Long> orgIds = list.stream()
-            .map(ChManagePlanVo::getOrgId)
-            .filter(ObjectUtil::isNotNull)
-            .distinct()
-            .collect(Collectors.toList());
-        if (!orgIds.isEmpty()) {
-            try {
-                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
-                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
-            } catch (Exception e) {
-                /* ignore */
-            }
-        }
         // diseaseName
         List<String> diseaseCodes = list.stream()
             .map(ChManagePlanVo::getDiseaseCode)
@@ -151,18 +134,6 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
             } catch (Exception e) {
                 /* ignore */
             }
-        }
-    }
-
-    private void fillPlanItemOrgNames(List<ChManagePlanItemVo> list) {
-        if (CollUtil.isEmpty(list)) return;
-        List<Long> orgIds = list.stream().map(ChManagePlanItemVo::getOrgId)
-            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
-        if (!orgIds.isEmpty()) {
-            try {
-                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
-                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
-            } catch (Exception e) { /* ignore */ }
         }
     }
 }

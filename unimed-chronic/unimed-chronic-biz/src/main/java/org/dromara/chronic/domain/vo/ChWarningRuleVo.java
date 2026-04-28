@@ -46,8 +46,6 @@ public class ChWarningRuleVo implements Serializable {
     private Date timeWindowEnd;
     @Schema(description = "恢复规则")
     private String recoveryRule;
-    @Schema(description = "机构ID")
-    private Long orgId;
     @Schema(description = "创建时间")
     private Date createTime;
 
@@ -61,7 +59,4 @@ public class ChWarningRuleVo implements Serializable {
 
     @Schema(description = "病种名称")
     private String diseaseName;
-
-    @Schema(description = "机构名称")
-    private String orgName;
 }

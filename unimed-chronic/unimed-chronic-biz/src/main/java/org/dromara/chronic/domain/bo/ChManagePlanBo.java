@@ -44,10 +44,6 @@ public class ChManagePlanBo extends BaseEntity {
 
     @Schema(description = "方案备注")
     private String planRemark;
-
-    @Schema(description = "机构ID")
-    private Long orgId;
-
     @Schema(description = "方案子项列表")
     private List<ChManagePlanItemBo> itemList;
 }

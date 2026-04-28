@@ -35,8 +35,6 @@ public class ChRiskAssessment extends TenantEntity {
 
     private Long assessorUserId;
 
-    private Long orgId;
-
     @TableLogic
     private String delFlag;
 }

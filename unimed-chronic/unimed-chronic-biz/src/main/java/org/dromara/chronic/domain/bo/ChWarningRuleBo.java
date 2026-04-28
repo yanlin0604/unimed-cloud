@@ -56,7 +56,4 @@ public class ChWarningRuleBo extends BaseEntity {
 
     @Schema(description = "恢复规则")
     private String recoveryRule;
-
-    @Schema(description = "机构ID")
-    private Long orgId;
 }

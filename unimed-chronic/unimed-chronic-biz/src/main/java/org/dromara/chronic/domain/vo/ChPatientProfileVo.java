@@ -65,17 +65,41 @@ public class ChPatientProfileVo implements Serializable {
     @Schema(description = "文化程度")
     private String educationLevel;
 
-    @Schema(description = "手术史")
-    private String surgeryHistory;
+    @Schema(description = "年龄")
+    private Integer age;
 
-    @Schema(description = "外伤史")
-    private String traumaHistory;
+    @Schema(description = "身高(cm)")
+    private BigDecimal height;
 
-    @Schema(description = "输血史")
-    private String transfusionHistory;
+    @Schema(description = "体重(kg)")
+    private BigDecimal weight;
 
-    @Schema(description = "遗传史")
-    private String geneticHistory;
+    @Schema(description = "血型")
+    private String bloodType;
+
+    @Schema(description = "婚姻状况")
+    private String maritalStatus;
+
+    @Schema(description = "既往史")
+    private String pastMedicalHistory;
+
+    @Schema(description = "过敏史")
+    private String allergyHistory;
+
+    @Schema(description = "家族病史")
+    private String familyHistory;
+
+    @Schema(description = "医保类型")
+    private String insuranceType;
+
+    @Schema(description = "紧急联系人姓名")
+    private String emergencyContactName;
+
+    @Schema(description = "紧急联系人电话")
+    private String emergencyContactPhone;
+
+    @Schema(description = "户籍地址")
+    private String permanentAddress;
 
     @Schema(description = "残疾类型")
     private String disabilityType;
@@ -92,8 +116,6 @@ public class ChPatientProfileVo implements Serializable {
     @Schema(description = "饮酒量")
     private String drinkingAmount;
 
-    @Schema(description = "机构ID")
-    private Long orgId;
 
     @Schema(description = "科室ID")
     private Long deptId;
@@ -145,8 +167,13 @@ public class ChPatientProfileVo implements Serializable {
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "disabilityLevel", other = ChronicDictTypeConstant.CHRONIC_DISABILITY_LEVEL)
     private String disabilityLevelName;
 
-    @Schema(description = "机构名称")
-    private String orgName;
+    @Schema(description = "血型名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "bloodType", other = ChronicDictTypeConstant.CHRONIC_BLOOD_TYPE)
+    private String bloodTypeName;
+
+    @Schema(description = "婚姻状况名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "maritalStatus", other = ChronicDictTypeConstant.CHRONIC_MARITAL_STATUS)
+    private String maritalStatusName;
 
     @Schema(description = "部门名称")
     @Translation(type = TransConstant.DEPT_ID_TO_NAME, mapper = "deptId")

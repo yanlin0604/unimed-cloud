@@ -38,8 +38,6 @@ public class ChManagePlanVo implements Serializable {
     private String planName;
     @Schema(description = "方案备注")
     private String planRemark;
-    @Schema(description = "机构ID")
-    private Long orgId;
     @Schema(description = "创建时间")
     private Date createTime;
     @Schema(description = "子项列表")
@@ -51,7 +49,4 @@ public class ChManagePlanVo implements Serializable {
 
     @Schema(description = "病种名称")
     private String diseaseName;
-
-    @Schema(description = "机构名称")
-    private String orgName;
 }

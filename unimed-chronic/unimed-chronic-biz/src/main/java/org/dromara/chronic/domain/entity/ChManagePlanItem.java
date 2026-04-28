@@ -31,7 +31,20 @@ public class ChManagePlanItem extends TenantEntity {
      */
     private String itemContent;
 
-    private Long orgId;
+    /**
+     * 目标指标类型(如 SYSTOLIC_BP, FASTING_GLUCOSE)
+     */
+    private String targetMetricType;
+
+    /**
+     * 目标下限值
+     */
+    private java.math.BigDecimal targetMinValue;
+
+    /**
+     * 目标上限值
+     */
+    private java.math.BigDecimal targetMaxValue;
 
     @TableLogic
     private String delFlag;

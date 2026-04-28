@@ -108,28 +108,76 @@ public class ChPatientProfileBo extends BaseEntity {
     private String educationLevel;
 
     /**
-     * 手术史
+     * 年龄
      */
-    @Schema(description = "手术史")
-    private String surgeryHistory;
+    @Schema(description = "年龄")
+    private Integer age;
 
     /**
-     * 外伤史
+     * 身高(cm)
      */
-    @Schema(description = "外伤史")
-    private String traumaHistory;
+    @Schema(description = "身高(cm)")
+    private BigDecimal height;
 
     /**
-     * 输血史
+     * 体重(kg)
      */
-    @Schema(description = "输血史")
-    private String transfusionHistory;
+    @Schema(description = "体重(kg)")
+    private BigDecimal weight;
 
     /**
-     * 遗传病史
+     * 血型
      */
-    @Schema(description = "遗传病史")
-    private String geneticHistory;
+    @Schema(description = "血型")
+    private String bloodType;
+
+    /**
+     * 婚姻状况
+     */
+    @Schema(description = "婚姻状况")
+    private String maritalStatus;
+
+    /**
+     * 既往史
+     */
+    @Schema(description = "既往史")
+    private String pastMedicalHistory;
+
+    /**
+     * 过敏史
+     */
+    @Schema(description = "过敏史")
+    private String allergyHistory;
+
+    /**
+     * 家族病史
+     */
+    @Schema(description = "家族病史")
+    private String familyHistory;
+
+    /**
+     * 医保类型
+     */
+    @Schema(description = "医保类型")
+    private String insuranceType;
+
+    /**
+     * 紧急联系人姓名
+     */
+    @Schema(description = "紧急联系人姓名")
+    private String emergencyContactName;
+
+    /**
+     * 紧急联系人电话
+     */
+    @Schema(description = "紧急联系人电话")
+    private String emergencyContactPhone;
+
+    /**
+     * 户籍地址
+     */
+    @Schema(description = "户籍地址")
+    private String permanentAddress;
 
     /**
      * 残疾类型
@@ -160,13 +208,6 @@ public class ChPatientProfileBo extends BaseEntity {
      */
     @Schema(description = "饮酒量")
     private String drinkingAmount;
-
-    /**
-     * 归属机构ID
-     */
-    @Schema(description = "归属机构ID")
-    private Long orgId;
-
     /**
      * 归属科室ID
      */

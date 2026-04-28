@@ -55,7 +55,7 @@ public class EducationPushManager {
         Map<String, Object> context = Map.of(
             "patientId", patient.getPatientId(),
             "manageStatus", patient.getManageStatus() != null ? patient.getManageStatus() : "",
-            "orgId", patient.getOrgId() != null ? patient.getOrgId() : 0L
+            "deptId", patient.getDeptId() != null ? patient.getDeptId() : 0L
         );
         List<ChEducationRule> activeRules = getActiveRules();
         int pushed = 0;

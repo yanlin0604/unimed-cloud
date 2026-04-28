@@ -433,3 +433,189 @@ INSERT INTO sys_dict_data VALUES(346, '000000', 1,  '一级（极重度）', 'LE
 INSERT INTO sys_dict_data VALUES(347, '000000', 2,  '二级（重度）',   'LEVEL_2',          'chronic_disability_level', '', '', 'N', 103, 1, sysdate(), null, null, '重度');
 INSERT INTO sys_dict_data VALUES(348, '000000', 3,  '三级（中度）',   'LEVEL_3',          'chronic_disability_level', '', '', 'N', 103, 1, sysdate(), null, null, '中度');
 INSERT INTO sys_dict_data VALUES(349, '000000', 4,  '四级（轻度）',   'LEVEL_4',          'chronic_disability_level', '', '', 'N', 103, 1, sysdate(), null, null, '轻度');
+
+-- 148 chronic_relation_type 病种关联类型
+INSERT INTO sys_dict_type VALUES(148, '000000', '病种关联类型', 'chronic_relation_type', 103, 1, sysdate(), null, null, '慢病病种关联类型列表');
+
+INSERT INTO sys_dict_data VALUES(350, '000000', 1, '并发症', 'COMPLICATION', 'chronic_relation_type', '', '', 'N', 103, 1, sysdate(), null, null, '并发症');
+INSERT INTO sys_dict_data VALUES(351, '000000', 2, '合并症', 'COMORBIDITY', 'chronic_relation_type', '', '', 'N', 103, 1, sysdate(), null, null, '合并症');
+
+-- 149 chronic_blood_type 血型
+INSERT INTO sys_dict_type VALUES(149, '000000', '血型', 'chronic_blood_type', 103, 1, sysdate(), null, null, '慢病患者血型字典');
+
+INSERT INTO sys_dict_data VALUES(352, '000000', 1, 'A型',          'A',            'chronic_blood_type', '', '', 'N', 103, 1, sysdate(), null, null, 'A型血');
+INSERT INTO sys_dict_data VALUES(353, '000000', 2, 'B型',          'B',            'chronic_blood_type', '', '', 'N', 103, 1, sysdate(), null, null, 'B型血');
+INSERT INTO sys_dict_data VALUES(354, '000000', 3, 'AB型',         'AB',           'chronic_blood_type', '', '', 'N', 103, 1, sysdate(), null, null, 'AB型血');
+INSERT INTO sys_dict_data VALUES(355, '000000', 4, 'O型',          'O',            'chronic_blood_type', '', '', 'N', 103, 1, sysdate(), null, null, 'O型血');
+INSERT INTO sys_dict_data VALUES(356, '000000', 5, 'Rh阴性',      'RH_NEGATIVE',  'chronic_blood_type', '', '', 'N', 103, 1, sysdate(), null, null, 'Rh阴性（熊猫血）');
+INSERT INTO sys_dict_data VALUES(357, '000000', 6, '不详',         'UNKNOWN',      'chronic_blood_type', '', '', 'N', 103, 1, sysdate(), null, null, '血型不详');
+
+-- 150 chronic_marital_status 婚姻状况
+INSERT INTO sys_dict_type VALUES(150, '000000', '婚姻状况', 'chronic_marital_status', 103, 1, sysdate(), null, null, '慢病患者婚姻状况字典');
+
+INSERT INTO sys_dict_data VALUES(358, '000000', 1, '未婚',         'UNMARRIED',    'chronic_marital_status', '', '', 'N', 103, 1, sysdate(), null, null, '未婚');
+INSERT INTO sys_dict_data VALUES(359, '000000', 2, '已婚',         'MARRIED',      'chronic_marital_status', '', '', 'Y', 103, 1, sysdate(), null, null, '已婚');
+INSERT INTO sys_dict_data VALUES(360, '000000', 3, '离婚',         'DIVORCED',     'chronic_marital_status', '', '', 'N', 103, 1, sysdate(), null, null, '离婚');
+INSERT INTO sys_dict_data VALUES(361, '000000', 4, '丧偶',         'WIDOWED',      'chronic_marital_status', '', '', 'N', 103, 1, sysdate(), null, null, '丧偶');
+INSERT INTO sys_dict_data VALUES(362, '000000', 5, '其他',         'OTHER',        'chronic_marital_status', '', '', 'N', 103, 1, sysdate(), null, null, '其他婚姻状况');
+
+-- =============================================
+-- 以下为代码常量引用但前面未定义的补充字典
+-- =============================================
+
+-- 151 chronic_adjust_type 用药调整类型（与 chronic_medication_adjust_type 值域相同，VO 翻译用）
+INSERT INTO sys_dict_type VALUES(151, '000000', '用药调整类型', 'chronic_adjust_type', 103, 1, sysdate(), null, null, '用药调整类型(VO翻译)');
+INSERT INTO sys_dict_data VALUES(363, '000000', 1, '加药',   'ADD',         'chronic_adjust_type', '', '', 'N', 103, 1, sysdate(), null, null, '新增药品');
+INSERT INTO sys_dict_data VALUES(364, '000000', 2, '减药',   'REDUCE',      'chronic_adjust_type', '', '', 'N', 103, 1, sysdate(), null, null, '减少药品');
+INSERT INTO sys_dict_data VALUES(365, '000000', 3, '换药',   'SWITCH',      'chronic_adjust_type', '', '', 'N', 103, 1, sysdate(), null, null, '替换药品');
+INSERT INTO sys_dict_data VALUES(366, '000000', 4, '调量',   'DOSE_CHANGE', 'chronic_adjust_type', '', '', 'N', 103, 1, sysdate(), null, null, '调整剂量');
+
+-- 152 chronic_approval_status 审批状态
+INSERT INTO sys_dict_type VALUES(152, '000000', '审批状态', 'chronic_approval_status', 103, 1, sysdate(), null, null, '审批状态');
+INSERT INTO sys_dict_data VALUES(367, '000000', 1, '待审批', 'PENDING',  'chronic_approval_status', '', '', 'N', 103, 1, sysdate(), null, null, '待审批');
+INSERT INTO sys_dict_data VALUES(368, '000000', 2, '已批准', 'APPROVED', 'chronic_approval_status', '', '', 'N', 103, 1, sysdate(), null, null, '已批准');
+INSERT INTO sys_dict_data VALUES(369, '000000', 3, '已拒绝', 'REJECTED', 'chronic_approval_status', '', '', 'N', 103, 1, sysdate(), null, null, '已拒绝');
+
+-- 153 chronic_content_type 消息内容类型
+INSERT INTO sys_dict_type VALUES(153, '000000', '消息内容类型', 'chronic_content_type', 103, 1, sysdate(), null, null, '消息内容类型');
+INSERT INTO sys_dict_data VALUES(370, '000000', 1, '文本',   'TEXT',  'chronic_content_type', '', '', 'Y', 103, 1, sysdate(), null, null, '文本');
+INSERT INTO sys_dict_data VALUES(371, '000000', 2, '图片',   'IMAGE', 'chronic_content_type', '', '', 'N', 103, 1, sysdate(), null, null, '图片');
+INSERT INTO sys_dict_data VALUES(372, '000000', 3, '语音',   'VOICE', 'chronic_content_type', '', '', 'N', 103, 1, sysdate(), null, null, '语音');
+
+-- 154 chronic_delivery_status 推送投递状态
+INSERT INTO sys_dict_type VALUES(154, '000000', '投递状态', 'chronic_delivery_status', 103, 1, sysdate(), null, null, '推送投递状态');
+INSERT INTO sys_dict_data VALUES(373, '000000', 1, '待发送', 'PENDING',   'chronic_delivery_status', '', '', 'N', 103, 1, sysdate(), null, null, '待发送');
+INSERT INTO sys_dict_data VALUES(374, '000000', 2, '已发送', 'SENT',      'chronic_delivery_status', '', '', 'Y', 103, 1, sysdate(), null, null, '已发送');
+INSERT INTO sys_dict_data VALUES(375, '000000', 3, '发送失败','FAILED',   'chronic_delivery_status', '', '', 'N', 103, 1, sysdate(), null, null, '发送失败');
+
+-- 155 chronic_device_type 设备类型
+INSERT INTO sys_dict_type VALUES(155, '000000', '设备类型', 'chronic_device_type', 103, 1, sysdate(), null, null, 'IoT设备类型');
+INSERT INTO sys_dict_data VALUES(376, '000000', 1, '血压计',       'BP_MONITOR',   'chronic_device_type', '', '', 'N', 103, 1, sysdate(), null, null, '血压计');
+INSERT INTO sys_dict_data VALUES(377, '000000', 2, '血糖仪',       'GLUCOMETER',   'chronic_device_type', '', '', 'N', 103, 1, sysdate(), null, null, '血糖仪');
+INSERT INTO sys_dict_data VALUES(378, '000000', 3, '心电穿戴',     'ECG_WEARABLE', 'chronic_device_type', '', '', 'N', 103, 1, sysdate(), null, null, '心电穿戴设备');
+INSERT INTO sys_dict_data VALUES(379, '000000', 4, '动态血糖监测', 'CGM',          'chronic_device_type', '', '', 'N', 103, 1, sysdate(), null, null, '动态血糖监测');
+
+-- 156 chronic_disease_category 疾病分类
+INSERT INTO sys_dict_type VALUES(156, '000000', '疾病分类', 'chronic_disease_category', 103, 1, sysdate(), null, null, '疾病分类');
+INSERT INTO sys_dict_data VALUES(380, '000000', 1, '主病种',   'PRIMARY',      'chronic_disease_category', '', '', 'Y', 103, 1, sysdate(), null, null, '主病种');
+INSERT INTO sys_dict_data VALUES(381, '000000', 2, '并发症',   'COMPLICATION', 'chronic_disease_category', '', '', 'N', 103, 1, sysdate(), null, null, '并发症');
+
+-- 157 chronic_exercise_freq 运动频率
+INSERT INTO sys_dict_type VALUES(157, '000000', '运动频率', 'chronic_exercise_freq', 103, 1, sysdate(), null, null, '运动频率');
+INSERT INTO sys_dict_data VALUES(382, '000000', 1, '几乎不运动', 'RARELY',        'chronic_exercise_freq', '', '', 'N', 103, 1, sysdate(), null, null, '几乎不运动');
+INSERT INTO sys_dict_data VALUES(383, '000000', 2, '每周1-2次', '1_2_TIMES_WEEK', 'chronic_exercise_freq', '', '', 'N', 103, 1, sysdate(), null, null, '每周1-2次');
+INSERT INTO sys_dict_data VALUES(384, '000000', 3, '每周3-4次', '3_TIMES_WEEK',   'chronic_exercise_freq', '', '', 'Y', 103, 1, sysdate(), null, null, '每周3-4次');
+INSERT INTO sys_dict_data VALUES(385, '000000', 4, '每周5次以上','5_TIMES_WEEK',  'chronic_exercise_freq', '', '', 'N', 103, 1, sysdate(), null, null, '每周5次以上');
+
+-- 158 chronic_followup_item_type 随访计划项类型
+INSERT INTO sys_dict_type VALUES(158, '000000', '随访计划项类型', 'chronic_followup_item_type', 103, 1, sysdate(), null, null, '随访计划项类型');
+INSERT INTO sys_dict_data VALUES(386, '000000', 1, '常规随访', 'ROUTINE', 'chronic_followup_item_type', '', '', 'Y', 103, 1, sysdate(), null, null, '常规随访');
+INSERT INTO sys_dict_data VALUES(387, '000000', 2, '紧急随访', 'URGENT',  'chronic_followup_item_type', '', '', 'N', 103, 1, sysdate(), null, null, '紧急随访');
+
+-- 159 chronic_followup_plan_status 随访计划状态
+INSERT INTO sys_dict_type VALUES(159, '000000', '随访计划状态', 'chronic_followup_plan_status', 103, 1, sysdate(), null, null, '随访计划状态');
+INSERT INTO sys_dict_data VALUES(388, '000000', 1, '生效中', 'ACTIVE',   'chronic_followup_plan_status', '', '', 'Y', 103, 1, sysdate(), null, null, '生效中');
+INSERT INTO sys_dict_data VALUES(389, '000000', 2, '已停用', 'DISABLED', 'chronic_followup_plan_status', '', '', 'N', 103, 1, sysdate(), null, null, '已停用');
+
+-- 160 chronic_frequency 用药频次
+INSERT INTO sys_dict_type VALUES(160, '000000', '用药频次', 'chronic_frequency', 103, 1, sysdate(), null, null, '用药频次');
+INSERT INTO sys_dict_data VALUES(390, '000000', 1, '每日1次', 'QD',  'chronic_frequency', '', '', 'Y', 103, 1, sysdate(), null, null, '每日1次');
+INSERT INTO sys_dict_data VALUES(391, '000000', 2, '每日2次', 'BID', 'chronic_frequency', '', '', 'N', 103, 1, sysdate(), null, null, '每日2次');
+INSERT INTO sys_dict_data VALUES(392, '000000', 3, '每日3次', 'TID', 'chronic_frequency', '', '', 'N', 103, 1, sysdate(), null, null, '每日3次');
+INSERT INTO sys_dict_data VALUES(393, '000000', 4, '每晚1次', 'QN',  'chronic_frequency', '', '', 'N', 103, 1, sysdate(), null, null, '每晚1次');
+
+-- 161 chronic_manage_level 管理等级
+INSERT INTO sys_dict_type VALUES(161, '000000', '管理等级', 'chronic_manage_level', 103, 1, sysdate(), null, null, '慢病管理等级');
+INSERT INTO sys_dict_data VALUES(394, '000000', 1, '低风险',   'LOW',       'chronic_manage_level', '', '', 'N', 103, 1, sysdate(), null, null, '低风险管理');
+INSERT INTO sys_dict_data VALUES(395, '000000', 2, '中风险',   'MEDIUM',    'chronic_manage_level', '', '', 'N', 103, 1, sysdate(), null, null, '中风险管理');
+INSERT INTO sys_dict_data VALUES(396, '000000', 3, '高风险',   'HIGH',      'chronic_manage_level', '', '', 'N', 103, 1, sysdate(), null, null, '高风险管理');
+INSERT INTO sys_dict_data VALUES(397, '000000', 4, '极高风险', 'VERY_HIGH', 'chronic_manage_level', '', '', 'N', 103, 1, sysdate(), null, null, '极高风险管理');
+
+-- 162 chronic_measure_period 测量时段
+INSERT INTO sys_dict_type VALUES(162, '000000', '测量时段', 'chronic_measure_period', 103, 1, sysdate(), null, null, '测量时段');
+INSERT INTO sys_dict_data VALUES(398, '000000', 1, '晨起',   'MORNING', 'chronic_measure_period', '', '', 'Y', 103, 1, sysdate(), null, null, '晨起');
+INSERT INTO sys_dict_data VALUES(399, '000000', 2, '午间',   'NOON',    'chronic_measure_period', '', '', 'N', 103, 1, sysdate(), null, null, '午间');
+INSERT INTO sys_dict_data VALUES(400, '000000', 3, '晚间',   'EVENING', 'chronic_measure_period', '', '', 'N', 103, 1, sysdate(), null, null, '晚间');
+INSERT INTO sys_dict_data VALUES(401, '000000', 4, '空腹',   'FASTING', 'chronic_measure_period', '', '', 'N', 103, 1, sysdate(), null, null, '空腹');
+INSERT INTO sys_dict_data VALUES(402, '000000', 5, '随机',   'RANDOM',  'chronic_measure_period', '', '', 'N', 103, 1, sysdate(), null, null, '随机');
+
+-- 163 chronic_measure_posture 测量体位
+INSERT INTO sys_dict_type VALUES(163, '000000', '测量体位', 'chronic_measure_posture', 103, 1, sysdate(), null, null, '血压测量体位');
+INSERT INTO sys_dict_data VALUES(403, '000000', 1, '坐位',   'SITTING',  'chronic_measure_posture', '', '', 'Y', 103, 1, sysdate(), null, null, '坐位');
+INSERT INTO sys_dict_data VALUES(404, '000000', 2, '卧位',   'LYING',    'chronic_measure_posture', '', '', 'N', 103, 1, sysdate(), null, null, '卧位');
+INSERT INTO sys_dict_data VALUES(405, '000000', 3, '立位',   'STANDING', 'chronic_measure_posture', '', '', 'N', 103, 1, sysdate(), null, null, '立位');
+
+-- 164 chronic_measure_scene 测量场景
+INSERT INTO sys_dict_type VALUES(164, '000000', '测量场景', 'chronic_measure_scene', 103, 1, sysdate(), null, null, '测量场景');
+INSERT INTO sys_dict_data VALUES(406, '000000', 1, '家庭',   'HOME',     'chronic_measure_scene', '', '', 'Y', 103, 1, sysdate(), null, null, '家庭自测');
+INSERT INTO sys_dict_data VALUES(407, '000000', 2, '医院',   'HOSPITAL', 'chronic_measure_scene', '', '', 'N', 103, 1, sysdate(), null, null, '医院诊室');
+INSERT INTO sys_dict_data VALUES(408, '000000', 3, '社区',   'COMMUNITY','chronic_measure_scene', '', '', 'N', 103, 1, sysdate(), null, null, '社区卫生站');
+
+-- 165 chronic_online_status 设备在线状态
+INSERT INTO sys_dict_type VALUES(165, '000000', '在线状态', 'chronic_online_status', 103, 1, sysdate(), null, null, '设备在线状态');
+INSERT INTO sys_dict_data VALUES(409, '000000', 1, '在线',   '1', 'chronic_online_status', '', '', 'Y', 103, 1, sysdate(), null, null, '在线');
+INSERT INTO sys_dict_data VALUES(410, '000000', 2, '离线',   '0', 'chronic_online_status', '', '', 'N', 103, 1, sysdate(), null, null, '离线');
+
+-- 166 chronic_psychological_status 心理状态
+INSERT INTO sys_dict_type VALUES(166, '000000', '心理状态', 'chronic_psychological_status', 103, 1, sysdate(), null, null, '心理状态');
+INSERT INTO sys_dict_data VALUES(411, '000000', 1, '正常',   'NORMAL',     'chronic_psychological_status', '', '', 'Y', 103, 1, sysdate(), null, null, '正常');
+INSERT INTO sys_dict_data VALUES(412, '000000', 2, '焦虑',   'ANXIOUS',    'chronic_psychological_status', '', '', 'N', 103, 1, sysdate(), null, null, '焦虑');
+INSERT INTO sys_dict_data VALUES(413, '000000', 3, '抑郁',   'DEPRESSED',  'chronic_psychological_status', '', '', 'N', 103, 1, sysdate(), null, null, '抑郁');
+
+-- 167 chronic_push_status 报告推送状态
+INSERT INTO sys_dict_type VALUES(167, '000000', '推送状态', 'chronic_push_status', 103, 1, sysdate(), null, null, '报告推送状态');
+INSERT INTO sys_dict_data VALUES(414, '000000', 1, '未推送', 'UNPUSHED', 'chronic_push_status', '', '', 'N', 103, 1, sysdate(), null, null, '未推送');
+INSERT INTO sys_dict_data VALUES(415, '000000', 2, '已推送', 'PUSHED',   'chronic_push_status', '', '', 'Y', 103, 1, sysdate(), null, null, '已推送');
+
+-- 168 chronic_referral_category 转诊类别
+INSERT INTO sys_dict_type VALUES(168, '000000', '转诊类别', 'chronic_referral_category', 103, 1, sysdate(), null, null, '转诊类别');
+INSERT INTO sys_dict_data VALUES(416, '000000', 1, '急诊转诊', 'EMERGENCY', 'chronic_referral_category', '', '', 'N', 103, 1, sysdate(), null, null, '急诊转诊');
+INSERT INTO sys_dict_data VALUES(417, '000000', 2, '病情稳定', 'STABLE',    'chronic_referral_category', '', '', 'N', 103, 1, sysdate(), null, null, '病情稳定转诊');
+INSERT INTO sys_dict_data VALUES(418, '000000', 3, '常规转诊', 'ROUTINE',   'chronic_referral_category', '', '', 'Y', 103, 1, sysdate(), null, null, '常规转诊');
+
+-- 169 chronic_report_type 报告类型
+INSERT INTO sys_dict_type VALUES(169, '000000', '报告类型', 'chronic_report_type', 103, 1, sysdate(), null, null, '报告模板类型');
+INSERT INTO sys_dict_data VALUES(419, '000000', 1, '年度体检',   'ANNUAL_CHECKUP',   'chronic_report_type', '', '', 'N', 103, 1, sysdate(), null, null, '年度体检报告');
+INSERT INTO sys_dict_data VALUES(420, '000000', 2, '季度管理',   'QUARTERLY_MANAGE', 'chronic_report_type', '', '', 'N', 103, 1, sysdate(), null, null, '季度管理报告');
+INSERT INTO sys_dict_data VALUES(421, '000000', 3, '区域统计',   'AREA_STAT',        'chronic_report_type', '', '', 'N', 103, 1, sysdate(), null, null, '区域统计报告');
+
+-- 170 chronic_route 给药途径
+INSERT INTO sys_dict_type VALUES(170, '000000', '给药途径', 'chronic_route', 103, 1, sysdate(), null, null, '给药途径');
+INSERT INTO sys_dict_data VALUES(422, '000000', 1, '口服', 'ORAL', 'chronic_route', '', '', 'Y', 103, 1, sysdate(), null, null, '口服');
+INSERT INTO sys_dict_data VALUES(423, '000000', 2, '皮下', 'SC',   'chronic_route', '', '', 'N', 103, 1, sysdate(), null, null, '皮下注射');
+INSERT INTO sys_dict_data VALUES(424, '000000', 3, '静脉', 'IV',   'chronic_route', '', '', 'N', 103, 1, sysdate(), null, null, '静脉注射');
+INSERT INTO sys_dict_data VALUES(425, '000000', 4, '肌注', 'IM',   'chronic_route', '', '', 'N', 103, 1, sysdate(), null, null, '肌肉注射');
+
+-- 171 chronic_screening_status 筛查批次状态
+INSERT INTO sys_dict_type VALUES(171, '000000', '筛查批次状态', 'chronic_screening_status', 103, 1, sysdate(), null, null, '筛查批次状态');
+INSERT INTO sys_dict_data VALUES(426, '000000', 1, '进行中', 'ACTIVE',    'chronic_screening_status', '', '', 'Y', 103, 1, sysdate(), null, null, '进行中');
+INSERT INTO sys_dict_data VALUES(427, '000000', 2, '已完成', 'COMPLETED', 'chronic_screening_status', '', '', 'N', 103, 1, sysdate(), null, null, '已完成');
+
+-- 172 chronic_sender_type 发送者类型
+INSERT INTO sys_dict_type VALUES(172, '000000', '发送者类型', 'chronic_sender_type', 103, 1, sysdate(), null, null, '消息发送者类型');
+INSERT INTO sys_dict_data VALUES(428, '000000', 1, '医生',   'DOCTOR',  'chronic_sender_type', '', '', 'N', 103, 1, sysdate(), null, null, '医生');
+INSERT INTO sys_dict_data VALUES(429, '000000', 2, '患者',   'PATIENT', 'chronic_sender_type', '', '', 'N', 103, 1, sysdate(), null, null, '患者');
+
+-- 173 chronic_source_type 来源类型
+INSERT INTO sys_dict_type VALUES(173, '000000', '来源类型', 'chronic_source_type', 103, 1, sysdate(), null, null, '就诊来源类型');
+INSERT INTO sys_dict_data VALUES(430, '000000', 1, '医生录入', 'DOCTOR', 'chronic_source_type', '', '', 'Y', 103, 1, sysdate(), null, null, '医生录入');
+INSERT INTO sys_dict_data VALUES(431, '000000', 2, '管理员',   'ADMIN',  'chronic_source_type', '', '', 'N', 103, 1, sysdate(), null, null, '管理员录入');
+INSERT INTO sys_dict_data VALUES(432, '000000', 3, 'HIS同步',  'HIS',    'chronic_source_type', '', '', 'N', 103, 1, sysdate(), null, null, 'HIS同步');
+
+-- 174 chronic_sync_direction 同步方向
+INSERT INTO sys_dict_type VALUES(174, '000000', '同步方向', 'chronic_sync_direction', 103, 1, sysdate(), null, null, '同步方向');
+INSERT INTO sys_dict_data VALUES(433, '000000', 1, '入站', 'INBOUND',  'chronic_sync_direction', '', '', 'N', 103, 1, sysdate(), null, null, '外部→本系统');
+INSERT INTO sys_dict_data VALUES(434, '000000', 2, '出站', 'OUTBOUND', 'chronic_sync_direction', '', '', 'N', 103, 1, sysdate(), null, null, '本系统→外部');
+
+-- 175 chronic_sync_status 同步状态
+INSERT INTO sys_dict_type VALUES(175, '000000', '同步状态', 'chronic_sync_status', 103, 1, sysdate(), null, null, '同步状态');
+INSERT INTO sys_dict_data VALUES(435, '000000', 1, '成功', 'SUCCESS', 'chronic_sync_status', '', '', 'Y', 103, 1, sysdate(), null, null, '同步成功');
+INSERT INTO sys_dict_data VALUES(436, '000000', 2, '失败', 'FAILED',  'chronic_sync_status', '', '', 'N', 103, 1, sysdate(), null, null, '同步失败');
+
+-- 176 chronic_sync_type 同步类型
+INSERT INTO sys_dict_type VALUES(176, '000000', '同步类型', 'chronic_sync_type', 103, 1, sysdate(), null, null, '同步类型');
+INSERT INTO sys_dict_data VALUES(437, '000000', 1, '患者',     'PATIENT',    'chronic_sync_type', '', '', 'N', 103, 1, sysdate(), null, null, '患者数据同步');
+INSERT INTO sys_dict_data VALUES(438, '000000', 2, '检验',     'LAB_EXAM',   'chronic_sync_type', '', '', 'N', 103, 1, sysdate(), null, null, '检验数据同步');
+INSERT INTO sys_dict_data VALUES(439, '000000', 3, '影像',     'IMAGE_EXAM', 'chronic_sync_type', '', '', 'N', 103, 1, sysdate(), null, null, '影像数据同步');
+INSERT INTO sys_dict_data VALUES(440, '000000', 4, '转诊',     'REFERRAL',   'chronic_sync_type', '', '', 'N', 103, 1, sysdate(), null, null, '转诊数据同步');
+

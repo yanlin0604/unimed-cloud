@@ -50,10 +50,6 @@ public class ChPatientDiseaseBo extends BaseEntity {
 
     @Schema(description = "父级病种编码")
     private String parentDiseaseCode;
-
-    @Schema(description = "机构ID")
-    private Long orgId;
-
     @Schema(description = "管理级别")
     private String manageLevel;
 

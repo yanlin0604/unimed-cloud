@@ -37,18 +37,18 @@ public interface RemoteChronicService {
     Map<String, Long> getPatientFollowupStatus(Long patientId);
 
     /**
-     * 查询机构下活跃预警数量
+     * 查询部门下活跃预警数量
      *
-     * @param orgId 机构ID
+     * @param deptId 部门ID
      * @return 活跃预警数量
      */
-    Long getActiveWarningCount(Long orgId);
+    Long getActiveWarningCount(Long deptId);
 
     /**
-     * 查询机构管理患者数
+     * 查询部门管理患者数
      *
-     * @param orgId 机构ID
+     * @param deptId 部门ID
      * @return 管理中患者数
      */
-    Long getManagedPatientCount(Long orgId);
+    Long getManagedPatientCount(Long deptId);
 }

@@ -31,8 +31,6 @@ public class ChScreeningBatchVo implements Serializable {
     private String batchName;
     @Schema(description = "活动日期")
     private Date activityDate;
-    @Schema(description = "机构ID")
-    private Long orgId;
     @Schema(description = "医生用户ID")
     private Long doctorUserId;
     @Schema(description = "活动地点")
@@ -45,10 +43,6 @@ public class ChScreeningBatchVo implements Serializable {
     @Schema(description = "批次状态名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "status", other = ChronicDictTypeConstant.CHRONIC_SCREENING_STATUS)
     private String statusName;
-
-    @Schema(description = "机构名称")
-    private String orgName;
-
     @Schema(description = "负责医生昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "doctorUserId")
     private String doctorNickName;

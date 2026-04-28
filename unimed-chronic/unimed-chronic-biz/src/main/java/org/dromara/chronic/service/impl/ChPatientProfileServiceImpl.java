@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
-import org.dromara.chronic.common.helper.OrgNameHelper;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
@@ -49,13 +48,11 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
     private final ChPatientDiseaseMapper patientDiseaseMapper;
     private final ChPatientTagMapper patientTagMapper;
     private final ChPatientTimelineMapper patientTimelineMapper;
-    private final OrgNameHelper orgNameHelper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     public TableDataInfo<ChPatientProfileVo> queryPageList(ChPatientProfileBo bo, PageQuery pageQuery) {
         Page<ChPatientProfileVo> result = baseMapper.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
-        fillOrgName(result.getRecords());
         return TableDataInfo.build(result);
     }
 
@@ -80,8 +77,6 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
                 .orderByDesc(ChPatientTimeline::getEventTime)
         );
         detailVo.setLatestTimeline(CollUtil.isEmpty(timelines) ? null : timelines.get(0));
-        // 回填机构名称
-        fillDetailOrgName(detailVo);
         return detailVo;
     }
 
@@ -125,7 +120,6 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         lqw.like(StringUtils.isNotBlank(bo.getName()), ChPatientProfile::getName, bo.getName());
         lqw.eq(StringUtils.isNotBlank(bo.getIdCard()), ChPatientProfile::getIdCard, bo.getIdCard());
         lqw.like(StringUtils.isNotBlank(bo.getPhone()), ChPatientProfile::getPhone, bo.getPhone());
-        lqw.eq(ObjectUtil.isNotNull(bo.getOrgId()), ChPatientProfile::getOrgId, bo.getOrgId());
         lqw.eq(ObjectUtil.isNotNull(bo.getDeptId()), ChPatientProfile::getDeptId, bo.getDeptId());
         lqw.eq(ObjectUtil.isNotNull(bo.getDoctorUserId()), ChPatientProfile::getDoctorUserId, bo.getDoctorUserId());
         lqw.eq(StringUtils.isNotBlank(bo.getManageStatus()), ChPatientProfile::getManageStatus, bo.getManageStatus());
@@ -159,43 +153,8 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         return CollUtil.distinct(patientIds);
     }
 
-    private void fillOrgName(List<ChPatientProfileVo> records) {
-        if (CollUtil.isEmpty(records)) return;
-        List<Long> orgIds = records.stream()
-            .map(ChPatientProfileVo::getOrgId)
-            .filter(ObjectUtil::isNotNull)
-            .distinct()
-            .collect(Collectors.toList());
-        if (!orgIds.isEmpty()) {
-            try {
-                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
-                records.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
-            } catch (Exception e) {
-                /* ignore */
-            }
-        }
-    }
-
-    private void fillDetailOrgName(ChPatientDetailVo detailVo) {
-        if (detailVo == null || detailVo.getOrgId() == null) return;
-        try {
-            Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(Collections.singletonList(detailVo.getOrgId()));
-            detailVo.setOrgName(orgNameMap.get(detailVo.getOrgId()));
-        } catch (Exception e) {
-            /* ignore */
-        }
-    }
-
     private void fillPatientDiseaseNames(List<ChPatientDiseaseVo> list) {
         if (CollUtil.isEmpty(list)) return;
-        List<Long> orgIds = list.stream().map(ChPatientDiseaseVo::getOrgId)
-            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
-        if (!orgIds.isEmpty()) {
-            try {
-                Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
-                list.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
-            } catch (Exception e) { /* ignore */ }
-        }
         List<String> diseaseCodes = list.stream().map(ChPatientDiseaseVo::getDiseaseCode)
             .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
         if (!diseaseCodes.isEmpty()) {

@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
-import org.dromara.chronic.common.helper.OrgNameHelper;
+
 import org.dromara.chronic.domain.bo.ChDoctorTeamBo;
 import org.dromara.chronic.domain.bo.ChDoctorTeamMemberBo;
 import org.dromara.chronic.domain.entity.ChDoctorTeam;
@@ -46,7 +46,7 @@ public class ChDoctorTeamServiceImpl implements IChDoctorTeamService {
     private final ChDoctorTeamMapper teamMapper;
     private final ChDoctorTeamMemberMapper memberMapper;
     private final ChPatientContractMapper patientContractMapper;
-    private final OrgNameHelper orgNameHelper;
+
 
     @DubboReference
     private RemoteUserService remoteUserService;
@@ -58,25 +58,11 @@ public class ChDoctorTeamServiceImpl implements IChDoctorTeamService {
     public TableDataInfo<ChDoctorTeamVo> queryPageList(ChDoctorTeamBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<ChDoctorTeam> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(bo.getTeamName()), ChDoctorTeam::getTeamName, bo.getTeamName());
-        lqw.eq(ObjectUtil.isNotNull(bo.getOrgId()), ChDoctorTeam::getOrgId, bo.getOrgId());
+
         lqw.eq(ObjectUtil.isNotNull(bo.getDeptId()), ChDoctorTeam::getDeptId, bo.getDeptId());
         lqw.eq(StringUtils.isNotBlank(bo.getTeamStatus()), ChDoctorTeam::getTeamStatus, bo.getTeamStatus());
         lqw.orderByDesc(ChDoctorTeam::getCreateTime);
         Page<ChDoctorTeamVo> page = teamMapper.selectVoPage(pageQuery.build(), lqw);
-        // 回填 orgName
-        List<ChDoctorTeamVo> records = page.getRecords();
-        if (CollUtil.isNotEmpty(records)) {
-            List<Long> orgIds = records.stream().map(ChDoctorTeamVo::getOrgId)
-                .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
-            if (!orgIds.isEmpty()) {
-                try {
-                    Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
-                    records.forEach(v -> v.setOrgName(orgNameMap.get(v.getOrgId())));
-                } catch (Exception e) {
-                    // 查询失败不影响主流程
-                }
-            }
-        }
         return TableDataInfo.build(page);
     }
 

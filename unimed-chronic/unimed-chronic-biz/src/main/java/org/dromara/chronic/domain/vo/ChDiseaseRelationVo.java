@@ -28,8 +28,12 @@ public class ChDiseaseRelationVo implements Serializable {
     private Long id;
     @Schema(description = "父级病种编码")
     private String parentDiseaseCode;
+    @Schema(description = "父级病种名称")
+    private String parentDiseaseName;
     @Schema(description = "并发症病种编码")
     private String complicationDiseaseCode;
+    @Schema(description = "并发症病种名称")
+    private String complicationDiseaseName;
     @Schema(description = "关系类型")
     private String relationType;
     @Schema(description = "是否启用")

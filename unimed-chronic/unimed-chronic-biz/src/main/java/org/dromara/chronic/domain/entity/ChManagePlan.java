@@ -28,8 +28,6 @@ public class ChManagePlan extends TenantEntity {
 
     private String planStatus;
 
-    private Long orgId;
-
     @TableLogic
     private String delFlag;
 }

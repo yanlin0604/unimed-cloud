@@ -7,14 +7,19 @@ import org.dromara.chronic.domain.bo.ChDeviceRawRecordBo;
 import org.dromara.chronic.domain.bo.ChHealthMetricRecordBo;
 import org.dromara.chronic.domain.entity.ChAuditLog;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
+import org.dromara.chronic.domain.entity.ChManagePlanItem;
 import org.dromara.chronic.domain.vo.ChDeviceRawRecordVo;
 import org.dromara.chronic.mapper.ChAuditLogMapper;
+import org.dromara.chronic.mapper.ChManagePlanItemMapper;
 import org.dromara.chronic.service.IChDeviceBindService;
 import org.dromara.chronic.service.IChHealthMetricRecordService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 健康指标管理器：上报→预警规则匹配→触发预警事件
@@ -30,16 +35,24 @@ public class HealthMetricManager {
     private final IChDeviceBindService deviceBindService;
     private final WarningManager warningManager;
     private final ChAuditLogMapper auditLogMapper;
+    private final ChManagePlanItemMapper planItemMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public Long reportAndCheck(ChHealthMetricRecordBo bo) {
         Long metricId = metricRecordService.reportMetric(bo);
         ChHealthMetricRecord record = metricRecordService.getById(metricId);
         if (record != null) {
+            // 原有预警规则检查
             try {
                 warningManager.checkAndTrigger(record);
             } catch (Exception e) {
                 log.warn("健康指标上报后预警检查失败, metricId={}", metricId, e);
+            }
+            // 新增：方案量化达标判定
+            try {
+                checkPlanCompliance(record);
+            } catch (Exception e) {
+                log.warn("方案量化达标判定失败, metricId={}", metricId, e);
             }
         }
         return metricId;
@@ -117,6 +130,43 @@ public class HealthMetricManager {
             auditLogMapper.insert(auditLog);
         } catch (Exception e) {
             log.warn("审计日志写入失败", e);
+        }
+    }
+
+    /**
+     * 方案量化达标判定：比对上报指标与现行方案的目标区间
+     */
+    private void checkPlanCompliance(ChHealthMetricRecord record) {
+        if (record.getPatientId() == null || record.getMetricType() == null || record.getMetricValue() == null) {
+            return;
+        }
+
+        // 查询该患者现行方案中类型匹配的量化目标
+        List<ChManagePlanItem> matchingItems = planItemMapper.selectList(
+            new LambdaQueryWrapper<ChManagePlanItem>()
+                .eq(ChManagePlanItem::getTargetMetricType, record.getMetricType())
+                .isNotNull(ChManagePlanItem::getTargetMinValue)
+                .isNotNull(ChManagePlanItem::getTargetMaxValue)
+                .eq(ChManagePlanItem::getDelFlag, "0")
+        );
+
+        for (ChManagePlanItem item : matchingItems) {
+            BigDecimal value = record.getMetricValue();
+            BigDecimal min = item.getTargetMinValue();
+            BigDecimal max = item.getTargetMaxValue();
+
+            boolean isCompliant = value.compareTo(min) >= 0 && value.compareTo(max) <= 0;
+
+            if (!isCompliant) {
+                log.info("方案量化未达标: patientId={}, metricType={}, value={}, target=[{}, {}], planItemId={}",
+                    record.getPatientId(), record.getMetricType(), value, min, max, item.getId());
+                logAudit("PLAN_NON_COMPLIANT", "METRIC_CHECK",
+                    String.format("未达标: patientId=%d, metricType=%s, value=%s, target=[%s,%s]",
+                        record.getPatientId(), record.getMetricType(), value, min, max));
+            } else {
+                log.debug("方案量化达标: patientId={}, metricType={}, value={}",
+                    record.getPatientId(), record.getMetricType(), value);
+            }
         }
     }
 }

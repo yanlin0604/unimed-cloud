@@ -10,10 +10,12 @@ import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
+import org.dromara.chronic.domain.vo.PathwayProgressVo;
 import org.dromara.chronic.manager.ContractHistoryManager;
 import org.dromara.chronic.service.IChDoctorTeamService;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChPatientProfileService;
+import org.dromara.chronic.service.IClinicalPathwayService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
@@ -44,6 +46,7 @@ public class DoctorPatientController extends BaseController {
     private final IChPatientContractService patientContractService;
     private final IChDoctorTeamService doctorTeamService;
     private final ContractHistoryManager contractHistoryManager;
+    private final IClinicalPathwayService clinicalPathwayService;
 
     /**
      * 我的患者列表
@@ -101,5 +104,17 @@ public class DoctorPatientController extends BaseController {
             @RequestParam(required = false) String eventType,
             @RequestParam(required = false, defaultValue = "50") Integer limit) {
         return R.ok(contractHistoryManager.queryContractHistory(patientId, eventType, limit));
+    }
+
+    /**
+     * 获取患者的临床路径进度聚合数据
+     */
+    @Operation(summary = "管理路径进度")
+    @SaCheckPermission("chronic:doctor:patient:pathway")
+    @GetMapping("/{patientId}/pathway-progress")
+    public R<PathwayProgressVo> getPathwayProgress(
+            @Parameter(description = "患者ID", required = true) @PathVariable Long patientId,
+            @Parameter(description = "病种编码") @RequestParam(required = false) String diseaseCode) {
+        return R.ok(clinicalPathwayService.getPathwayProgress(patientId, diseaseCode));
     }
 }

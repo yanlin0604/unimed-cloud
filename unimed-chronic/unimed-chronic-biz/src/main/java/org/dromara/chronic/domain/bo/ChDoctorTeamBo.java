@@ -27,10 +27,6 @@ public class ChDoctorTeamBo extends BaseEntity {
     @Schema(description = "团队名称", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "团队名称不能为空")
     private String teamName;
-
-    @Schema(description = "机构ID")
-    private Long orgId;
-
     @Schema(description = "科室ID")
     private Long deptId;
 

@@ -38,8 +38,6 @@ public class ChRiskAssessmentVo implements Serializable {
     private String assessmentReport;
     @Schema(description = "评估人用户ID")
     private Long assessorUserId;
-    @Schema(description = "机构ID")
-    private Long orgId;
     @Schema(description = "创建时间")
     private Date createTime;
     @Schema(description = "风险因子项列表")
@@ -55,7 +53,4 @@ public class ChRiskAssessmentVo implements Serializable {
     @Schema(description = "评估人昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "assessorUserId")
     private String assessorNickName;
-
-    @Schema(description = "机构名称")
-    private String orgName;
 }
