@@ -29,6 +29,8 @@ public class ChPatientContractVo implements Serializable {
     private Long contractId;
     @Schema(description = "患者ID")
     private Long patientId;
+    @Schema(description = "患者名称")
+    private String patientName;
     @Schema(description = "团队ID")
     private Long teamId;
     @Schema(description = "服务包ID")
@@ -43,6 +45,8 @@ public class ChPatientContractVo implements Serializable {
     private String renewalStatus;
     @Schema(description = "到期提醒状态")
     private Boolean expiryRemindStatus;
+    @Schema(description = "上次提醒时间")
+    private Date lastRemindTime;
     @Schema(description = "签约状态")
     private String contractStatus;
     @Schema(description = "创建时间")

@@ -3,6 +3,8 @@ package org.dromara.chronic.domain.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
+import org.dromara.common.sensitive.annotation.Sensitive;
+import org.dromara.common.sensitive.core.SensitiveStrategy;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
 
@@ -31,9 +33,11 @@ public class ChPatientDetailVo implements Serializable {
     private String tenantId;
 
     @Schema(description = "姓名")
+    @Sensitive(strategy = SensitiveStrategy.CHINESE_NAME, perms = "chronic:patient:edit")
     private String name;
 
     @Schema(description = "身份证号")
+    @Sensitive(strategy = SensitiveStrategy.ID_CARD, perms = "chronic:patient:edit")
     private String idCard;
 
     @Schema(description = "性别")
@@ -43,6 +47,7 @@ public class ChPatientDetailVo implements Serializable {
     private Date birthday;
 
     @Schema(description = "手机号")
+    @Sensitive(strategy = SensitiveStrategy.PHONE, perms = "chronic:patient:edit")
     private String phone;
 
     @Schema(description = "地址")
@@ -91,9 +96,11 @@ public class ChPatientDetailVo implements Serializable {
     private String insuranceType;
 
     @Schema(description = "紧急联系人姓名")
+    @Sensitive(strategy = SensitiveStrategy.CHINESE_NAME, perms = "chronic:patient:edit")
     private String emergencyContactName;
 
     @Schema(description = "紧急联系人电话")
+    @Sensitive(strategy = SensitiveStrategy.PHONE, perms = "chronic:patient:edit")
     private String emergencyContactPhone;
 
     @Schema(description = "户籍地址")
@@ -179,6 +186,13 @@ public class ChPatientDetailVo implements Serializable {
     @Schema(description = "婚姻状况名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "maritalStatus", other = ChronicDictTypeConstant.CHRONIC_MARITAL_STATUS)
     private String maritalStatusName;
+
+    @Schema(description = "签约状态")
+    private String contractStatus;
+
+    @Schema(description = "签约状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "contractStatus", other = ChronicDictTypeConstant.CHRONIC_CONTRACT_STATUS)
+    private String contractStatusName;
 
     @Schema(description = "部门名称")
     @Translation(type = TransConstant.DEPT_ID_TO_NAME, mapper = "deptId")

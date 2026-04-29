@@ -256,6 +256,7 @@ CREATE TABLE `ch_patient_contract` (
   `contract_period_end`  DATE          DEFAULT NULL COMMENT '签约结束日期',
   `renewal_status`       VARCHAR(20)   DEFAULT NULL COMMENT '续约状态(ACTIVE/EXPIRING/EXPIRED/RENEWED)',
   `expiry_remind_status` TINYINT(1)    DEFAULT 0 COMMENT '到期提醒状态',
+  `last_remind_time`     DATETIME      DEFAULT NULL COMMENT '上次提醒时间',
   `contract_status`    VARCHAR(20)   DEFAULT NULL COMMENT '合同状态(ACTIVE/TERMINATED)',
   `create_dept`        BIGINT        DEFAULT NULL COMMENT '创建部门',
   `tenant_id`          BIGINT        DEFAULT NULL COMMENT '租户ID',
@@ -1506,48 +1507,64 @@ CREATE TABLE `ch_encounter_diagnosis` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='诊疗诊断表';
 
 -- ----------------------------
--- 63. 医生自定义管理分组表
+-- 65. 医生自定义管理分组表
 -- ----------------------------
 CREATE TABLE `ch_doctor_custom_group` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
     `group_name`  VARCHAR(100) NOT NULL                COMMENT '分组名称',
     `doctor_id`   BIGINT       NOT NULL                COMMENT '创建/所属医生ID',
-    `description` VARCHAR(255)                         COMMENT '分组描述',
-    `create_time` DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    `create_by`   VARCHAR(64)                          COMMENT '创建人',
-    `update_by`   VARCHAR(64)                          COMMENT '更新人',
+    `description` VARCHAR(255) DEFAULT NULL              COMMENT '分组描述',
+    `create_dept` BIGINT       DEFAULT NULL COMMENT '创建部门',
+    `tenant_id`   BIGINT       DEFAULT NULL COMMENT '租户ID',
+    `create_by`   BIGINT       DEFAULT NULL COMMENT '创建者',
+    `create_time` DATETIME     DEFAULT NULL COMMENT '创建时间',
+    `update_by`   BIGINT       DEFAULT NULL COMMENT '更新者',
+    `update_time` DATETIME     DEFAULT NULL COMMENT '更新时间',
+    `del_flag`    CHAR(1)      DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
     PRIMARY KEY (`id`),
-    INDEX `idx_doctor_id` (`doctor_id`)
+    INDEX `idx_doctor_id` (`doctor_id`),
+    INDEX `idx_dcg_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='医生自定义管理分组表';
 
 -- ----------------------------
--- 64. 医生分组成员关联表
+-- 66. 医生分组成员关联表
 -- ----------------------------
 CREATE TABLE `ch_doctor_group_member` (
     `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
     `group_id`    BIGINT       NOT NULL                COMMENT '分组ID',
     `patient_id`  BIGINT       NOT NULL                COMMENT '患者ID',
-    `create_time` DATETIME     DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
-    `create_by`   VARCHAR(64)                          COMMENT '创建人',
+    `create_dept` BIGINT       DEFAULT NULL COMMENT '创建部门',
+    `tenant_id`   BIGINT       DEFAULT NULL COMMENT '租户ID',
+    `create_by`   BIGINT       DEFAULT NULL COMMENT '创建者',
+    `create_time` DATETIME     DEFAULT NULL COMMENT '加入时间',
+    `update_by`   BIGINT       DEFAULT NULL COMMENT '更新者',
+    `update_time` DATETIME     DEFAULT NULL COMMENT '更新时间',
+    `del_flag`    CHAR(1)      DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_group_patient` (`group_id`, `patient_id`),
-    INDEX `idx_patient_id` (`patient_id`)
+    INDEX `idx_patient_id` (`patient_id`),
+    INDEX `idx_dgm_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='医生分组成员关联表';
 
 -- ----------------------------
--- 65. 管理路径进度表
+-- 67. 管理路径进度表
 -- ----------------------------
 CREATE TABLE `ch_clinical_pathway_status` (
     `id`               BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
     `patient_id`       BIGINT       NOT NULL                COMMENT '患者ID',
     `disease_code`     VARCHAR(50)  NOT NULL                COMMENT '病种编码',
     `current_stage`    VARCHAR(50)  NOT NULL                COMMENT '当前所处阶段 (如: SCREENING, FIRST_EVAL, PLAN_EXECUTING, RE_EVAL)',
-    `stage_start_time` DATETIME                             COMMENT '进入当前阶段时间',
-    `stage_deadline`   DATETIME                             COMMENT '阶段截止/逾期时间',
-    `milestone_json`   JSON                                 COMMENT '里程碑达成记录(JSON结构)',
-    `create_time`      DATETIME     DEFAULT CURRENT_TIMESTAMP,
-    `update_time`      DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `stage_start_time` DATETIME     DEFAULT NULL COMMENT '进入当前阶段时间',
+    `stage_deadline`   DATETIME     DEFAULT NULL COMMENT '阶段截止/逾期时间',
+    `milestone_json`   JSON         DEFAULT NULL COMMENT '里程碑达成记录(JSON结构)',
+    `create_dept`      BIGINT       DEFAULT NULL COMMENT '创建部门',
+    `tenant_id`        BIGINT       DEFAULT NULL COMMENT '租户ID',
+    `create_by`        BIGINT       DEFAULT NULL COMMENT '创建者',
+    `create_time`      DATETIME     DEFAULT NULL COMMENT '创建时间',
+    `update_by`        BIGINT       DEFAULT NULL COMMENT '更新者',
+    `update_time`      DATETIME     DEFAULT NULL COMMENT '更新时间',
+    `del_flag`         CHAR(1)      DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_patient_disease` (`patient_id`, `disease_code`)
+    UNIQUE KEY `uk_patient_disease` (`patient_id`, `disease_code`),
+    INDEX `idx_cps_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理路径进度表';

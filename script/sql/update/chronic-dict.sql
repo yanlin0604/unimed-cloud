@@ -104,6 +104,7 @@ INSERT INTO sys_dict_data VALUES(108, '000000', 4, '已续约',       'RENEWED',
 -- 102 chronic_contract_status 合同状态
 INSERT INTO sys_dict_data VALUES(109, '000000', 1, '有效中',       'ACTIVE',      'chronic_contract_status', '', '', 'Y', 103, 1, sysdate(), null, null, '合同当前有效且正在执行中');
 INSERT INTO sys_dict_data VALUES(110, '000000', 2, '已终止',       'TERMINATED',  'chronic_contract_status', '', '', 'N', 103, 1, sysdate(), null, null, '合同被提前终止');
+INSERT INTO sys_dict_data VALUES(1110, '000000', 3, '未签约', 'UNSIGNED', 'chronic_contract_status', '', '', 'N', 103, 1, sysdate(), null, null, '患者尚未签约');
 
 -- 103 chronic_package_type 服务包类型
 INSERT INTO sys_dict_data VALUES(111, '000000', 1, '基础包',       'BASIC',       'chronic_package_type', '', '', 'Y', 103, 1, sysdate(), null, null, '基础服务包，包含常规慢病管理服务');

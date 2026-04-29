@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.dromara.common.encrypt.annotation.EncryptField;
 import org.dromara.common.tenant.core.TenantEntity;
 
 import java.math.BigDecimal;
@@ -31,11 +32,13 @@ public class ChPatientProfile extends TenantEntity {
     /**
      * 患者姓名
      */
+    @EncryptField
     private String name;
 
     /**
      * 身份证号
      */
+    @EncryptField
     private String idCard;
 
     /**
@@ -56,6 +59,7 @@ public class ChPatientProfile extends TenantEntity {
     /**
      * 联系电话
      */
+    @EncryptField
     private String phone;
 
     /**
@@ -175,11 +179,13 @@ public class ChPatientProfile extends TenantEntity {
     /**
      * 紧急联系人姓名
      */
+    @EncryptField
     private String emergencyContactName;
 
     /**
      * 紧急联系人电话
      */
+    @EncryptField
     private String emergencyContactPhone;
 
     /**

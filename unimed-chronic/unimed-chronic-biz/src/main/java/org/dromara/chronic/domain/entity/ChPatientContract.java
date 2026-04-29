@@ -40,6 +40,8 @@ public class ChPatientContract extends TenantEntity {
 
     private Boolean expiryRemindStatus;
 
+    private Date lastRemindTime;
+
     private String contractStatus;
 
     @TableLogic

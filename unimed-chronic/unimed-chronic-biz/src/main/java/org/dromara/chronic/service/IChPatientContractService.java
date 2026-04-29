@@ -30,4 +30,6 @@ public interface IChPatientContractService {
     ChPatientContractVo queryCurrentContract(Long patientId);
 
     ChPatientContractVo queryById(Long contractId);
+
+    Boolean updateLastRemindTime(Long contractId);
 }

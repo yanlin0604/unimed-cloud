@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.dromara.common.encrypt.annotation.EncryptField;
 import org.dromara.common.tenant.core.TenantEntity;
 
 import java.util.Date;
@@ -28,10 +29,13 @@ public class ChScreeningRecord extends TenantEntity {
 
     private String offlineUuid;
 
+    @EncryptField
     private String patientName;
 
+    @EncryptField
     private String idCard;
 
+    @EncryptField
     private String phone;
 
     private String gender;

@@ -11,6 +11,7 @@ import org.dromara.chronic.mapper.ChAuditLogMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChPatientTimelineService;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -58,12 +59,20 @@ public class ContractHistoryManager {
     }
 
     public Void sendRenewalReminder(Long contractId) {
-        try {
-            ChPatientContractVo contract = contractService.queryById(contractId);
-            if (contract == null) {
-                log.warn("续约提醒失败，签约不存在: contractId={}", contractId);
-                return null;
+        ChPatientContractVo contract = contractService.queryById(contractId);
+        if (contract == null) {
+            log.warn("续约提醒失败，签约不存在: contractId={}", contractId);
+            throw new ServiceException("签约不存在");
+        }
+        // 检查冷却期：7天内不能重复提醒
+        if (contract.getLastRemindTime() != null) {
+            long diff = System.currentTimeMillis() - contract.getLastRemindTime().getTime();
+            long cooldownMillis = 7L * 24 * 60 * 60 * 1000;
+            if (diff < cooldownMillis) {
+                throw new ServiceException("距离上次提醒不足7天，请稍后再试");
             }
+        }
+        try {
             // 1. 写入时间线事件
             timelineService.recordEvent(
                 contract.getPatientId(),
@@ -84,11 +93,16 @@ public class ContractHistoryManager {
             } catch (Exception msgEx) {
                 log.warn("续约提醒消息推送失败, contractId={}", contractId, msgEx);
             }
-            // 3. 写入审计日志
+            // 3. 更新上次提醒时间
+            contractService.updateLastRemindTime(contractId);
+            // 4. 写入审计日志
             logAudit("CONTRACT_RENEWAL_REMIND", "CONTRACT",
                 "发送续约提醒: contractId=" + contractId + ", patientId=" + contract.getPatientId());
+        } catch (ServiceException se) {
+            throw se;
         } catch (Exception e) {
             log.warn("续约提醒发送失败, contractId={}", contractId, e);
+            throw new ServiceException("续约提醒发送失败");
         }
         return null;
     }

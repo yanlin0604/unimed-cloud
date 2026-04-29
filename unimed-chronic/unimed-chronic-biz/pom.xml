@@ -95,6 +95,16 @@
 
         <dependency>
             <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-sensitive</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-common-encrypt</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
             <artifactId>unimed-common-service-impl</artifactId>
         </dependency>
 

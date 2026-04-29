@@ -21,6 +21,7 @@ import org.dromara.chronic.mapper.ChContractFulfillmentMapper;
 import org.dromara.chronic.mapper.ChContractServicePackageMapper;
 import org.dromara.chronic.mapper.ChDoctorTeamMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -47,6 +48,7 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
     private final ChDoctorTeamMapper teamMapper;
     private final ChContractServicePackageMapper packageMapper;
     private final ChContractFulfillmentMapper fulfillmentMapper;
+    private final ChPatientProfileMapper profileMapper;
 
     @Override
     public TableDataInfo<ChPatientContractVo> queryContractPageList(ChPatientContractBo bo, PageQuery pageQuery) {
@@ -127,6 +129,14 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
             fillContractName(vo);
         }
         return vo;
+    }
+
+    @Override
+    public Boolean updateLastRemindTime(Long contractId) {
+        ChPatientContract update = new ChPatientContract();
+        update.setContractId(contractId);
+        update.setLastRemindTime(new Date());
+        return contractMapper.updateById(update) > 0;
     }
 
     @Override
@@ -259,6 +269,18 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
     private void fillContractNames(List<ChPatientContractVo> list) {
         if (CollUtil.isEmpty(list)) {
             return;
+        }
+        // patientName
+        List<Long> patientIds = list.stream().map(ChPatientContractVo::getPatientId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!patientIds.isEmpty()) {
+            try {
+                profileMapper.selectBatchIds(patientIds).forEach(p ->
+                    list.stream().filter(v -> p.getPatientId().equals(v.getPatientId()))
+                        .forEach(v -> v.setPatientName(p.getName())));
+            } catch (Exception e) {
+                // 查询失败不影响主流程
+            }
         }
         // teamName
         List<Long> teamIds = list.stream().map(ChPatientContractVo::getTeamId)

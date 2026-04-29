@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
+import org.dromara.chronic.domain.entity.ChPatientContract;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChPatientTag;
@@ -17,6 +18,7 @@ import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientDiseaseVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
+import org.dromara.chronic.mapper.ChPatientContractMapper;
 import org.dromara.chronic.mapper.ChPatientDiseaseMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.mapper.ChPatientTagMapper;
@@ -48,11 +50,13 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
     private final ChPatientDiseaseMapper patientDiseaseMapper;
     private final ChPatientTagMapper patientTagMapper;
     private final ChPatientTimelineMapper patientTimelineMapper;
+    private final ChPatientContractMapper patientContractMapper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     public TableDataInfo<ChPatientProfileVo> queryPageList(ChPatientProfileBo bo, PageQuery pageQuery) {
         Page<ChPatientProfileVo> result = baseMapper.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
+        fillContractStatus(result.getRecords());
         return TableDataInfo.build(result);
     }
 
@@ -77,6 +81,7 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
                 .orderByDesc(ChPatientTimeline::getEventTime)
         );
         detailVo.setLatestTimeline(CollUtil.isEmpty(timelines) ? null : timelines.get(0));
+        fillContractStatus(detailVo, patientId);
         return detailVo;
     }
 
@@ -162,6 +167,42 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
                 Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
                 list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
             } catch (Exception e) { /* ignore */ }
+        }
+    }
+
+    private void fillContractStatus(List<ChPatientProfileVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> patientIds = list.stream()
+            .map(ChPatientProfileVo::getPatientId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (patientIds.isEmpty()) return;
+        try {
+            List<ChPatientContract> contracts = patientContractMapper.selectList(
+                Wrappers.<ChPatientContract>lambdaQuery()
+                    .in(ChPatientContract::getPatientId, patientIds)
+                    .eq(ChPatientContract::getContractStatus, "ACTIVE")
+                    .orderByDesc(ChPatientContract::getContractPeriodStart)
+            );
+            Map<Long, String> activeMap = contracts.stream()
+                .collect(Collectors.toMap(ChPatientContract::getPatientId, ChPatientContract::getContractStatus, (a, b) -> a));
+            list.forEach(v -> v.setContractStatus(activeMap.getOrDefault(v.getPatientId(), "UNSIGNED")));
+        } catch (Exception e) {
+            list.forEach(v -> v.setContractStatus("UNSIGNED"));
+        }
+    }
+
+    private void fillContractStatus(ChPatientDetailVo detailVo, Long patientId) {
+        try {
+            ChPatientContract contract = patientContractMapper.selectOne(
+                Wrappers.<ChPatientContract>lambdaQuery()
+                    .eq(ChPatientContract::getPatientId, patientId)
+                    .eq(ChPatientContract::getContractStatus, "ACTIVE")
+                    .orderByDesc(ChPatientContract::getContractPeriodStart)
+                    .last("LIMIT 1")
+            );
+            detailVo.setContractStatus(contract != null ? contract.getContractStatus() : "UNSIGNED");
+        } catch (Exception e) {
+            detailVo.setContractStatus("UNSIGNED");
         }
     }
 }

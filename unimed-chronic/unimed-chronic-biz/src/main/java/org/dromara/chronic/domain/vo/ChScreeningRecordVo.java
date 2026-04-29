@@ -5,6 +5,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChScreeningRecord;
+import org.dromara.common.sensitive.annotation.Sensitive;
+import org.dromara.common.sensitive.core.SensitiveStrategy;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
 
@@ -32,10 +34,13 @@ public class ChScreeningRecordVo implements Serializable {
     @Schema(description = "离线UUID")
     private String offlineUuid;
     @Schema(description = "患者姓名")
+    @Sensitive(strategy = SensitiveStrategy.CHINESE_NAME, perms = "chronic:screening:edit")
     private String patientName;
     @Schema(description = "身份证号")
+    @Sensitive(strategy = SensitiveStrategy.ID_CARD, perms = "chronic:screening:edit")
     private String idCard;
     @Schema(description = "手机号")
+    @Sensitive(strategy = SensitiveStrategy.PHONE, perms = "chronic:screening:edit")
     private String phone;
     @Schema(description = "性别")
     private String gender;
