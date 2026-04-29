@@ -11,6 +11,7 @@ import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
 import org.dromara.chronic.domain.vo.ChHealthMetricRecordVo;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
 import org.dromara.chronic.service.IChHealthMetricRecordService;
+import org.dromara.chronic.utils.MetricValueUtils;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -36,8 +37,11 @@ public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordSer
     public Long reportMetric(ChHealthMetricRecordBo bo) {
         applyReferenceValues(bo);
         if (bo.getIsAbnormal() == null && bo.getReferenceValueMin() != null && bo.getReferenceValueMax() != null) {
-            bo.setIsAbnormal(bo.getMetricValue().compareTo(bo.getReferenceValueMin()) < 0
-                || bo.getMetricValue().compareTo(bo.getReferenceValueMax()) > 0);
+            BigDecimal value = MetricValueUtils.extractPrimaryValue(bo.getMetricValue(), bo.getMetricType());
+            if (value != null) {
+                bo.setIsAbnormal(value.compareTo(bo.getReferenceValueMin()) < 0
+                    || value.compareTo(bo.getReferenceValueMax()) > 0);
+            }
         }
         ChHealthMetricRecord entity = MapstructUtils.convert(bo, ChHealthMetricRecord.class);
         baseMapper.insert(entity);

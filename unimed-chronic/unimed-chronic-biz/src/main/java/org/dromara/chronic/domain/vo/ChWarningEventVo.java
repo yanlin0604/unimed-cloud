@@ -10,7 +10,6 @@ import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -35,8 +34,8 @@ public class ChWarningEventVo implements Serializable {
     private Long ruleId;
     @Schema(description = "预警级别")
     private String warningLevel;
-    @Schema(description = "预警值")
-    private BigDecimal warningValue;
+    @Schema(description = "预警值（同指标值格式）")
+    private String warningValue;
     @Schema(description = "预警时间")
     private Date warningTime;
     @Schema(description = "事件状态")

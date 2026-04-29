@@ -27,11 +27,14 @@ public class ChHealthMetricRecord extends TenantEntity {
     private Long patientId;
 
     /**
-     * 指标类型: BP_SYSTOLIC/BP_DIASTOLIC/BLOOD_GLUCOSE/HEART_RATE/SPO2/TEMPERATURE/ECG/WEIGHT/BMI/WAIST/LIPID/URIC_ACID
+     * 指标类型（字典值）：血压/BLOOD_GLUCOSE/HEART_RATE/SPO2/TEMPERATURE/ECG/WEIGHT/BMI/WAIST/LIPID/URIC_ACID
      */
     private String metricType;
 
-    private BigDecimal metricValue;
+    /**
+     * 指标值（简单指标为字符串数字，如"6.5"；血压等复合指标为JSON，如{"systolic":120,"diastolic":80}）
+     */
+    private String metricValue;
 
     private String unit;
 

@@ -13,11 +13,13 @@ import org.dromara.chronic.mapper.ChAuditLogMapper;
 import org.dromara.chronic.mapper.ChManagePlanItemMapper;
 import org.dromara.chronic.service.IChDeviceBindService;
 import org.dromara.chronic.service.IChHealthMetricRecordService;
+import org.dromara.chronic.utils.MetricValueUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -56,6 +58,15 @@ public class HealthMetricManager {
             }
         }
         return metricId;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public List<Long> reportAndCheckBatch(List<ChHealthMetricRecordBo> boList) {
+        List<Long> ids = new ArrayList<>(boList.size());
+        for (ChHealthMetricRecordBo bo : boList) {
+            ids.add(reportAndCheck(bo));
+        }
+        return ids;
     }
 
     public Long reportDeviceMetric(ChDeviceRawRecordBo rawBo, ChHealthMetricRecordBo metricBo) {
@@ -151,7 +162,12 @@ public class HealthMetricManager {
         );
 
         for (ChManagePlanItem item : matchingItems) {
-            BigDecimal value = record.getMetricValue();
+            BigDecimal value = MetricValueUtils.extractPrimaryValue(record.getMetricValue(), record.getMetricType());
+            if (value == null) {
+                log.warn("方案量化达标判定跳过: 指标值解析失败, patientId={}, metricType={}, metricValue={}",
+                    record.getPatientId(), record.getMetricType(), record.getMetricValue());
+                continue;
+            }
             BigDecimal min = item.getTargetMinValue();
             BigDecimal max = item.getTargetMaxValue();
 

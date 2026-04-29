@@ -44,6 +44,18 @@ public class HealthMetricController {
         return R.ok(healthMetricManager.reportAndCheck(bo));
     }
 
+    @Operation(summary = "批量上报健康指标")
+    @SaCheckPermission("chronic:metric:add")
+    @Log(title = "健康指标批量上报", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping("/chronic/admin/patient/{patientId}/health-metrics/batch")
+    public R<List<Long>> reportBatch(@PathVariable @Parameter(description = "患者ID") Long patientId, @Validated @RequestBody List<ChHealthMetricRecordBo> boList) {
+        for (ChHealthMetricRecordBo bo : boList) {
+            bo.setPatientId(patientId);
+        }
+        return R.ok(healthMetricManager.reportAndCheckBatch(boList));
+    }
+
     @Operation(summary = "分页查询健康指标")
     @SaCheckPermission("chronic:metric:list")
     @GetMapping("/chronic/admin/health-metric/page")

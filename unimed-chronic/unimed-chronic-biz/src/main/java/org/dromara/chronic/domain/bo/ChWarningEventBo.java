@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import org.dromara.chronic.domain.entity.ChWarningEvent;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 
-import java.math.BigDecimal;
-
 /**
  * 预警事件业务对象
  *
@@ -37,8 +35,8 @@ public class ChWarningEventBo extends BaseEntity {
     @Schema(description = "预警级别")
     private String warningLevel;
 
-    @Schema(description = "预警值")
-    private BigDecimal warningValue;
+    @Schema(description = "预警值（同指标值格式，简单指标为字符串数字，复合指标为JSON）")
+    private String warningValue;
 
     @Schema(description = "事件状态")
     private String eventStatus;

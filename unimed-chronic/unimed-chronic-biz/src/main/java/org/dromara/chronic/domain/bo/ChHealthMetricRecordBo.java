@@ -35,9 +35,9 @@ public class ChHealthMetricRecordBo extends BaseEntity {
     @NotBlank(message = "指标类型不能为空")
     private String metricType;
 
-    @Schema(description = "指标值", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "指标值不能为空")
-    private BigDecimal metricValue;
+    @Schema(description = "指标值（简单指标为字符串数字，血压等复合指标为JSON）", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "指标值不能为空")
+    private String metricValue;
 
     @Schema(description = "单位")
     private String unit;

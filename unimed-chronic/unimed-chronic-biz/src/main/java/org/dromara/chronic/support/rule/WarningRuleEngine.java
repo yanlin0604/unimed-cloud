@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
 import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
+import org.dromara.chronic.utils.MetricValueUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -30,7 +31,11 @@ public class WarningRuleEngine {
         if (!rule.getMetricType().equals(currentRecord.getMetricType())) {
             return false;
         }
-        boolean currentAbnormal = isAbnormal(rule, currentRecord.getMetricValue());
+        BigDecimal currentValue = MetricValueUtils.extractPrimaryValue(currentRecord.getMetricValue(), currentRecord.getMetricType());
+        if (currentValue == null) {
+            return false;
+        }
+        boolean currentAbnormal = isAbnormal(rule, currentValue);
         if (!currentAbnormal) {
             return false;
         }
@@ -49,7 +54,8 @@ public class WarningRuleEngine {
             return false;
         }
         for (ChHealthMetricRecord record : recentRecords) {
-            if (!isAbnormal(rule, record.getMetricValue())) {
+            BigDecimal value = MetricValueUtils.extractPrimaryValue(record.getMetricValue(), record.getMetricType());
+            if (value == null || !isAbnormal(rule, value)) {
                 return false;
             }
         }

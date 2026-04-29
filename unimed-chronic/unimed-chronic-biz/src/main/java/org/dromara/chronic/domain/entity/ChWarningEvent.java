@@ -8,7 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.dromara.common.tenant.core.TenantEntity;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -31,7 +30,7 @@ public class ChWarningEvent extends TenantEntity {
 
     private String warningLevel;
 
-    private BigDecimal warningValue;
+    private String warningValue;
 
     private Date warningTime;
 

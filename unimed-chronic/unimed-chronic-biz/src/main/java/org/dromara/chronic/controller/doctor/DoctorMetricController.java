@@ -47,6 +47,19 @@ public class DoctorMetricController extends BaseController {
         return R.ok(healthMetricManager.reportAndCheck(bo));
     }
 
+    @Operation(summary = "批量新增人工指标")
+    @SaCheckPermission("chronic:doctor:metric:add")
+    @Log(title = "健康指标批量上报", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping("/patient/{patientId}/metric/batch")
+    public R<List<Long>> addBatch(@PathVariable Long patientId, @Validated @RequestBody List<ChHealthMetricRecordBo> boList) {
+        for (ChHealthMetricRecordBo bo : boList) {
+            bo.setPatientId(patientId);
+            bo.setDataSource("MANUAL");
+        }
+        return R.ok(healthMetricManager.reportAndCheckBatch(boList));
+    }
+
     @Operation(summary = "修改人工指标")
     @SaCheckPermission("chronic:doctor:metric:edit")
     @Log(title = "健康指标", businessType = BusinessType.UPDATE)
