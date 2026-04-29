@@ -620,3 +620,27 @@ INSERT INTO sys_dict_data VALUES(438, '000000', 2, '检验',     'LAB_EXAM',   '
 INSERT INTO sys_dict_data VALUES(439, '000000', 3, '影像',     'IMAGE_EXAM', 'chronic_sync_type', '', '', 'N', 103, 1, sysdate(), null, null, '影像数据同步');
 INSERT INTO sys_dict_data VALUES(440, '000000', 4, '转诊',     'REFERRAL',   'chronic_sync_type', '', '', 'N', 103, 1, sysdate(), null, null, '转诊数据同步');
 
+-- 177 chronic_assessment_dimension 风险评估维度
+-- 说明：此字典对应评估规则中的 dimension_name 字段（规则引擎匹配 key），
+--       与 chronic_metric_type（展示用指标类型）相互独立。
+INSERT INTO sys_dict_type VALUES(177, '000000', '风险评估维度', 'chronic_assessment_dimension', 103, 1, sysdate(), null, null, '风险评估规则的维度名称（dimensionName），与规则引擎 key 保持一致');
+
+-- ── 高血压相关维度 ──
+INSERT INTO sys_dict_data VALUES(441, '000000', 1,  '收缩压',       'SBP',     'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '收缩压 (mmHg)，数值范围匹配');
+INSERT INTO sys_dict_data VALUES(442, '000000', 2,  '舒张压',       'DBP',     'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '舒张压 (mmHg)，数值范围匹配');
+INSERT INTO sys_dict_data VALUES(443, '000000', 3,  '年龄',         'AGE',     'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '患者年龄（岁），数值范围匹配');
+INSERT INTO sys_dict_data VALUES(444, '000000', 4,  '吸烟',         'SMOKING', 'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '吸烟状态，equals 匹配，值为 YES/NO');
+-- ── 糖尿病相关维度 ──
+INSERT INTO sys_dict_data VALUES(445, '000000', 5,  '空腹血糖',     'FBG',     'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '空腹血糖 (mmol/L)，数值范围匹配');
+INSERT INTO sys_dict_data VALUES(446, '000000', 6,  '糖化血红蛋白', 'HBA1C',   'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '糖化血红蛋白 (%)，数值范围匹配');
+INSERT INTO sys_dict_data VALUES(447, '000000', 7,  'BMI',          'BMI',     'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '身体质量指数，数值范围匹配');
+-- ── 血脂相关维度 ──
+INSERT INTO sys_dict_data VALUES(448, '000000', 8,  '总胆固醇',     'TC',      'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '总胆固醇 (mmol/L)，数值范围匹配');
+INSERT INTO sys_dict_data VALUES(449, '000000', 9,  '低密度脂蛋白', 'LDL',     'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '低密度脂蛋白 (mmol/L)，数值范围匹配');
+-- ── 心脏/肾脏相关维度 ──
+INSERT INTO sys_dict_data VALUES(450, '000000', 10, '心率',         'HR',      'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '心率 (bpm)，数值范围匹配');
+INSERT INTO sys_dict_data VALUES(451, '000000', 11, 'eGFR',         'EGFR',    'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '估算肾小球滤过率，数值范围匹配');
+-- ── 风险因子维度（字符串匹配）──
+INSERT INTO sys_dict_data VALUES(452, '000000', 12, '饮酒',         'DRINKING','chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '饮酒状态，equals 匹配，值为 YES/NO');
+INSERT INTO sys_dict_data VALUES(453, '000000', 13, '家族史',       'FAMILY_HISTORY', 'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '家族病史，equals 匹配，值为 YES/NO');
+

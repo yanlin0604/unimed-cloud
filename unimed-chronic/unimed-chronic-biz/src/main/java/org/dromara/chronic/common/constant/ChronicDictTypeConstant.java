@@ -227,4 +227,6 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_SYNC_DIRECTION = "chronic_sync_direction";
     /** 同步状态 */
     public static final String CHRONIC_SYNC_STATUS = "chronic_sync_status";
+    /** 评估维度 */
+    public static final String CHRONIC_ASSESSMENT_DIMENSION = "chronic_assessment_dimension";
 }

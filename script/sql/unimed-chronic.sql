@@ -484,6 +484,7 @@ CREATE TABLE `ch_assessment_rule` (
   `dimension_name`    VARCHAR(50)   DEFAULT NULL COMMENT '维度名称',
   `dimension_weight`  DECIMAL(5,2)  DEFAULT NULL COMMENT '维度权重',
   `threshold_config`  JSON          DEFAULT NULL COMMENT '阈值配置',
+  `is_active`         TINYINT(1)    DEFAULT 1 COMMENT '是否启用',
   `create_dept`     BIGINT        DEFAULT NULL COMMENT '创建部门',
   `tenant_id`       BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`       BIGINT        DEFAULT NULL COMMENT '创建者',

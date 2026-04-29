@@ -22,6 +22,8 @@ public class RiskRuleEngine {
     public Result evaluate(List<ChAssessmentRule> rules, Dict metricData, Dict factorData) {
         List<ChRiskFactorItem> factorItems = new ArrayList<>();
         int totalScore = 0;
+        String directLevel = null;
+        
         for (ChAssessmentRule rule : rules) {
             Dict threshold = JsonUtils.parseMap(rule.getThresholdConfig());
             if (threshold == null) {
@@ -38,15 +40,27 @@ public class RiskRuleEngine {
             if (!hit) {
                 continue;
             }
-            totalScore += rule.getDimensionWeight() == null ? 0 : rule.getDimensionWeight().intValue();
+            
+            // 累加分数
+            if (rule.getDimensionWeight() != null) {
+                totalScore += rule.getDimensionWeight().intValue();
+            }
+            
+            // 判断是否直接触发高危评级
+            String level = threshold.getStr("directLevel");
+            if (level != null) {
+                directLevel = maxLevel(directLevel, level);
+            }
+            
             ChRiskFactorItem item = new ChRiskFactorItem();
             item.setFactorName(rule.getDimensionName());
             item.setFactorValue(String.valueOf(currentValue));
             item.setFactorWeight(rule.getDimensionWeight());
             factorItems.add(item);
         }
-        String level = resolveLevel(totalScore, metricData);
-        return new Result(level, totalScore, factorItems);
+        
+        String finalLevel = resolveLevel(totalScore, directLevel);
+        return new Result(finalLevel, totalScore, factorItems);
     }
 
     private boolean hitThreshold(Object currentValue, Dict threshold) {
@@ -62,23 +76,31 @@ public class RiskRuleEngine {
         return equals != null && equals.equalsIgnoreCase(String.valueOf(currentValue));
     }
 
-    private String resolveLevel(int totalScore, Dict metricData) {
-        Double systolic = parseDouble(metricData.get("systolic"));
-        Double diastolic = parseDouble(metricData.get("diastolic"));
-        Double glucose = parseDouble(metricData.get("glucose"));
-        if ((systolic != null && systolic >= 180D) || (diastolic != null && diastolic >= 110D) || (glucose != null && glucose >= 16.7D)) {
-            return "VERY_HIGH";
-        }
+    private String resolveLevel(int totalScore, String directLevel) {
+        String scoreLevel = "LOW";
         if (totalScore >= 80) {
-            return "VERY_HIGH";
+            scoreLevel = "VERY_HIGH";
+        } else if (totalScore >= 60) {
+            scoreLevel = "HIGH";
+        } else if (totalScore >= 30) {
+            scoreLevel = "MEDIUM";
         }
-        if (totalScore >= 60) {
-            return "HIGH";
-        }
-        if (totalScore >= 30) {
-            return "MEDIUM";
-        }
-        return "LOW";
+        return maxLevel(scoreLevel, directLevel);
+    }
+    
+    private String maxLevel(String level1, String level2) {
+        if (level1 == null) return level2;
+        if (level2 == null) return level1;
+        
+        List<String> levels = List.of("LOW", "MEDIUM", "HIGH", "VERY_HIGH");
+        int idx1 = levels.indexOf(level1);
+        int idx2 = levels.indexOf(level2);
+        
+        // 如果遇到未知的level，保守起见返回原值
+        if (idx1 == -1) return level2;
+        if (idx2 == -1) return level1;
+        
+        return idx1 > idx2 ? level1 : level2;
     }
 
     private Double parseDouble(Object value) {
