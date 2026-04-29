@@ -3,7 +3,10 @@ package org.dromara.chronic.domain.vo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
 import org.dromara.chronic.domain.entity.ChAssessmentRule;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -23,14 +26,26 @@ public class ChAssessmentRuleVo implements Serializable {
 
     @Schema(description = "规则ID")
     private Long ruleId;
+    
     @Schema(description = "病种编码")
     private String diseaseCode;
-    @Schema(description = "维度名称")
+
+    @Schema(description = "病种名称")
+    private String diseaseName;
+    
+    @Schema(description = "维度名称(字典Code)")
     private String dimensionName;
+    
+    @Schema(description = "维度名称(中文文本)")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "dimensionName", other = ChronicDictTypeConstant.CHRONIC_ASSESSMENT_DIMENSION)
+    private String dimensionNameLabel;
+    
     @Schema(description = "维度权重")
     private Integer dimensionWeight;
+    
     @Schema(description = "阈值配置")
     private String thresholdConfig;
+    
     @Schema(description = "是否启用")
     private Boolean isActive;
 }

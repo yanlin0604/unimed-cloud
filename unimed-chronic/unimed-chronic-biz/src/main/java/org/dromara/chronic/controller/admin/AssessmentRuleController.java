@@ -14,6 +14,7 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.web.core.BaseController;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/admin/assessment-rule")
-public class AssessmentRuleController {
+public class AssessmentRuleController extends BaseController {
 
     private final IChRiskAssessmentService riskAssessmentService;
 
@@ -38,12 +39,35 @@ public class AssessmentRuleController {
         return riskAssessmentService.queryRulePage(bo, pageQuery);
     }
 
+    @Operation(summary = "获取评估规则详情")
+    @SaCheckPermission("chronic:assessment-rule:query")
+    @GetMapping("/{ruleId}")
+    public R<ChAssessmentRuleVo> detail(@Parameter(description = "规则ID") @PathVariable Long ruleId) {
+        return R.ok(riskAssessmentService.queryRuleById(ruleId));
+    }
+
     @Operation(summary = "新增评估规则")
     @SaCheckPermission("chronic:assessment-rule:add")
     @Log(title = "风险评估规则", businessType = BusinessType.INSERT)
     @RepeatSubmit
     @PostMapping
     public R<Void> add(@Validated @RequestBody ChAssessmentRuleBo bo) {
-        return riskAssessmentService.createRule(bo) ? R.ok() : R.fail();
+        return toAjax(riskAssessmentService.createRule(bo));
+    }
+
+    @Operation(summary = "修改评估规则")
+    @SaCheckPermission("chronic:assessment-rule:edit")
+    @Log(title = "风险评估规则", businessType = BusinessType.UPDATE)
+    @PutMapping
+    public R<Void> edit(@Validated @RequestBody ChAssessmentRuleBo bo) {
+        return toAjax(riskAssessmentService.updateRule(bo));
+    }
+
+    @Operation(summary = "删除评估规则")
+    @SaCheckPermission("chronic:assessment-rule:remove")
+    @Log(title = "风险评估规则", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{ruleId}")
+    public R<Void> remove(@Parameter(description = "规则ID") @PathVariable Long ruleId) {
+        return toAjax(riskAssessmentService.deleteRuleById(ruleId));
     }
 }

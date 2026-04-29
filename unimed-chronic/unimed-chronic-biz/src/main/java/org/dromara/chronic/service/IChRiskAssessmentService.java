@@ -25,5 +25,11 @@ public interface IChRiskAssessmentService {
 
     TableDataInfo<ChAssessmentRuleVo> queryRulePage(ChAssessmentRuleBo bo, PageQuery pageQuery);
 
+    ChAssessmentRuleVo queryRuleById(Long ruleId);
+
     Boolean createRule(ChAssessmentRuleBo bo);
+
+    Boolean updateRule(ChAssessmentRuleBo bo);
+
+    Boolean deleteRuleById(Long ruleId);
 }

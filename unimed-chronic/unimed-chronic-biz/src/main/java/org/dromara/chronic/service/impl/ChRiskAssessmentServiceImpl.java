@@ -137,7 +137,17 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
         lqw.eq(ObjectUtil.isNotNull(bo.getIsActive()), ChAssessmentRule::getIsActive, bo.getIsActive());
         lqw.orderByAsc(ChAssessmentRule::getRuleId);
         Page<ChAssessmentRuleVo> page = assessmentRuleMapper.selectVoPage(pageQuery.build(), lqw);
+        fillRuleDiseaseNames(page.getRecords());
         return TableDataInfo.build(page);
+    }
+
+    @Override
+    public ChAssessmentRuleVo queryRuleById(Long ruleId) {
+        ChAssessmentRuleVo vo = assessmentRuleMapper.selectVoById(ruleId);
+        if (vo != null) {
+            fillRuleDiseaseNames(java.util.Collections.singletonList(vo));
+        }
+        return vo;
     }
 
     @Override
@@ -147,6 +157,17 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
             entity.setIsActive(Boolean.TRUE);
         }
         return assessmentRuleMapper.insert(entity) > 0;
+    }
+
+    @Override
+    public Boolean updateRule(ChAssessmentRuleBo bo) {
+        ChAssessmentRule entity = MapstructUtils.convert(bo, ChAssessmentRule.class);
+        return assessmentRuleMapper.updateById(entity) > 0;
+    }
+
+    @Override
+    public Boolean deleteRuleById(Long ruleId) {
+        return assessmentRuleMapper.deleteById(ruleId) > 0;
     }
 
     private String buildReport(RiskRuleEngine.Result result, Dict metricData, Dict factorData) {
@@ -173,6 +194,18 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
     private void fillRiskNames(List<ChRiskAssessmentVo> list) {
         if (CollUtil.isEmpty(list)) return;
         List<String> diseaseCodes = list.stream().map(ChRiskAssessmentVo::getDiseaseCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (!diseaseCodes.isEmpty()) {
+            try {
+                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
+    private void fillRuleDiseaseNames(List<ChAssessmentRuleVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<String> diseaseCodes = list.stream().map(ChAssessmentRuleVo::getDiseaseCode)
             .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
         if (!diseaseCodes.isEmpty()) {
             try {
