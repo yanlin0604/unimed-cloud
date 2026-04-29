@@ -54,6 +54,12 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
+    public List<ChPatientProfileVo> queryList(ChPatientProfileBo bo) {
+        List<ChPatientProfileVo> result = baseMapper.selectVoList(buildQueryWrapper(bo));
+        fillContractStatus(result);
+        return result;
+    }
+
     public TableDataInfo<ChPatientProfileVo> queryPageList(ChPatientProfileBo bo, PageQuery pageQuery) {
         Page<ChPatientProfileVo> result = baseMapper.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
         fillContractStatus(result.getRecords());

@@ -8,19 +8,27 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
+import org.dromara.chronic.domain.vo.ChPatientProfileImportVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
+import org.dromara.chronic.listener.ChPatientProfileImportListener;
 import org.dromara.chronic.manager.PatientProfileManager;
 import org.dromara.chronic.service.IChPatientProfileService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.excel.core.ExcelResult;
+import org.dromara.common.excel.utils.ExcelUtil;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import jakarta.servlet.http.HttpServletResponse;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,6 +55,41 @@ public class PatientProfileController extends BaseController {
     @GetMapping("/page")
     public TableDataInfo<ChPatientProfileVo> page(ChPatientProfileBo bo, PageQuery pageQuery) {
         return patientProfileService.queryPageList(bo, pageQuery);
+    }
+
+    /**
+     * 导出患者档案
+     */
+    @Log(title = "患者档案", businessType = BusinessType.EXPORT)
+    @SaCheckPermission("chronic:patient:export")
+    @PostMapping("/export")
+    public void export(ChPatientProfileBo bo, HttpServletResponse response) {
+        List<ChPatientProfileVo> list = patientProfileService.queryList(bo);
+        ExcelUtil.exportExcel(list, "患者档案", ChPatientProfileVo.class, response);
+    }
+
+    /**
+     * 获取导入模板
+     */
+    @Operation(summary = "获取导入模板")
+    @PostMapping("/importTemplate")
+    public void importTemplate(HttpServletResponse response) {
+        ExcelUtil.exportExcel(new ArrayList<>(), "患者档案数据", ChPatientProfileImportVo.class, response);
+    }
+
+    /**
+     * 导入数据
+     *
+     * @param file          导入文件
+     * @param updateSupport 是否更新已存在数据
+     */
+    @Operation(summary = "导入患者档案数据")
+    @Log(title = "患者档案管理", businessType = BusinessType.IMPORT)
+    @SaCheckPermission("chronic:patient:import")
+    @PostMapping(value = "/importData", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public R<Void> importData(@RequestPart("file") MultipartFile file, boolean updateSupport) throws Exception {
+        ExcelResult<ChPatientProfileImportVo> result = ExcelUtil.importExcel(file.getInputStream(), ChPatientProfileImportVo.class, new ChPatientProfileImportListener(updateSupport));
+        return R.ok(result.getAnalysis());
     }
 
     /**

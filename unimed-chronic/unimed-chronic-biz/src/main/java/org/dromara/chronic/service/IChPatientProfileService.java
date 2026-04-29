@@ -26,6 +26,14 @@ public interface IChPatientProfileService {
     TableDataInfo<ChPatientProfileVo> queryPageList(ChPatientProfileBo bo, PageQuery pageQuery);
 
     /**
+     * 查询患者档案列表
+     *
+     * @param bo 查询条件
+     * @return 列表结果
+     */
+    List<ChPatientProfileVo> queryList(ChPatientProfileBo bo);
+
+    /**
      * 查询患者详情
      *
      * @param patientId 患者ID
