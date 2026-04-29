@@ -77,6 +77,11 @@ public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordSer
     }
 
     @Override
+    public List<ChHealthMetricRecordVo> queryLatest(Long patientId) {
+        return baseMapper.selectLatestByPatientId(patientId);
+    }
+
+    @Override
     public Void updateMetric(ChHealthMetricRecordBo bo) {
         ChHealthMetricRecord entity = MapstructUtils.convert(bo, ChHealthMetricRecord.class);
         baseMapper.updateById(entity);

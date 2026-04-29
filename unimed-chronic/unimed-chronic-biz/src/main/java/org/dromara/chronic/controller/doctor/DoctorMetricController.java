@@ -80,4 +80,11 @@ public class DoctorMetricController extends BaseController {
             @RequestParam(required = false, defaultValue = "30") Integer limit) {
         return R.ok(metricRecordService.queryTrend(patientId, metricType, limit));
     }
+
+    @Operation(summary = "最新指标")
+    @SaCheckPermission("chronic:doctor:metric:list")
+    @GetMapping("/patient/{patientId}/metric/latest")
+    public R<List<ChHealthMetricRecordVo>> latest(@PathVariable Long patientId) {
+        return R.ok(metricRecordService.queryLatest(patientId));
+    }
 }

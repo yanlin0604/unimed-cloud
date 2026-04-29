@@ -25,6 +25,8 @@ public interface IChHealthMetricRecordService {
 
     List<ChHealthMetricRecordVo> queryTrend(Long patientId, String metricType, Integer limit);
 
+    List<ChHealthMetricRecordVo> queryLatest(Long patientId);
+
     Void updateMetric(ChHealthMetricRecordBo bo);
 
     Void deleteMetric(Long metricId);
