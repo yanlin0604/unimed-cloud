@@ -164,6 +164,8 @@ public final class ChronicDictTypeConstant {
 
     /** 同意类型 (SIGN_CONTRACT/DATA_SHARE/REFERRAL) */
     public static final String CHRONIC_CONSENT_TYPE = "chronic_consent_type";
+    /** 知情同意状态 (SIGNED/UNSIGNED) */
+    public static final String CHRONIC_CONSENT_STATUS = "chronic_consent_status";
 
     // ==================== 消息 ====================
 
@@ -212,6 +214,19 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_ENROLL_STATUS = "chronic_enroll_status";
     /** 筛查批次状态 */
     public static final String CHRONIC_SCREENING_STATUS = "chronic_screening_status";
+
+    // ==================== 医疗文档OCR ====================
+
+    /** OCR来源类型 (ADMIN/DOCTOR/PATIENT) */
+    public static final String CHRONIC_OCR_SOURCE_TYPE = "chronic_ocr_source_type";
+    /** OCR文档类型 (MEDICAL_RECORD_HOME/DISCHARGE_SUMMARY/LAB_REPORT/EXAM_REPORT/DIAGNOSIS_REPORT/OTHER) */
+    public static final String CHRONIC_OCR_DOCUMENT_TYPE = "chronic_ocr_document_type";
+    /** OCR输入类型 (IMAGE_BASE64/IMAGE_URL/PDF_FILE/OSS_FILE) */
+    public static final String CHRONIC_OCR_INPUT_TYPE = "chronic_ocr_input_type";
+    /** OCR任务状态 (PENDING/RECOGNIZING/SUCCESS/FAILED/CONFIRMED/DISCARDED) */
+    public static final String CHRONIC_OCR_STATUS = "chronic_ocr_status";
+    /** OCR建档动作类型 (CREATE_ARCHIVE/UPDATE_ARCHIVE) */
+    public static final String CHRONIC_OCR_ACTION_TYPE = "chronic_ocr_action_type";
 
     // ==================== 其他 ====================
 

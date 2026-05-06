@@ -644,3 +644,86 @@ INSERT INTO sys_dict_data VALUES(451, '000000', 11, 'eGFR',         'EGFR',    '
 INSERT INTO sys_dict_data VALUES(452, '000000', 12, '饮酒',         'DRINKING','chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '饮酒状态，equals 匹配，值为 YES/NO');
 INSERT INTO sys_dict_data VALUES(453, '000000', 13, '家族史',       'FAMILY_HISTORY', 'chronic_assessment_dimension', '', '', 'N', 103, 1, sysdate(), null, null, '家族病史，equals 匹配，值为 YES/NO');
 
+-- 178 chronic_consent_status 知情同意状态
+INSERT INTO sys_dict_type VALUES(178, '000000', '知情同意状态', 'chronic_consent_status', 103, 1, sysdate(), null, null, '慢病知情同意状态');
+INSERT INTO sys_dict_data VALUES(454, '000000', 1, '已签署', 'SIGNED', 'chronic_consent_status', '', '', 'Y', 103, 1, sysdate(), null, null, '已签署知情同意书');
+INSERT INTO sys_dict_data VALUES(455, '000000', 2, '未签署', 'UNSIGNED', 'chronic_consent_status', '', '', 'N', 103, 1, sysdate(), null, null, '未签署知情同意书');
+
+-- ----------------------------
+-- 医疗文档OCR相关字典
+-- ----------------------------
+
+-- 179 chronic_ocr_source_type OCR来源类型
+INSERT INTO sys_dict_type VALUES(179, '000000', 'OCR来源类型', 'chronic_ocr_source_type', 103, 1, sysdate(), null, null, '慢病医疗文档OCR来源类型');
+INSERT INTO sys_dict_data VALUES(456, '000000', 1, '管理端', 'ADMIN', 'chronic_ocr_source_type', '', '', 'N', 103, 1, sysdate(), null, null, '管理端上传');
+INSERT INTO sys_dict_data VALUES(457, '000000', 2, '医生端', 'DOCTOR', 'chronic_ocr_source_type', '', '', 'N', 103, 1, sysdate(), null, null, '医生端上传');
+INSERT INTO sys_dict_data VALUES(458, '000000', 3, '患者端', 'PATIENT', 'chronic_ocr_source_type', '', '', 'N', 103, 1, sysdate(), null, null, '患者端上传');
+
+-- 180 chronic_ocr_document_type OCR文档类型
+INSERT INTO sys_dict_type VALUES(180, '000000', 'OCR文档类型', 'chronic_ocr_document_type', 103, 1, sysdate(), null, null, '慢病医疗文档OCR文档类型');
+INSERT INTO sys_dict_data VALUES(459, '000000', 1, '病历首页', 'MEDICAL_RECORD_HOME', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '病历首页');
+INSERT INTO sys_dict_data VALUES(460, '000000', 2, '出院小结', 'DISCHARGE_SUMMARY', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '出院小结');
+INSERT INTO sys_dict_data VALUES(461, '000000', 3, '检验报告', 'LAB_REPORT', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '检验报告');
+INSERT INTO sys_dict_data VALUES(462, '000000', 4, '检查报告', 'EXAM_REPORT', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '检查报告');
+INSERT INTO sys_dict_data VALUES(463, '000000', 5, '诊断报告', 'DIAGNOSIS_REPORT', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '诊断报告');
+INSERT INTO sys_dict_data VALUES(464, '000000', 6, '其他', 'OTHER', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '其他文档');
+
+-- 181 chronic_ocr_input_type OCR输入类型
+INSERT INTO sys_dict_type VALUES(181, '000000', 'OCR输入类型', 'chronic_ocr_input_type', 103, 1, sysdate(), null, null, '慢病医疗文档OCR输入类型');
+INSERT INTO sys_dict_data VALUES(465, '000000', 1, '图片Base64', 'IMAGE_BASE64', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, '图片Base64编码');
+INSERT INTO sys_dict_data VALUES(466, '000000', 2, '图片URL', 'IMAGE_URL', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, '图片URL地址');
+INSERT INTO sys_dict_data VALUES(467, '000000', 3, 'PDF文件', 'PDF_FILE', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, 'PDF文件');
+INSERT INTO sys_dict_data VALUES(468, '000000', 4, 'OSS文件', 'OSS_FILE', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, 'OSS存储文件');
+
+-- 182 chronic_ocr_status OCR任务状态
+INSERT INTO sys_dict_type VALUES(182, '000000', 'OCR任务状态', 'chronic_ocr_status', 103, 1, sysdate(), null, null, '慢病医疗文档OCR任务状态');
+INSERT INTO sys_dict_data VALUES(469, '000000', 1, '待识别', 'PENDING', 'chronic_ocr_status', '', '', 'N', 103, 1, sysdate(), null, null, '等待OCR识别');
+INSERT INTO sys_dict_data VALUES(470, '000000', 2, '识别中', 'RECOGNIZING', 'chronic_ocr_status', '', 'primary', 'N', 103, 1, sysdate(), null, null, '正在OCR识别');
+INSERT INTO sys_dict_data VALUES(471, '000000', 3, '识别成功', 'SUCCESS', 'chronic_ocr_status', '', 'success', 'N', 103, 1, sysdate(), null, null, 'OCR识别成功');
+INSERT INTO sys_dict_data VALUES(472, '000000', 4, '识别失败', 'FAILED', 'chronic_ocr_status', '', 'danger', 'N', 103, 1, sysdate(), null, null, 'OCR识别失败');
+INSERT INTO sys_dict_data VALUES(473, '000000', 5, '已确认', 'CONFIRMED', 'chronic_ocr_status', '', 'success', 'N', 103, 1, sysdate(), null, null, '草稿已确认入库');
+INSERT INTO sys_dict_data VALUES(474, '000000', 6, '已废弃', 'DISCARDED', 'chronic_ocr_status', '', 'info', 'N', 103, 1, sysdate(), null, null, '草稿已废弃');
+
+-- 183 chronic_ocr_action_type OCR建档动作类型
+INSERT INTO sys_dict_type VALUES(183, '000000', 'OCR建档动作', 'chronic_ocr_action_type', 103, 1, sysdate(), null, null, '慢病医疗文档OCR建档动作类型');
+INSERT INTO sys_dict_data VALUES(475, '000000', 1, '新建档案', 'CREATE_ARCHIVE', 'chronic_ocr_action_type', '', '', 'N', 103, 1, sysdate(), null, null, '创建新患者档案');
+INSERT INTO sys_dict_data VALUES(476, '000000', 2, '更新档案', 'UPDATE_ARCHIVE', 'chronic_ocr_action_type', '', '', 'N', 103, 1, sysdate(), null, null, '更新已有患者档案');
+
+-- ==================== 医疗文档OCR相关字典 ====================
+
+-- 179 chronic_ocr_source_type OCR来源类型
+INSERT INTO sys_dict_type VALUES(179, '000000', 'OCR来源类型', 'chronic_ocr_source_type', 103, 1, sysdate(), null, null, '医疗文档OCR来源类型');
+INSERT INTO sys_dict_data VALUES(456, '000000', 1, '管理端', 'ADMIN', 'chronic_ocr_source_type', '', '', 'N', 103, 1, sysdate(), null, null, '管理端上传');
+INSERT INTO sys_dict_data VALUES(457, '000000', 2, '医生端', 'DOCTOR', 'chronic_ocr_source_type', '', '', 'N', 103, 1, sysdate(), null, null, '医生端上传');
+INSERT INTO sys_dict_data VALUES(458, '000000', 3, '患者端', 'PATIENT', 'chronic_ocr_source_type', '', '', 'N', 103, 1, sysdate(), null, null, '患者端上传');
+
+-- 180 chronic_ocr_document_type OCR文档类型
+INSERT INTO sys_dict_type VALUES(180, '000000', 'OCR文档类型', 'chronic_ocr_document_type', 103, 1, sysdate(), null, null, '医疗文档OCR文档类型');
+INSERT INTO sys_dict_data VALUES(459, '000000', 1, '病历首页', 'MEDICAL_RECORD_HOME', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '病历首页');
+INSERT INTO sys_dict_data VALUES(460, '000000', 2, '出院小结', 'DISCHARGE_SUMMARY', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '出院小结');
+INSERT INTO sys_dict_data VALUES(461, '000000', 3, '检验报告', 'LAB_REPORT', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '检验报告');
+INSERT INTO sys_dict_data VALUES(462, '000000', 4, '检查报告', 'EXAM_REPORT', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '检查报告');
+INSERT INTO sys_dict_data VALUES(463, '000000', 5, '诊断报告', 'DIAGNOSIS_REPORT', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '诊断报告');
+INSERT INTO sys_dict_data VALUES(464, '000000', 6, '其他', 'OTHER', 'chronic_ocr_document_type', '', '', 'N', 103, 1, sysdate(), null, null, '其他文档');
+
+-- 181 chronic_ocr_input_type OCR输入类型
+INSERT INTO sys_dict_type VALUES(181, '000000', 'OCR输入类型', 'chronic_ocr_input_type', 103, 1, sysdate(), null, null, '医疗文档OCR输入类型');
+INSERT INTO sys_dict_data VALUES(465, '000000', 1, '图片Base64', 'IMAGE_BASE64', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, '图片Base64编码');
+INSERT INTO sys_dict_data VALUES(466, '000000', 2, '图片URL', 'IMAGE_URL', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, '图片URL地址');
+INSERT INTO sys_dict_data VALUES(467, '000000', 3, 'PDF文件', 'PDF_FILE', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, 'PDF文件');
+INSERT INTO sys_dict_data VALUES(468, '000000', 4, 'OSS文件', 'OSS_FILE', 'chronic_ocr_input_type', '', '', 'N', 103, 1, sysdate(), null, null, 'OSS存储文件');
+
+-- 182 chronic_ocr_status OCR任务状态
+INSERT INTO sys_dict_type VALUES(182, '000000', 'OCR任务状态', 'chronic_ocr_status', 103, 1, sysdate(), null, null, '医疗文档OCR任务状态');
+INSERT INTO sys_dict_data VALUES(469, '000000', 1, '待识别', 'PENDING', 'chronic_ocr_status', '', '', 'N', 103, 1, sysdate(), null, null, '等待OCR识别');
+INSERT INTO sys_dict_data VALUES(470, '000000', 2, '识别中', 'RECOGNIZING', 'chronic_ocr_status', '', 'primary', 'N', 103, 1, sysdate(), null, null, '正在OCR识别');
+INSERT INTO sys_dict_data VALUES(471, '000000', 3, '识别成功', 'SUCCESS', 'chronic_ocr_status', '', 'success', 'N', 103, 1, sysdate(), null, null, 'OCR识别成功');
+INSERT INTO sys_dict_data VALUES(472, '000000', 4, '识别失败', 'FAILED', 'chronic_ocr_status', '', 'danger', 'N', 103, 1, sysdate(), null, null, 'OCR识别失败');
+INSERT INTO sys_dict_data VALUES(473, '000000', 5, '已确认', 'CONFIRMED', 'chronic_ocr_status', '', 'success', 'N', 103, 1, sysdate(), null, null, '草稿已确认入库');
+INSERT INTO sys_dict_data VALUES(474, '000000', 6, '已废弃', 'DISCARDED', 'chronic_ocr_status', '', 'info', 'N', 103, 1, sysdate(), null, null, '草稿已废弃');
+
+-- 183 chronic_ocr_action_type OCR建档动作类型
+INSERT INTO sys_dict_type VALUES(183, '000000', 'OCR建档动作', 'chronic_ocr_action_type', 103, 1, sysdate(), null, null, '医疗文档OCR建档动作类型');
+INSERT INTO sys_dict_data VALUES(475, '000000', 1, '新建档案', 'CREATE_ARCHIVE', 'chronic_ocr_action_type', '', '', 'N', 103, 1, sysdate(), null, null, '新建患者档案');
+INSERT INTO sys_dict_data VALUES(476, '000000', 2, '更新档案', 'UPDATE_ARCHIVE', 'chronic_ocr_action_type', '', '', 'N', 103, 1, sysdate(), null, null, '更新已有患者档案');
+

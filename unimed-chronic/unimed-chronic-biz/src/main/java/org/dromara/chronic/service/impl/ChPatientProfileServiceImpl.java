@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
+import org.dromara.chronic.domain.entity.ChConsentRecord;
 import org.dromara.chronic.domain.entity.ChPatientContract;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
@@ -18,6 +19,7 @@ import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientDiseaseVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
+import org.dromara.chronic.mapper.ChConsentRecordMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
 import org.dromara.chronic.mapper.ChPatientDiseaseMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
@@ -51,18 +53,19 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
     private final ChPatientTagMapper patientTagMapper;
     private final ChPatientTimelineMapper patientTimelineMapper;
     private final ChPatientContractMapper patientContractMapper;
+    private final ChConsentRecordMapper consentRecordMapper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
     public List<ChPatientProfileVo> queryList(ChPatientProfileBo bo) {
         List<ChPatientProfileVo> result = baseMapper.selectVoList(buildQueryWrapper(bo));
         fillContractStatus(result);
+        fillConsentStatus(result);
         return result;
     }
 
     public TableDataInfo<ChPatientProfileVo> queryPageList(ChPatientProfileBo bo, PageQuery pageQuery) {
         Page<ChPatientProfileVo> result = baseMapper.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
-        fillContractStatus(result.getRecords());
         return TableDataInfo.build(result);
     }
 
@@ -88,6 +91,7 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         );
         detailVo.setLatestTimeline(CollUtil.isEmpty(timelines) ? null : timelines.get(0));
         fillContractStatus(detailVo, patientId);
+        fillConsentStatus(detailVo, patientId);
         return detailVo;
     }
 
@@ -209,6 +213,37 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
             detailVo.setContractStatus(contract != null ? contract.getContractStatus() : "UNSIGNED");
         } catch (Exception e) {
             detailVo.setContractStatus("UNSIGNED");
+        }
+    }
+
+    private void fillConsentStatus(List<ChPatientProfileVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> patientIds = list.stream()
+            .map(ChPatientProfileVo::getPatientId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (patientIds.isEmpty()) return;
+        try {
+            List<Long> signedPatientIds = consentRecordMapper.selectList(
+                Wrappers.<ChConsentRecord>lambdaQuery()
+                    .in(ChConsentRecord::getPatientId, patientIds)
+                    .eq(ChConsentRecord::getConsentType, "SIGN_CONTRACT")
+            ).stream().map(ChConsentRecord::getPatientId).distinct().collect(Collectors.toList());
+            list.forEach(v -> v.setConsentStatus(signedPatientIds.contains(v.getPatientId()) ? "SIGNED" : "UNSIGNED"));
+        } catch (Exception e) {
+            list.forEach(v -> v.setConsentStatus("UNSIGNED"));
+        }
+    }
+
+    private void fillConsentStatus(ChPatientDetailVo detailVo, Long patientId) {
+        try {
+            long count = consentRecordMapper.selectCount(
+                Wrappers.<ChConsentRecord>lambdaQuery()
+                    .eq(ChConsentRecord::getPatientId, patientId)
+                    .eq(ChConsentRecord::getConsentType, "SIGN_CONTRACT")
+            );
+            detailVo.setConsentStatus(count > 0 ? "SIGNED" : "UNSIGNED");
+        } catch (Exception e) {
+            detailVo.setConsentStatus("UNSIGNED");
         }
     }
 }

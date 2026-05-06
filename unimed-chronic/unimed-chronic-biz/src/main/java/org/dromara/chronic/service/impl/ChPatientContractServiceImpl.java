@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChContractServicePackageBo;
 import org.dromara.chronic.domain.bo.ChPatientContractBo;
+import org.dromara.chronic.domain.entity.ChConsentRecord;
 import org.dromara.chronic.domain.entity.ChContractFulfillment;
 import org.dromara.chronic.domain.entity.ChContractServicePackage;
 import org.dromara.chronic.domain.entity.ChDoctorTeam;
@@ -17,6 +18,7 @@ import org.dromara.chronic.domain.entity.ChPatientContract;
 import org.dromara.chronic.domain.vo.ChContractFulfillmentVo;
 import org.dromara.chronic.domain.vo.ChContractServicePackageVo;
 import org.dromara.chronic.domain.vo.ChPatientContractVo;
+import org.dromara.chronic.mapper.ChConsentRecordMapper;
 import org.dromara.chronic.mapper.ChContractFulfillmentMapper;
 import org.dromara.chronic.mapper.ChContractServicePackageMapper;
 import org.dromara.chronic.mapper.ChDoctorTeamMapper;
@@ -49,6 +51,7 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
     private final ChContractServicePackageMapper packageMapper;
     private final ChContractFulfillmentMapper fulfillmentMapper;
     private final ChPatientProfileMapper profileMapper;
+    private final ChConsentRecordMapper consentRecordMapper;
 
     @Override
     public TableDataInfo<ChPatientContractVo> queryContractPageList(ChPatientContractBo bo, PageQuery pageQuery) {
@@ -92,6 +95,16 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
     public Long signContract(ChPatientContractBo bo) {
         if (bo.getContractPeriodEnd().before(bo.getContractPeriodStart())) {
             throw new ServiceException("签约结束时间不能早于开始时间");
+        }
+        if (ObjectUtil.isNotNull(bo.getPatientId())) {
+            long consentCount = consentRecordMapper.selectCount(
+                Wrappers.<ChConsentRecord>lambdaQuery()
+                    .eq(ChConsentRecord::getPatientId, bo.getPatientId())
+                    .eq(ChConsentRecord::getConsentType, "SIGN_CONTRACT")
+            );
+            if (consentCount == 0) {
+                throw new ServiceException("患者未签署知情同意书，请先完成知情同意签署");
+            }
         }
         ChContractServicePackage servicePackage = packageMapper.selectById(bo.getPackageId());
         if (servicePackage == null) {

@@ -22,6 +22,15 @@ chronic:
       - datasource.chronic
       - datasource.system-master
 
+  ocr:
+    baidu:
+      enabled: false
+      app-id: ${BAIDU_OCR_APP_ID:}
+      api-key: ${BAIDU_OCR_API_KEY:}
+      secret-key: ${BAIDU_OCR_SECRET_KEY:}
+      connect-timeout: 3000
+      read-timeout: 10000
+      max-file-size: 10485760
 --- # nacos 配置
 spring:
   cloud:
@@ -43,3 +52,4 @@ spring:
       - optional:nacos:application-common.yml
       - optional:nacos:datasource.yml
       - optional:nacos:${spring.application.name}.yml
+

@@ -194,6 +194,13 @@ public class ChPatientDetailVo implements Serializable {
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "contractStatus", other = ChronicDictTypeConstant.CHRONIC_CONTRACT_STATUS)
     private String contractStatusName;
 
+    @Schema(description = "知情同意状态")
+    private String consentStatus;
+
+    @Schema(description = "知情同意状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "consentStatus", other = ChronicDictTypeConstant.CHRONIC_CONSENT_STATUS)
+    private String consentStatusName;
+
     @Schema(description = "部门名称")
     @Translation(type = TransConstant.DEPT_ID_TO_NAME, mapper = "deptId")
     private String deptName;
