@@ -49,7 +49,9 @@ public class MedicalDocumentOcrTaskVo implements Serializable {
     private String inputTypeName;
     @Schema(description = "资源文件ID")
     private Long ossId;
+
     @Schema(description = "文件访问地址")
+    @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "ossId")
     private String fileUrl;
     @Schema(description = "文件MD5")
     private String fileMd5;

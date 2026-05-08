@@ -1,17 +1,15 @@
 package org.dromara.chronic.controller.patient;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.service.IChPatientProfileService;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.web.core.BaseController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -20,21 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
  * @author unimed
  */
 @Tag(name = "慢病管理-患者端个人中心")
+@SaCheckLogin
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/patient")
-public class PatientCenterController extends BaseController {
+public class PatientCenterController {
 
     private final IChPatientProfileService patientProfileService;
+    private final PatientContextHelper patientContextHelper;
 
-    /**
-     * 个人中心
-     * 认证模块完成前临时使用 patientId 查询
-     */
     @Operation(summary = "个人中心")
-    @SaCheckPermission("chronic:patient:center")
     @GetMapping("/center")
-    public R<ChPatientDetailVo> center(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<ChPatientDetailVo> center() {
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(patientProfileService.queryDetailById(patientId));
     }
 }

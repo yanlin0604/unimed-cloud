@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.dromara.common.redis.utils.RedisUtils;
-import org.dromara.resource.api.RemoteFileService;
-import org.apache.dubbo.config.annotation.DubboReference;
 
 /**
  * 患者账号服务实现
@@ -50,9 +48,6 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
 
     private final ChPatientAccountMapper patientAccountMapper;
     private final WxMaService wxMaService;
-
-    @DubboReference(mock = "true")
-    private RemoteFileService remoteFileService;
 
     @Override
     public WxLoginVo register(ChPatientAccountBo bo) {
@@ -331,7 +326,6 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         account.setIsBoundWechat(StringUtils.isNotBlank(account.getOpenid()));
         account.setOpenid(null);
         account.setUnionid(null);
-        resolveAvatarUrl(account);
         vo.setAccount(account);
 
         return vo;
@@ -373,14 +367,10 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
 
     @Override
     public ChPatientAccountVo getAccountById(Long accountId) {
-        ChPatientAccountVo vo = patientAccountMapper.selectVoOne(
+        return patientAccountMapper.selectVoOne(
             Wrappers.<ChPatientAccount>lambdaQuery()
                 .eq(ChPatientAccount::getAccountId, accountId)
         );
-        if (vo != null) {
-            resolveAvatarUrl(vo);
-        }
-        return vo;
     }
 
     @Override
@@ -397,23 +387,6 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         }
         patientAccountMapper.updateById(entity);
         return true;
-    }
-
-    /**
-     * 通过 RemoteFileService 将 ossId 解析为 URL，设置到 VO 的 avatarUrl 字段
-     */
-    private void resolveAvatarUrl(ChPatientAccountVo vo) {
-        if (StringUtils.isBlank(vo.getAvatarOssId())) {
-            return;
-        }
-        try {
-            String url = remoteFileService.selectUrlByIds(vo.getAvatarOssId());
-            if (StringUtils.isNotBlank(url)) {
-                vo.setAvatarUrl(url);
-            }
-        } catch (Exception e) {
-            log.warn("解析头像URL失败: ossId={}, err={}", vo.getAvatarOssId(), e.getMessage());
-        }
     }
 
     /**

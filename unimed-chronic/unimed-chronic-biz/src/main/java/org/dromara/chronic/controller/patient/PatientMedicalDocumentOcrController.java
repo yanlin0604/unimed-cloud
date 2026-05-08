@@ -2,7 +2,6 @@ package org.dromara.chronic.controller.patient;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.MedicalDocumentOcrTaskBo;
@@ -11,6 +10,7 @@ import org.dromara.chronic.manager.MedicalDocumentOcrManager;
 import org.dromara.chronic.service.IMedicalDocumentOcrService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.validation.annotation.Validated;
@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 患者端医疗文档OCR
- * <p>
- * TODO: 患者认证模块完成后，patientId 应从 LoginHelper 获取（与 PatientCenterController 同步整改），
- * 当前实现与本模块其他患者端控制器保持一致：通过 @RequestParam 传入。
  *
  * @author unimed
  */
@@ -37,19 +34,17 @@ public class PatientMedicalDocumentOcrController {
     @Operation(summary = "创建本人医疗文档OCR任务")
     @RepeatSubmit
     @PostMapping("/chronic/patient/medical-document-ocr/tasks")
-    public R<Long> add(@Parameter(description = "患者ID") @RequestParam Long patientId,
-                       @Validated @RequestBody MedicalDocumentOcrTaskBo bo) {
-        bo.setPatientId(patientId);
+    public R<Long> add(@Validated @RequestBody MedicalDocumentOcrTaskBo bo) {
+        bo.setPatientId(LoginHelper.getUserId());
         bo.setSourceType("PATIENT");
         return R.ok(ocrManager.recognize(bo));
     }
 
     @Operation(summary = "本人医疗文档OCR任务分页")
     @GetMapping("/chronic/patient/medical-document-ocr/page")
-    public TableDataInfo<MedicalDocumentOcrTaskVo> page(@Parameter(description = "患者ID") @RequestParam Long patientId,
-                                                        MedicalDocumentOcrTaskBo bo,
+    public TableDataInfo<MedicalDocumentOcrTaskVo> page(MedicalDocumentOcrTaskBo bo,
                                                         PageQuery pageQuery) {
-        bo.setPatientId(patientId);
+        bo.setPatientId(LoginHelper.getUserId());
         bo.setSourceType("PATIENT");
         return ocrService.queryPageList(bo, pageQuery);
     }

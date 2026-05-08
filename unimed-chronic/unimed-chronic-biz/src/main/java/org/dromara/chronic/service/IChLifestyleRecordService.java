@@ -21,4 +21,12 @@ public interface IChLifestyleRecordService {
     TableDataInfo<ChLifestyleRecordVo> queryPageList(ChLifestyleRecordBo bo, PageQuery pageQuery);
 
     List<ChLifestyleRecordVo> queryTrend(Long patientId, Integer limit);
+
+    /**
+     * 查询最近一条生活方式记录
+     *
+     * @param patientId 患者ID
+     * @return 最新记录，无则返回 null
+     */
+    ChLifestyleRecordVo queryLatest(Long patientId);
 }

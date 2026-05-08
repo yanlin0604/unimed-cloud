@@ -110,6 +110,26 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
         return plans;
     }
 
+    @Override
+    public ChManagePlanVo queryCurrentPlan(Long patientId) {
+        List<ChManagePlanVo> plans = managePlanMapper.selectVoList(
+            Wrappers.<ChManagePlan>lambdaQuery()
+                .eq(ChManagePlan::getPatientId, patientId)
+                .eq(ChManagePlan::getPlanStatus, "ACTIVE")
+                .last("LIMIT 1")
+        );
+        if (CollUtil.isEmpty(plans)) {
+            return null;
+        }
+        ChManagePlanVo plan = plans.get(0);
+        List<ChManagePlanItemVo> items = managePlanItemMapper.selectVoList(
+            Wrappers.<ChManagePlanItem>lambdaQuery().eq(ChManagePlanItem::getPlanId, plan.getPlanId())
+        );
+        plan.setItemList(items);
+        fillPlanNames(List.of(plan));
+        return plan;
+    }
+
     private void saveItems(Long planId, List<ChManagePlanItemBo> itemList) {
         if (CollUtil.isEmpty(itemList)) {
             return;

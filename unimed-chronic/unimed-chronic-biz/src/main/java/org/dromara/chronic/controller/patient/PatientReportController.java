@@ -4,14 +4,18 @@ import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.vo.ChReportInstanceVo;
 import org.dromara.chronic.service.IChReportService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.log.annotation.Log;
+import org.dromara.common.log.enums.BusinessType;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -32,7 +36,8 @@ public class PatientReportController {
 
     @Operation(summary = "查询我的报告列表")
     @GetMapping("/chronic/patient/report/list")
-    public R<List<ChReportInstanceVo>> myList(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<List<ChReportInstanceVo>> myList() {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(reportService.queryByPatientId(patientId));
     }
 
@@ -40,5 +45,29 @@ public class PatientReportController {
     @GetMapping("/chronic/patient/report/{reportId}")
     public R<ChReportInstanceVo> detail(@Parameter(description = "报告ID") @PathVariable Long reportId) {
         return R.ok(reportService.queryReportById(reportId));
+    }
+
+    @Operation(summary = "下载报告PDF")
+    @Log(title = "报告下载", businessType = BusinessType.EXPORT)
+    @GetMapping("/chronic/patient/report/{reportId}/download")
+    public void download(@Parameter(description = "报告ID") @PathVariable Long reportId, HttpServletResponse response) throws Exception {
+        Long patientId = LoginHelper.getUserId();
+        ChReportInstanceVo report = reportService.queryReportById(reportId);
+        if (report == null || !patientId.equals(report.getPatientId())) {
+            throw new ServiceException("报告不存在或无权访问");
+        }
+        if (report.getPdfUrl() == null) {
+            throw new ServiceException("报告未关联PDF文件");
+        }
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=report_" + reportId + ".pdf");
+        try (java.io.InputStream in = new java.net.URL(report.getPdfUrl()).openStream();
+             java.io.OutputStream out = response.getOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
     }
 }

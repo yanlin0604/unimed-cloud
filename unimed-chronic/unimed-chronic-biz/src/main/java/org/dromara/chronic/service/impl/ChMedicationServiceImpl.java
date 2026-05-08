@@ -27,6 +27,9 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.dromara.common.redis.utils.RedisUtils;
+
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -176,5 +179,26 @@ public class ChMedicationServiceImpl implements IChMedicationService {
             }
         }
         return result;
+    }
+
+    private static final String MEDICATION_CHECKIN_KEY = "chronic:medication:checkin:";
+
+    @Override
+    public Boolean checkinMedication(Long medId, Long patientId) {
+        ChMedicationRecord entity = medicationRecordMapper.selectById(medId);
+        if (entity == null) {
+            throw new ServiceException("用药记录不存在");
+        }
+        if (!patientId.equals(entity.getPatientId())) {
+            throw new ServiceException("无权操作他人的用药记录");
+        }
+        if ("STOPPED".equalsIgnoreCase(entity.getStatus())) {
+            throw new ServiceException("该药物已停用，无法打卡");
+        }
+        // 记录打卡时间到 Redis，key: chronic:medication:checkin:{medId}:{yyyy-MM-dd}
+        String dateKey = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        String redisKey = MEDICATION_CHECKIN_KEY + medId + ":" + dateKey;
+        RedisUtils.setCacheObject(redisKey, String.valueOf(System.currentTimeMillis()), Duration.ofHours(48));
+        return true;
     }
 }

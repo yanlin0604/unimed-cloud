@@ -32,4 +32,13 @@ public interface IChPatientContractService {
     ChPatientContractVo queryById(Long contractId);
 
     Boolean updateLastRemindTime(Long contractId);
+
+    /**
+     * 分页查询履约明细
+     *
+     * @param contractId 签约ID
+     * @param pageQuery  分页参数
+     * @return 履约明细分页
+     */
+    TableDataInfo<ChContractFulfillmentVo> queryFulfillmentPage(Long contractId, PageQuery pageQuery);
 }

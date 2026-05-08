@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
 import org.dromara.chronic.service.IChMedicationService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.satoken.utils.LoginHelper;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +26,8 @@ import java.util.List;
 @Tag(name = "慢病管理-患者端用药")
 @RestController
 @RequiredArgsConstructor
+@SaCheckLogin
+@Validated
 public class PatientMedicationController {
 
     private final IChMedicationService medicationService;
@@ -31,9 +36,9 @@ public class PatientMedicationController {
      * 查看用药列表
      */
     @Operation(summary = "查看用药列表")
-    @SaCheckLogin
     @GetMapping("/chronic/patient/medication/list")
-    public R<List<ChMedicationRecordVo>> list(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<List<ChMedicationRecordVo>> list() {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(medicationService.queryMedicationList(patientId));
     }
 
@@ -41,10 +46,10 @@ public class PatientMedicationController {
      * 服药打卡
      */
     @Operation(summary = "服药打卡")
-    @SaCheckLogin
+    @RepeatSubmit
     @PostMapping("/chronic/patient/medication/checkin")
-    public R<Boolean> checkin(@Parameter(description = "患者ID") @RequestParam Long patientId,
-                              @Parameter(description = "用药记录ID") @RequestParam Long medId) {
-        return R.ok(medicationService.stopMedication(medId, "PATIENT_CHECKIN"));
+    public R<Boolean> checkin(@Parameter(description = "用药记录ID") @RequestParam Long medId) {
+        Long patientId = LoginHelper.getUserId();
+        return R.ok(medicationService.checkinMedication(medId, patientId));
     }
 }

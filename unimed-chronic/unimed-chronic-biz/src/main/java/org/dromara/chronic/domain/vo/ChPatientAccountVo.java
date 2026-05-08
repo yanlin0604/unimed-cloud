@@ -4,6 +4,8 @@ import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.dromara.chronic.domain.entity.ChPatientAccount;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -56,6 +58,7 @@ public class ChPatientAccountVo implements Serializable {
     private String avatarOssId;
 
     @Schema(description = "头像URL（由ossId解析）")
+    @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "avatarOssId")
     private String avatarUrl;
 
     @Schema(description = "是否已绑定微信")

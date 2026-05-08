@@ -42,6 +42,10 @@ public class ChFileAttachmentVo implements Serializable {
     @Schema(description = "OSS文件ID")
     private Long ossId;
 
+    @Schema(description = "文件访问地址")
+    @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "ossId")
+    private String fileUrl;
+
     @Schema(description = "租户ID")
     private String tenantId;
 

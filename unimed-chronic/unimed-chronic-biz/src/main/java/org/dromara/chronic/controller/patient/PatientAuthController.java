@@ -92,7 +92,10 @@ public class PatientAuthController {
 
     /**
      * 绑定家属代管
+     *
+     * @deprecated 请使用 {@link PatientFamilyController#bindFamily} 替代
      */
+    @Deprecated
     @Operation(summary = "绑定家属代管")
     @SaCheckLogin
     @PostMapping("/chronic/patient/auth/family/bind")
@@ -102,7 +105,10 @@ public class PatientAuthController {
 
     /**
      * 解绑家属代管
+     *
+     * @deprecated 请使用 {@link PatientFamilyController#unbindFamily} 替代
      */
+    @Deprecated
     @Operation(summary = "解绑家属代管")
     @SaCheckLogin
     @DeleteMapping("/chronic/patient/auth/family/{accountId}")
@@ -112,7 +118,10 @@ public class PatientAuthController {
 
     /**
      * 查询家属代管列表
+     *
+     * @deprecated 请使用 {@link PatientFamilyController#listFamily} 替代
      */
+    @Deprecated
     @Operation(summary = "查询家属代管列表")
     @SaCheckLogin
     @GetMapping("/chronic/patient/auth/family/{masterAccountId}")

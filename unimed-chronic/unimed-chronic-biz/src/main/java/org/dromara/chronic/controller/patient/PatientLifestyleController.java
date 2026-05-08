@@ -10,6 +10,7 @@ import org.dromara.chronic.domain.vo.ChLifestyleRecordVo;
 import org.dromara.chronic.service.IChLifestyleRecordService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,8 +39,15 @@ public class PatientLifestyleController {
 
     @Operation(summary = "查询生活方式趋势")
     @GetMapping("/chronic/patient/lifestyle/trend")
-    public R<List<ChLifestyleRecordVo>> trend(@Parameter(description = "患者ID") @RequestParam Long patientId,
-                                              @Parameter(description = "查询数量，默认12") @RequestParam(required = false, defaultValue = "12") Integer limit) {
+    public R<List<ChLifestyleRecordVo>> trend(@Parameter(description = "查询数量，默认12") @RequestParam(required = false, defaultValue = "12") Integer limit) {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(lifestyleRecordService.queryTrend(patientId, limit));
+    }
+
+    @Operation(summary = "查询最近生活方式记录")
+    @GetMapping("/chronic/patient/lifestyle/latest")
+    public R<ChLifestyleRecordVo> latest() {
+        Long patientId = LoginHelper.getUserId();
+        return R.ok(lifestyleRecordService.queryLatest(patientId));
     }
 }

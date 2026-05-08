@@ -9,6 +9,7 @@ import org.dromara.chronic.domain.vo.ChHealthEducationContentVo;
 import org.dromara.chronic.domain.vo.ChHealthEducationDeliveryVo;
 import org.dromara.chronic.service.IChHealthEducationService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,8 @@ public class PatientEducationController {
 
     @Operation(summary = "查询我的宣教列表")
     @GetMapping("/chronic/patient/education/list")
-    public R<List<ChHealthEducationDeliveryVo>> myList(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<List<ChHealthEducationDeliveryVo>> myList() {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(healthEducationService.queryDeliveriesByPatientId(patientId));
     }
 

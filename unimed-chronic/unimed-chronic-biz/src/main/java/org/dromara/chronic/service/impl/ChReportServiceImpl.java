@@ -116,4 +116,5 @@ public class ChReportServiceImpl implements IChReportService {
         log.info("报告推送: reportId={}, channel={}", reportId, channel);
         return null;
     }
+
 }

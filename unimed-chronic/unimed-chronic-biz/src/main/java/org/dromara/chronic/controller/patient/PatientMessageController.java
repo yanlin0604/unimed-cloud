@@ -11,6 +11,7 @@ import org.dromara.chronic.domain.vo.ChMessageSessionVo;
 import org.dromara.chronic.service.IChMessageSessionService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,8 @@ public class PatientMessageController {
 
     @Operation(summary = "查询我的会话列表")
     @GetMapping("/chronic/patient/message/sessions")
-    public R<List<ChMessageSessionVo>> mySessions(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<List<ChMessageSessionVo>> mySessions() {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(messageSessionService.queryByPatientId(patientId));
     }
 

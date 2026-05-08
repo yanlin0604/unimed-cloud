@@ -35,6 +35,11 @@ public class ChReportInstanceVo implements Serializable {
     private String reportType;
     @Schema(description = "PDF文件OSS ID")
     private String pdfOssId;
+
+    @Schema(description = "PDF文件访问地址")
+    @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "pdfOssId")
+    private String pdfUrl;
+
     @Schema(description = "签名时间")
     private Date signTime;
     @Schema(description = "二维码内容")

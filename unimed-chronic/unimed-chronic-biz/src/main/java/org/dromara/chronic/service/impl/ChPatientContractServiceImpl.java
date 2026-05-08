@@ -330,4 +330,19 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
         }
         fillContractNames(List.of(vo));
     }
+
+    @Override
+    public TableDataInfo<ChContractFulfillmentVo> queryFulfillmentPage(Long contractId, PageQuery pageQuery) {
+        LambdaQueryWrapper<ChContractFulfillment> lqw = Wrappers.lambdaQuery();
+        lqw.eq(ChContractFulfillment::getContractId, contractId);
+        lqw.orderByAsc(ChContractFulfillment::getPlanDate);
+        Page<ChContractFulfillmentVo> page = fulfillmentMapper.selectVoPage(pageQuery.build(), lqw);
+        Date now = new Date();
+        page.getRecords().forEach(item -> {
+            if ("PLANNED".equals(item.getFulfillmentStatus()) && item.getPlanDate() != null && item.getPlanDate().before(now)) {
+                item.setSlaViolation(Boolean.TRUE);
+            }
+        });
+        return TableDataInfo.build(page);
+    }
 }

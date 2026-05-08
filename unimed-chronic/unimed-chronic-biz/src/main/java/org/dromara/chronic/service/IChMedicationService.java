@@ -36,4 +36,14 @@ public interface IChMedicationService {
     Boolean createInteractionRule(ChDrugInteractionBo bo);
 
     DrugInteractionCheckVo checkInteraction(Long patientId, String targetDrugCode);
+
+    /**
+     * 服药打卡
+     *
+     * @param medId     用药记录ID
+     * @param patientId 当前登录患者ID（用于归属校验）
+     * @return true
+     * @throws ServiceException 药物已停用或不属于当前患者时抛出
+     */
+    Boolean checkinMedication(Long medId, Long patientId);
 }

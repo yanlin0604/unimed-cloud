@@ -1,6 +1,6 @@
 package org.dromara.chronic.controller.patient;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +14,7 @@ import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ import java.util.List;
  * @author unimed
  */
 @Tag(name = "慢病管理-患者端随访")
+@SaCheckLogin
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -35,21 +37,20 @@ public class PatientFollowupController {
     private final FollowupManager followupManager;
 
     @Operation(summary = "查询随访计划")
-    @SaCheckPermission("chronic:patient:followup-plan")
     @GetMapping("/plan")
-    public R<ChFollowupPlanVo> plan(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<ChFollowupPlanVo> plan() {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(followupService.queryCurrentPlan(patientId));
     }
 
     @Operation(summary = "查询随访任务")
-    @SaCheckPermission("chronic:patient:followup-task")
     @GetMapping("/task")
-    public R<List<ChFollowupTaskVo>> task(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<List<ChFollowupTaskVo>> task() {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(followupService.queryPatientTasks(patientId));
     }
 
     @Operation(summary = "患者自填随访提交")
-    @SaCheckPermission("chronic:patient:followup-submit")
     @Log(title = "患者自填随访", businessType = BusinessType.UPDATE)
     @RepeatSubmit
     @PostMapping("/task/{taskId}/submit")

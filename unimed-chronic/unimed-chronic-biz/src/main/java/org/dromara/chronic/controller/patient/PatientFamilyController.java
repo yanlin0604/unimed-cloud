@@ -9,6 +9,7 @@ import org.dromara.chronic.domain.bo.ChPatientAccountBo;
 import org.dromara.chronic.domain.vo.ChPatientAccountVo;
 import org.dromara.chronic.service.IChPatientAccountService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +21,7 @@ import java.util.List;
  * @author unimed
  */
 @Tag(name = "慢病管理-患者端家属代管")
+@SaCheckLogin
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +33,6 @@ public class PatientFamilyController {
      * 绑定家属代管
      */
     @Operation(summary = "绑定家属代管")
-    @SaCheckLogin
     @PostMapping("/chronic/patient/family/bind")
     public R<Boolean> bindFamily(@Validated @RequestBody ChPatientAccountBo bo) {
         return R.ok(patientAccountService.bindFamilyProxy(bo));
@@ -41,9 +42,9 @@ public class PatientFamilyController {
      * 家属代管列表
      */
     @Operation(summary = "家属代管列表")
-    @SaCheckLogin
-    @GetMapping("/chronic/patient/family/list/{masterAccountId}")
-    public R<List<ChPatientAccountVo>> listFamily(@Parameter(description = "主账号ID") @PathVariable Long masterAccountId) {
+    @GetMapping("/chronic/patient/family/list")
+    public R<List<ChPatientAccountVo>> listFamily() {
+        Long masterAccountId = LoginHelper.getUserId();
         return R.ok(patientAccountService.queryFamilyProxies(masterAccountId));
     }
 
@@ -51,7 +52,6 @@ public class PatientFamilyController {
      * 解绑家属代管
      */
     @Operation(summary = "解绑家属代管")
-    @SaCheckLogin
     @DeleteMapping("/chronic/patient/family/{accountId}")
     public R<Boolean> unbindFamily(@Parameter(description = "账号ID") @PathVariable Long accountId) {
         return R.ok(patientAccountService.unbindFamilyProxy(accountId));

@@ -58,4 +58,15 @@ public class ChLifestyleRecordServiceImpl implements IChLifestyleRecordService {
                 .last("LIMIT " + (limit != null ? limit : 12))
         );
     }
+
+    @Override
+    public ChLifestyleRecordVo queryLatest(Long patientId) {
+        List<ChLifestyleRecordVo> list = baseMapper.selectVoList(
+            Wrappers.<ChLifestyleRecord>lambdaQuery()
+                .eq(ChLifestyleRecord::getPatientId, patientId)
+                .orderByDesc(ChLifestyleRecord::getCreateTime)
+                .last("LIMIT 1")
+        );
+        return list.isEmpty() ? null : list.get(0);
+    }
 }

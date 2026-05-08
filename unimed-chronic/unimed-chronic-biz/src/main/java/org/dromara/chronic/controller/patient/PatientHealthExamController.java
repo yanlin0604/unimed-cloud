@@ -8,10 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.vo.ChHealthExamVo;
 import org.dromara.chronic.service.IChHealthExamService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -32,7 +32,8 @@ public class PatientHealthExamController {
 
     @Operation(summary = "查询体检检验列表")
     @GetMapping("/chronic/patient/health-exams")
-    public R<List<ChHealthExamVo>> list(@Parameter(description = "患者ID") @RequestParam Long patientId) {
+    public R<List<ChHealthExamVo>> list() {
+        Long patientId = LoginHelper.getUserId();
         return R.ok(healthExamService.queryByPatientId(patientId));
     }
 
