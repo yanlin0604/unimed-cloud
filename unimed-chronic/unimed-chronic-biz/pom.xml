@@ -130,6 +130,13 @@
             <version>4.16.25</version>
         </dependency>
 
+        <!-- 微信小程序 SDK (WxJava) -->
+        <dependency>
+            <groupId>com.github.binarywang</groupId>
+            <artifactId>weixin-java-miniapp</artifactId>
+            <version>4.7.0</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

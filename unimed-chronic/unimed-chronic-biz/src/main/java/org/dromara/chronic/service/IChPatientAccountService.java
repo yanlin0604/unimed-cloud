@@ -1,7 +1,9 @@
 package org.dromara.chronic.service;
 
 import org.dromara.chronic.domain.bo.ChPatientAccountBo;
+import org.dromara.chronic.domain.bo.WxLoginCodeBo;
 import org.dromara.chronic.domain.vo.ChPatientAccountVo;
+import org.dromara.chronic.domain.vo.WxLoginVo;
 
 import java.util.List;
 
@@ -12,7 +14,7 @@ import java.util.List;
  */
 public interface IChPatientAccountService {
 
-    Long register(ChPatientAccountBo bo);
+    WxLoginVo register(ChPatientAccountBo bo);
 
     ChPatientAccountVo queryByPhone(String phone);
 
@@ -27,4 +29,21 @@ public interface IChPatientAccountService {
     Boolean unbindFamilyProxy(Long accountId);
 
     Boolean updateAuthScope(Long accountId, String authScope);
+
+    WxLoginVo loginByWxCode(WxLoginCodeBo bo);
+
+    /**
+     * 已登录用户绑定微信（通过 wx.login code 获取 openid）
+     */
+    Boolean bindWechat(Long accountId, String code);
+
+    /**
+     * 根据账号ID查询
+     */
+    ChPatientAccountVo getAccountById(Long accountId);
+
+    /**
+     * 更新用户昵称和头像
+     */
+    Boolean updateAccountInfo(Long accountId, String nickname, String avatarOssId);
 }

@@ -1346,6 +1346,8 @@ CREATE TABLE `ch_patient_account` (
   `master_account_id`   BIGINT        DEFAULT NULL COMMENT '主账户ID',
   `auth_scope`          JSON          DEFAULT NULL COMMENT '授权范围',
   `auth_expire_time`    DATETIME      DEFAULT NULL COMMENT '授权过期时间',
+  `nickname`            VARCHAR(64)   DEFAULT NULL COMMENT '微信昵称',
+  `avatar_oss_id`       VARCHAR(64)   DEFAULT NULL COMMENT '头像OSS ID',
   `create_dept`      BIGINT        DEFAULT NULL COMMENT '创建部门',
   `tenant_id`        BIGINT        DEFAULT NULL COMMENT '租户ID',
   `create_by`           BIGINT        DEFAULT NULL COMMENT '创建者',

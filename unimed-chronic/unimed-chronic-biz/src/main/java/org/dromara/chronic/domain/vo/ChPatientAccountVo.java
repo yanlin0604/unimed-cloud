@@ -49,6 +49,18 @@ public class ChPatientAccountVo implements Serializable {
     @Schema(description = "授权过期时间")
     private Date authExpireTime;
 
+    @Schema(description = "微信昵称")
+    private String nickname;
+
+    @Schema(description = "头像OSS ID")
+    private String avatarOssId;
+
+    @Schema(description = "头像URL（由ossId解析）")
+    private String avatarUrl;
+
+    @Schema(description = "是否已绑定微信")
+    private Boolean isBoundWechat;
+
     @Schema(description = "租户ID")
     private Long tenantId;
 

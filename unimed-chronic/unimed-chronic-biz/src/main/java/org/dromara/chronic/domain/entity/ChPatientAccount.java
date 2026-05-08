@@ -52,6 +52,16 @@ public class ChPatientAccount extends TenantEntity {
      */
     private Date authExpireTime;
 
+    /**
+     * 微信昵称
+     */
+    private String nickname;
+
+    /**
+     * 头像OSS ID
+     */
+    private String avatarOssId;
+
     @TableLogic
     private String delFlag;
 }

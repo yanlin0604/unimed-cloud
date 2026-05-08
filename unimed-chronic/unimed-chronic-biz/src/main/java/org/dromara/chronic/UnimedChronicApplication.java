@@ -1,8 +1,10 @@
 package org.dromara.chronic;
 
+import org.dromara.chronic.config.ChronicWxProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
@@ -14,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author unimed
  */
 @EnableAsync(proxyTargetClass = true)
+@EnableConfigurationProperties(ChronicWxProperties.class)
 @SpringBootApplication
 public class UnimedChronicApplication {
 

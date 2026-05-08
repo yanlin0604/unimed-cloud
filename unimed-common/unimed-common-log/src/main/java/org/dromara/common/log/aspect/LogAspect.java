@@ -87,9 +87,15 @@ public class LogAspect {
             String ip = ServletUtils.getClientIP();
             operLog.setOperIp(ip);
             operLog.setOperUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-            LoginUser loginUser = LoginHelper.getLoginUser();
-            operLog.setOperName(loginUser.getUsername());
-            operLog.setDeptName(loginUser.getDeptName());
+            try {
+                LoginUser loginUser = LoginHelper.getLoginUser();
+                if (loginUser != null) {
+                    operLog.setOperName(loginUser.getUsername());
+                    operLog.setDeptName(loginUser.getDeptName());
+                }
+            } catch (Exception ignored) {
+                // 登录接口等无 token 场景，忽略
+            }
 
             if (e != null) {
                 operLog.setStatus(BusinessStatus.FAIL.ordinal());
@@ -126,6 +132,9 @@ public class LogAspect {
      * @throws Exception
      */
     public void getControllerMethodDescription(JoinPoint joinPoint, Log log, OperLogEvent operLog, Object jsonResult) throws Exception {
+        if (log == null) {
+            return;
+        }
         // 设置action动作
         operLog.setBusinessType(log.businessType().ordinal());
         // 设置标题

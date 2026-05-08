@@ -33,6 +33,9 @@ public class ChPatientAccountBo extends BaseEntity {
     @NotBlank(message = "手机号不能为空")
     private String phone;
 
+    @Schema(description = "短信验证码")
+    private String smsCode;
+
     @Schema(description = "openid")
     private String openid;
 

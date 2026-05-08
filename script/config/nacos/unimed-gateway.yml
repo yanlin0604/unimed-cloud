@@ -30,6 +30,8 @@ security:
       - /dh/portal/dialect/**
       # C端门户认证接口
       - /dh/portal/auth/**
+      # 慢病患者端认证接口
+      - /chronic/chronic/patient/auth/**
       # 健康检查和监控
       - /actuator/**
 
