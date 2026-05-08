@@ -6,6 +6,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.stp.parameter.SaLoginParameter;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChPatientAccountBo;
@@ -15,6 +16,7 @@ import org.dromara.chronic.domain.vo.ChPatientAccountVo;
 import org.dromara.chronic.domain.vo.WxLoginVo;
 import org.dromara.chronic.mapper.ChPatientAccountMapper;
 import org.dromara.chronic.service.IChPatientAccountService;
+import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.core.enums.UserType;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -23,9 +25,12 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.system.api.model.LoginUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.dromara.common.redis.utils.RedisUtils;
 import org.dromara.resource.api.RemoteFileService;
@@ -72,6 +77,10 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         ChPatientAccount entity = MapstructUtils.convert(bo, ChPatientAccount.class);
         if (entity.getIsFamilyProxy() == null) {
             entity.setIsFamilyProxy(false);
+        }
+        // 如果BO中没有设置tenantId，使用默认租户ID
+        if (StringUtils.isBlank(entity.getTenantId())) {
+            entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
         }
         patientAccountMapper.insert(entity);
         ChPatientAccountVo newAccount = patientAccountMapper.selectVoOne(
@@ -130,6 +139,10 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
             throw new ServiceException("授权过期时间不能早于当前时间");
         }
         ChPatientAccount entity = MapstructUtils.convert(bo, ChPatientAccount.class);
+        // 如果BO中没有设置tenantId，使用默认租户ID
+        if (StringUtils.isBlank(entity.getTenantId())) {
+            entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        }
         patientAccountMapper.insert(entity);
         return true;
     }
@@ -271,21 +284,36 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         entity.setOpenid(openid);
         entity.setUnionid(unionid);
         entity.setIsFamilyProxy(false);
+        // 设置默认租户ID
+        entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
         patientAccountMapper.insert(entity);
         return entity.getAccountId();
     }
 
     private WxLoginVo doLogin(ChPatientAccountVo account) {
+        // 构建 LoginUser
         LoginUser loginUser = new LoginUser();
+        loginUser.setTenantId(account.getTenantId() != null ? account.getTenantId() : TenantConstants.DEFAULT_TENANT_ID);
         loginUser.setUserId(account.getAccountId());
         loginUser.setUsername(account.getPhone());
+        loginUser.setNickname(account.getNickname());
         loginUser.setUserType(UserType.PORTAL_USER.getUserType());
-        loginUser.setTenantId(account.getTenantId() != null ? String.valueOf(account.getTenantId()) : null);
+        // C端用户基础权限：文件上传、文件下载
+        loginUser.setMenuPermission(Set.of("system:oss:upload", "system:oss:download"));
+        loginUser.setRolePermission(Set.of());
 
-        SaLoginParameter param = new SaLoginParameter();
-        param.setDeviceType("mp-weixin");
-
-        LoginHelper.login(loginUser, param);
+        // 使用 LoginHelper 登录（正确设置扩展信息）
+        SaLoginParameter loginParameter = new SaLoginParameter();
+        loginParameter.setDevice("mp-weixin");
+        // 从 HTTP 请求头中获取 clientid（前端传递），用于网关验证
+        String clientId = getClientIdFromRequest();
+        if (StringUtils.isNotBlank(clientId)) {
+            loginParameter.setExtra(LoginHelper.CLIENT_KEY, clientId);
+        }
+        log.info("患者登录: loginId={}, phone={}****, clientId={}", loginUser.getLoginId(),
+            account.getPhone() != null && account.getPhone().length() > 4 ? account.getPhone().substring(0, account.getPhone().length() - 4) : "***",
+            clientId);
+        LoginHelper.login(loginUser, loginParameter);
 
         String token = StpUtil.getTokenValue();
         long expireIn = StpUtil.getTokenTimeout();
@@ -386,5 +414,29 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         } catch (Exception e) {
             log.warn("解析头像URL失败: ossId={}, err={}", vo.getAvatarOssId(), e.getMessage());
         }
+    }
+
+    /**
+     * 从当前 HTTP 请求头中获取 clientid
+     */
+    private String getClientIdFromRequest() {
+        try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                String clientId = request.getHeader(LoginHelper.CLIENT_KEY);
+                if (StringUtils.isNotBlank(clientId)) {
+                    return clientId;
+                }
+                // 尝试从 query param 中获取
+                clientId = request.getParameter(LoginHelper.CLIENT_KEY);
+                if (StringUtils.isNotBlank(clientId)) {
+                    return clientId;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("获取clientid失败: {}", e.getMessage());
+        }
+        return null;
     }
 }

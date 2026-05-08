@@ -8,6 +8,7 @@ import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import cn.dev33.satoken.util.SaTokenConsts;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.constant.HttpStatus;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -23,6 +24,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
  *
  * @author Lion Li
  */
+@Slf4j
 @Configuration
 public class AuthFilter {
 
@@ -42,32 +44,34 @@ public class AuthFilter {
                     .notMatch(ignoreWhite.getWhites())
                     .check(r -> {
                         ServerHttpRequest request = SaReactorSyncHolder.getExchange().getRequest();
+                        String uri = request.getURI().getPath();
                         // 检查是否登录 是否有token
                         StpUtil.checkLogin();
 
                         // 检查 header 与 param 里的 clientid 与 token 里的是否一致
                         String headerCid = request.getHeaders().getFirst(LoginHelper.CLIENT_KEY);
                         String paramCid = request.getQueryParams().getFirst(LoginHelper.CLIENT_KEY);
-                        String clientId = StpUtil.getExtra(LoginHelper.CLIENT_KEY).toString();
+                        Object extraObj = StpUtil.getExtra(LoginHelper.CLIENT_KEY);
+                        String clientId = extraObj != null ? extraObj.toString() : null;
                         if (!StringUtils.equalsAny(clientId, headerCid, paramCid)) {
-                            // token 无效
+                            log.warn("网关鉴权-客户端ID不匹配: uri={}, tokenCid={}, headerCid={}, paramCid={}",
+                                uri, clientId, headerCid, paramCid);
                             throw NotLoginException.newInstance(StpUtil.getLoginType(),
                                 "-100", "客户端ID与Token不匹配",
                                 StpUtil.getTokenValue());
                         }
-
-                        // 有效率影响 用于临时测试
-                        // if (log.isDebugEnabled()) {
-                        //     log.debug("剩余有效时间: {}", StpUtil.getTokenTimeout());
-                        //     log.debug("临时有效时间: {}", StpUtil.getTokenActivityTimeout());
-                        // }
+                        log.debug("网关鉴权通过: uri={}, loginId={}", uri, StpUtil.getLoginId());
                     });
             }).setError(e -> {
                 ServerHttpResponse response = SaReactorSyncHolder.getExchange().getResponse();
                 response.getHeaders().set(SaTokenConsts.CONTENT_TYPE_KEY, SaTokenConsts.CONTENT_TYPE_APPLICATION_JSON);
-                if (e instanceof NotLoginException) {
+                ServerHttpRequest request = SaReactorSyncHolder.getExchange().getRequest();
+                String uri = request.getURI().getPath();
+                if (e instanceof NotLoginException notLoginEx) {
+                    log.warn("网关认证失败: uri={}, type={}, message={}", uri, notLoginEx.getType(), notLoginEx.getMessage());
                     return SaResult.error(e.getMessage()).setCode(HttpStatus.UNAUTHORIZED);
                 }
+                log.error("网关认证异常: uri={}, error={}", uri, e.getMessage(), e);
                 return SaResult.error("认证失败，无法访问系统资源").setCode(HttpStatus.UNAUTHORIZED);
             });
     }

@@ -41,7 +41,7 @@ public class ChConsentRecordVo implements Serializable {
     private Date signTime;
 
     @Schema(description = "租户ID")
-    private Long tenantId;
+    private String tenantId;
 
     @Schema(description = "创建者")
     private Long createBy;

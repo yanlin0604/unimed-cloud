@@ -53,4 +53,7 @@ public class ChPatientAccountBo extends BaseEntity {
 
     @Schema(description = "授权过期时间")
     private Date authExpireTime;
+
+    @Schema(description = "租户ID")
+    private String tenantId;
 }

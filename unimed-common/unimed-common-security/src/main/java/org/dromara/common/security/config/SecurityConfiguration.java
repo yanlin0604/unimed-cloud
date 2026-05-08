@@ -6,10 +6,14 @@ import cn.dev33.satoken.httpauth.basic.SaHttpBasicUtil;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.same.SaSameUtil;
 import cn.dev33.satoken.util.SaResult;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.constant.HttpStatus;
 import org.dromara.common.core.utils.SpringUtils;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -18,6 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *
  * @author Lion Li
  */
+@Slf4j
 @AutoConfiguration
 public class SecurityConfiguration implements WebMvcConfigurer {
 
@@ -58,10 +63,31 @@ public class SecurityConfiguration implements WebMvcConfigurer {
             )
             .setAuth(obj -> {
                 if (SaManager.getConfig().getCheckSameToken()) {
-                    SaSameUtil.checkCurrentRequestToken();
+                    try {
+                        SaSameUtil.checkCurrentRequestToken();
+                    } catch (Exception e) {
+                        HttpServletRequest request = null;
+                        try {
+                            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+                            if (attrs != null) request = attrs.getRequest();
+                        } catch (Exception ignored) {}
+                        String uri = request != null ? request.getRequestURI() : "unknown";
+                        String ssoHeader = request != null ? request.getHeader(SaSameUtil.SAME_TOKEN) : "no-request";
+                        log.warn("same-token 校验失败: uri={}, sso={}, error={}", uri, ssoHeader, e.getMessage());
+                        throw e;
+                    }
                 }
             })
-            .setError(e -> SaResult.error("认证失败，无法访问系统资源").setCode(HttpStatus.UNAUTHORIZED));
+            .setError(e -> {
+                HttpServletRequest request = null;
+                try {
+                    ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+                    if (attrs != null) request = attrs.getRequest();
+                } catch (Exception ignored) {}
+                String uri = request != null ? request.getRequestURI() : "unknown";
+                log.error("认证失败: uri={}, error={}", uri, e.getMessage());
+                return SaResult.error("认证失败，无法访问系统资源").setCode(HttpStatus.UNAUTHORIZED);
+            });
     }
 
     /**

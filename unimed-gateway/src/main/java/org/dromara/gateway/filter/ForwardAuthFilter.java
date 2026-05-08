@@ -2,6 +2,7 @@ package org.dromara.gateway.filter;
 
 import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.same.SaSameUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
  *
  * @author Lion Li
  */
+@Slf4j
 @Component
 public class ForwardAuthFilter implements GlobalFilter, Ordered {
     @Override
@@ -23,12 +25,14 @@ public class ForwardAuthFilter implements GlobalFilter, Ordered {
         if (!SaManager.getConfig().getCheckSameToken()) {
             return chain.filter(exchange);
         }
+        String sameToken = SaSameUtil.getToken();
         ServerHttpRequest newRequest = exchange
             .getRequest()
             .mutate()
             // 为请求追加 Same-Token 参数
-            .header(SaSameUtil.SAME_TOKEN, SaSameUtil.getToken())
+            .header(SaSameUtil.SAME_TOKEN, sameToken)
             .build();
+        log.debug("网关转发 same-token: uri={}, sso={}", exchange.getRequest().getURI().getPath(), sameToken);
         ServerWebExchange newExchange = exchange.mutate().request(newRequest).build();
         return chain.filter(newExchange);
     }

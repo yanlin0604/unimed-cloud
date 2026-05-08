@@ -38,7 +38,7 @@ public class ChDoctorWechatBindVo implements Serializable {
     private Date bindTime;
 
     @Schema(description = "租户ID")
-    private Long tenantId;
+    private String tenantId;
 
     @Schema(description = "创建时间")
     private Date createTime;

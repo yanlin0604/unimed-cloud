@@ -165,6 +165,10 @@ logging:
     io.micrometer: error
     # 临时处理 spring 调整日志级别导致启动警告问题 不影响使用等待 alibaba 适配
     org.springframework.context.support.PostProcessorRegistrationDelegate: error
+    # 认证链路与业务模块调试日志
+    cn.dev33.satoken: debug
+    org.dromara.gateway: debug
+    org.dromara.chronic: debug
   config: classpath:logback-plus.xml
 
 # Sa-Token配置

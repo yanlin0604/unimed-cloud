@@ -43,7 +43,7 @@ public class ChFileAttachmentVo implements Serializable {
     private Long ossId;
 
     @Schema(description = "租户ID")
-    private Long tenantId;
+    private String tenantId;
 
     @Schema(description = "创建者")
     private Long createBy;
