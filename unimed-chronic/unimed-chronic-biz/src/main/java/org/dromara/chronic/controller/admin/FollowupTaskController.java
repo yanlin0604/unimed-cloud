@@ -19,6 +19,8 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 随访任务控制器
  *
@@ -40,6 +42,13 @@ public class FollowupTaskController {
                                                 @Parameter(description = "任务状态") @RequestParam(required = false) String taskStatus,
                                                 PageQuery pageQuery) {
         return followupService.queryTaskPage(assigneeUserId, taskStatus, pageQuery);
+    }
+
+    @Operation(summary = "查询患者待办随访任务")
+    @SaCheckPermission("chronic:followup-task:list")
+    @GetMapping("/chronic/admin/patient/{patientId}/followup-tasks")
+    public R<List<ChFollowupTaskVo>> patientTasks(@Parameter(description = "患者ID") @PathVariable Long patientId) {
+        return R.ok(followupService.queryPatientTasks(patientId));
     }
 
     /**

@@ -68,6 +68,25 @@ public class WarningManager {
         return null;
     }
 
+    /**
+     * 手动触发预警事件
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Long createWarningEvent(Long patientId, Long ruleId) {
+        ChWarningRule rule = warningRuleMapper.selectById(ruleId);
+        if (rule == null) {
+            throw new org.dromara.common.core.exception.ServiceException("预警规则不存在: " + ruleId);
+        }
+        ChWarningEventBo bo = new ChWarningEventBo();
+        bo.setPatientId(patientId);
+        bo.setRuleId(ruleId);
+        bo.setWarningLevel(rule.getWarningLevel());
+        bo.setEventStatus("NEW");
+        warningEventService.createEvent(bo);
+        log.info("手动触发预警: patientId={}, ruleId={}, level={}", patientId, ruleId, rule.getWarningLevel());
+        return bo.getWarningId();
+    }
+
     public ChWarningEventVo queryDetail(Long warningId) {
         return warningEventService.queryById(warningId);
     }

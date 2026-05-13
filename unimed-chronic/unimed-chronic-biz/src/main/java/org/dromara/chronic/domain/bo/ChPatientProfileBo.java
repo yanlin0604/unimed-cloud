@@ -13,6 +13,7 @@ import org.dromara.common.mybatis.core.domain.BaseEntity;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 患者主档案业务对象 ch_patient_profile
@@ -231,4 +232,16 @@ public class ChPatientProfileBo extends BaseEntity {
      */
     @Schema(description = "档案来源")
     private String source;
+
+    /**
+     * 关联病种列表（新建/编辑档案时一并落库）
+     */
+    @Schema(description = "关联病种列表")
+    private List<ChPatientDiseaseBo> diseases;
+
+    /**
+     * 患者标签列表（新建/编辑档案时一并落库）
+     */
+    @Schema(description = "患者标签列表")
+    private List<ChPatientTagBo> tags;
 }

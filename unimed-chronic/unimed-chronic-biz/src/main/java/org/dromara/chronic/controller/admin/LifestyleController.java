@@ -42,6 +42,23 @@ public class LifestyleController {
         return R.ok(lifestyleRecordService.add(bo));
     }
 
+    @Operation(summary = "修改生活方式记录")
+    @SaCheckPermission("chronic:lifestyle:edit")
+    @Log(title = "生活方式记录", businessType = BusinessType.UPDATE)
+    @PutMapping("/chronic/admin/lifestyle/{id}")
+    public R<Void> edit(@Parameter(description = "记录ID") @PathVariable Long id, @Validated @RequestBody ChLifestyleRecordBo bo) {
+        bo.setId(id);
+        return R.ok(lifestyleRecordService.update(bo));
+    }
+
+    @Operation(summary = "删除生活方式记录")
+    @SaCheckPermission("chronic:lifestyle:remove")
+    @Log(title = "生活方式记录", businessType = BusinessType.DELETE)
+    @DeleteMapping("/chronic/admin/lifestyle/{id}")
+    public R<Void> remove(@Parameter(description = "记录ID") @PathVariable Long id) {
+        return R.ok(lifestyleRecordService.remove(id));
+    }
+
     @Operation(summary = "分页查询生活方式")
     @SaCheckPermission("chronic:lifestyle:list")
     @GetMapping("/chronic/admin/lifestyle/page")

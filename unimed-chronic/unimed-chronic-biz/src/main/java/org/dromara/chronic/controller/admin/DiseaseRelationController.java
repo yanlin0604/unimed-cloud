@@ -81,4 +81,40 @@ public class DiseaseRelationController {
         ChDiseaseRelation entity = MapstructUtils.convert(bo, ChDiseaseRelation.class);
         return diseaseRelationMapper.insert(entity) > 0 ? R.ok() : R.fail();
     }
+
+    @Operation(summary = "修改病种关系")
+    @SaCheckPermission("chronic:disease-relation:edit")
+    @Log(title = "病种关系", businessType = BusinessType.UPDATE)
+    @RepeatSubmit
+    @PutMapping("/{id}")
+    public R<Void> edit(@Parameter(description = "关系ID") @PathVariable Long id,
+                        @Validated @RequestBody ChDiseaseRelationBo bo) {
+        bo.setId(id);
+        ChDiseaseRelation entity = MapstructUtils.convert(bo, ChDiseaseRelation.class);
+        return diseaseRelationMapper.updateById(entity) > 0 ? R.ok() : R.fail();
+    }
+
+    @Operation(summary = "删除病种关系")
+    @SaCheckPermission("chronic:disease-relation:remove")
+    @Log(title = "病种关系", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{ids}")
+    public R<Void> remove(@Parameter(description = "关系ID集合") @PathVariable Long[] ids) {
+        if (ids == null || ids.length == 0) {
+            return R.fail("ids 不能为空");
+        }
+        return diseaseRelationMapper.deleteByIds(java.util.Arrays.asList(ids)) > 0 ? R.ok() : R.fail();
+    }
+
+    @Operation(summary = "停用病种关系")
+    @SaCheckPermission("chronic:disease-relation:edit")
+    @Log(title = "病种关系", businessType = BusinessType.UPDATE)
+    @PostMapping("/{id}/disable")
+    public R<Void> disable(@Parameter(description = "关系ID") @PathVariable Long id) {
+        ChDiseaseRelation entity = diseaseRelationMapper.selectById(id);
+        if (entity == null) {
+            return R.fail("病种关系不存在");
+        }
+        entity.setIsActive(Boolean.FALSE);
+        return diseaseRelationMapper.updateById(entity) > 0 ? R.ok() : R.fail();
+    }
 }

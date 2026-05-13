@@ -111,7 +111,7 @@ unimed-Cloud-Plus
 │  └─ unimed-common-sse             // sse流推送模块
 │  └─ unimed-common-tenant          // 租户功能模块
 │  └─ unimed-common-translation     // 通用翻译功能
-│  └─ unimed-common-web             // web服务集成模块
+│  └─ unimed-common-web             // web服务集成模块(Undertow容器/全局异常处理/XSS防护/国际化/Actuator监控)
 │  └─ unimed-common-websocket       // websocket服务集成模块
 ├─ unimed-example        // 例子模块
 │  └─ unimed-demo        // 演示模块 [9401]
@@ -135,7 +135,13 @@ unimed-Cloud-Plus
 │  └─ unimed-seata-server           // seata服务模块 [7091,8091]
 │  └─ unimed-sentinel-dashboard     // sentinel控制台模块 [8718]
 │  └─ unimed-snailjob-server        // 任务调度控制台模块 [8800,17888]
-├─ plus-ui              // 前端框架 [80]
+├─ web                  // 前端项目目录
+│  └─ plus-ui                      // 基础管理后台(Vue3/TS/Element Plus/Vite/Pinia/UnoCSS)
+│  └─ chronic-admin-vue            // 慢病管理后台
+│  └─ chronic-doctor               // 医生端前端
+│  └─ chronic-patient              // 患者端前端
+│  └─ ai-video-generation          // AI视频生成前端
+├─ unimed-visual/unimed-visual-ui  // 监控可视化前端
 ├─ config/nacos         // nacos配置文件(需复制到nacos配置中心使用)
 │  └─ sentinel-unimed-gateway.json  // sentinel对接gateway限流配置文件
 │  └─ seata-server.properties      // seata服务配置文件

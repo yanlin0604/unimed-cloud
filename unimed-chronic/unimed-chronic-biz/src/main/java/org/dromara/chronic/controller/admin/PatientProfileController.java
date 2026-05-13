@@ -29,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -101,7 +100,11 @@ public class PatientProfileController extends BaseController {
     @RepeatSubmit
     @PostMapping
     public R<Long> add(@Validated @RequestBody ChPatientProfileBo bo) {
-        Long patientId = patientProfileManager.createArchive(bo, Collections.emptyList(), Collections.emptyList());
+        Long patientId = patientProfileManager.createArchive(
+            bo,
+            patientProfileManager.convertDiseases(bo.getDiseases()),
+            patientProfileManager.convertTags(bo.getTags())
+        );
         return R.ok(patientId);
     }
 
@@ -125,7 +128,8 @@ public class PatientProfileController extends BaseController {
     @PutMapping("/{patientId}")
     public R<Void> edit(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated @RequestBody ChPatientProfileBo bo) {
         bo.setPatientId(patientId);
-        return toAjax(patientProfileService.updateByBo(bo));
+        patientProfileManager.editArchive(bo);
+        return R.ok();
     }
 
     /**
@@ -136,5 +140,19 @@ public class PatientProfileController extends BaseController {
     @GetMapping("/{patientId}/timeline")
     public R<List<ChPatientTimelineVo>> timeline(@Parameter(description = "患者ID") @PathVariable Long patientId) {
         return R.ok(patientProfileService.queryTimelineByPatientId(patientId));
+    }
+
+    /**
+     * 删除患者档案
+     */
+    @Operation(summary = "删除患者档案")
+    @SaCheckPermission("chronic:patient:remove")
+    @Log(title = "患者档案", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{patientIds}")
+    public R<Void> remove(@Parameter(description = "患者ID集合") @PathVariable Long[] patientIds) {
+        if (patientIds == null || patientIds.length == 0) {
+            return R.fail("patientIds 不能为空");
+        }
+        return toAjax(patientProfileService.deleteByIds(java.util.Arrays.asList(patientIds)));
     }
 }

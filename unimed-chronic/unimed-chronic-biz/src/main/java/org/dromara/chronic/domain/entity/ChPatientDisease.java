@@ -61,6 +61,12 @@ public class ChPatientDisease extends TenantEntity {
      * 主病编码
      */
     private String parentDiseaseCode;
+
+    /**
+     * 启用状态(1启用 0停用)
+     */
+    private Boolean enableStatus;
+
     /**
      * 删除标志
      */

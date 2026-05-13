@@ -3,7 +3,6 @@ package org.dromara.chronic.domain.bo;
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -27,15 +26,14 @@ public class ChHealthMetricRecordBo extends BaseEntity {
     @Schema(description = "指标记录ID")
     private Long metricId;
 
-    @Schema(description = "患者ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "患者ID不能为空")
+    @Schema(description = "患者ID（写入接口由控制器从 Token 或 PathVariable 注入，无需前端传）")
     private Long patientId;
 
     @Schema(description = "指标类型", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "指标类型不能为空")
     private String metricType;
 
-    @Schema(description = "指标值（简单指标为字符串数字，血压等复合指标为JSON）", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "指标值（简单数字字符串；血压拆为 BP_SYSTOLIC + BP_DIASTOLIC 两条独立记录）", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "指标值不能为空")
     private String metricValue;
 

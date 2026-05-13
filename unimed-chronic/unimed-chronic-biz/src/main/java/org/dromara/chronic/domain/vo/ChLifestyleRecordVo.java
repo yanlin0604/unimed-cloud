@@ -56,6 +56,10 @@ public class ChLifestyleRecordVo implements Serializable {
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "exerciseFreq", other = ChronicDictTypeConstant.CHRONIC_EXERCISE_FREQ)
     private String exerciseFreqName;
 
+    @Schema(description = "饮食习惯名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "dietHabit", other = ChronicDictTypeConstant.CHRONIC_DIET_HABIT)
+    private String dietHabitName;
+
     @Schema(description = "心理状态名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "psychologicalStatus", other = ChronicDictTypeConstant.CHRONIC_PSYCHOLOGICAL_STATUS)
     private String psychologicalStatusName;

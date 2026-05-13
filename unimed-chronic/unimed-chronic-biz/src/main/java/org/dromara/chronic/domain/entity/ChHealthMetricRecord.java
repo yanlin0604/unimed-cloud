@@ -32,7 +32,7 @@ public class ChHealthMetricRecord extends TenantEntity {
     private String metricType;
 
     /**
-     * 指标值（简单指标为字符串数字，如"6.5"；血压等复合指标为JSON，如{"systolic":120,"diastolic":80}）
+     * 指标值（简单数字字符串，如"6.5"、"120"；血压拆为 BP_SYSTOLIC + BP_DIASTOLIC 两条独立记录）
      */
     private String metricValue;
 

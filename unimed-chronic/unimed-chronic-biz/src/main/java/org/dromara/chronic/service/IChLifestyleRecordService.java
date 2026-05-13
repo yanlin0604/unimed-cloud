@@ -16,6 +16,16 @@ public interface IChLifestyleRecordService {
 
     Long add(ChLifestyleRecordBo bo);
 
+    /**
+     * 更新生活方式记录
+     */
+    Void update(ChLifestyleRecordBo bo);
+
+    /**
+     * 删除记录
+     */
+    Void remove(Long id);
+
     ChLifestyleRecordVo queryById(Long id);
 
     TableDataInfo<ChLifestyleRecordVo> queryPageList(ChLifestyleRecordBo bo, PageQuery pageQuery);

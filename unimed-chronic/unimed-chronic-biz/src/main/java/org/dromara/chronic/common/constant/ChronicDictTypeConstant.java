@@ -83,6 +83,8 @@ public final class ChronicDictTypeConstant {
 
     /** 随访计划状态 (DRAFT/ACTIVE/DISABLED/HISTORY) */
     public static final String CHRONIC_FOLLOWUP_PLAN_STATUS = "chronic_followup_plan_status";
+    /** 随访计划类型 (CHRONIC/POST_OP/REGULAR) - 用于患者端展示随访计划分类 */
+    public static final String CHRONIC_FOLLOWUP_PLAN_TYPE = "chronic_followup_plan_type";
     /** 随访计划项类型 */
     public static final String CHRONIC_FOLLOWUP_ITEM_TYPE = "chronic_followup_item_type";
     /** 随访方式 (PHONE/VIDEO/OFFLINE/SELF_FILL/ADMIN_PROXY) */
@@ -119,6 +121,8 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_DRINKING_STATUS = "chronic_drinking_status";
     /** 运动频率 */
     public static final String CHRONIC_EXERCISE_FREQ = "chronic_exercise_freq";
+    /** 饮食习惯 */
+    public static final String CHRONIC_DIET_HABIT = "chronic_diet_habit";
     /** 心理状态 */
     public static final String CHRONIC_PSYCHOLOGICAL_STATUS = "chronic_psychological_status";
     /** 依从性等级 */
@@ -175,6 +179,8 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_SENDER_TYPE = "chronic_sender_type";
     /** 消息内容类型 (TEXT/IMAGE/VOICE) */
     public static final String CHRONIC_CONTENT_TYPE = "chronic_content_type";
+    /** 消息类型 (doctor/system/service) - 用于患者端消息Tab分类 */
+    public static final String CHRONIC_MESSAGE_TYPE = "chronic_message_type";
 
     // ==================== 健康教育 ====================
 
@@ -223,10 +229,15 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_OCR_DOCUMENT_TYPE = "chronic_ocr_document_type";
     /** OCR输入类型 (IMAGE_BASE64/IMAGE_URL/PDF_FILE/OSS_FILE) */
     public static final String CHRONIC_OCR_INPUT_TYPE = "chronic_ocr_input_type";
-    /** OCR任务状态 (PENDING/RECOGNIZING/SUCCESS/FAILED/CONFIRMED/DISCARDED) */
+    /** OCR任务状态 (PENDING/PROCESSING/SUCCESS/FAILED/CONFIRMED/DISCARDED) */
     public static final String CHRONIC_OCR_STATUS = "chronic_ocr_status";
     /** OCR建档动作类型 (CREATE_ARCHIVE/UPDATE_ARCHIVE) */
     public static final String CHRONIC_OCR_ACTION_TYPE = "chronic_ocr_action_type";
+
+    // ==================== 患者端专用 ====================
+
+    /** 健康页Tab类型 (trend/input/lifestyle) - 用于患者端健康页Tab分类 */
+    public static final String CHRONIC_HEALTH_TAB_TYPE = "chronic_health_tab_type";
 
     // ==================== 其他 ====================
 

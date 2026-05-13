@@ -127,6 +127,15 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         return baseMapper.updateById(updateEntity) > 0;
     }
 
+    @Override
+    public Boolean deleteByIds(java.util.Collection<Long> patientIds) {
+        if (CollUtil.isEmpty(patientIds)) {
+            return Boolean.FALSE;
+        }
+        // 主档案逻辑删除；关联表（病种 / 标签 / 时间线）保留为审计痕迹
+        return baseMapper.deleteByIds(patientIds) > 0;
+    }
+
     private LambdaQueryWrapper<ChPatientProfile> buildQueryWrapper(ChPatientProfileBo bo) {
         Map<String, Object> params = bo.getParams();
         List<Long> filteredPatientIds = resolvePatientIds(params);

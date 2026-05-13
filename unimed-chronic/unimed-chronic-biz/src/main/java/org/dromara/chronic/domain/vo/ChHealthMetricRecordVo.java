@@ -32,7 +32,7 @@ public class ChHealthMetricRecordVo implements Serializable {
     private Long patientId;
     @Schema(description = "指标类型")
     private String metricType;
-    @Schema(description = "指标值（简单指标为字符串数字，血压等复合指标为JSON）")
+    @Schema(description = "指标值（简单数字字符串；血压拆为 BP_SYSTOLIC + BP_DIASTOLIC 两条独立记录）")
     private String metricValue;
     @Schema(description = "单位")
     private String unit;

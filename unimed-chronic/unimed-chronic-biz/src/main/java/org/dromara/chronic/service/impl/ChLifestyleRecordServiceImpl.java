@@ -10,6 +10,7 @@ import org.dromara.chronic.domain.entity.ChLifestyleRecord;
 import org.dromara.chronic.domain.vo.ChLifestyleRecordVo;
 import org.dromara.chronic.mapper.ChLifestyleRecordMapper;
 import org.dromara.chronic.service.IChLifestyleRecordService;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
@@ -33,6 +34,25 @@ public class ChLifestyleRecordServiceImpl implements IChLifestyleRecordService {
         ChLifestyleRecord entity = MapstructUtils.convert(bo, ChLifestyleRecord.class);
         baseMapper.insert(entity);
         return entity.getId();
+    }
+
+    @Override
+    public Void update(ChLifestyleRecordBo bo) {
+        if (bo.getId() == null || baseMapper.selectById(bo.getId()) == null) {
+            throw new ServiceException("生活方式记录不存在");
+        }
+        ChLifestyleRecord entity = MapstructUtils.convert(bo, ChLifestyleRecord.class);
+        baseMapper.updateById(entity);
+        return null;
+    }
+
+    @Override
+    public Void remove(Long id) {
+        if (id == null || baseMapper.selectById(id) == null) {
+            throw new ServiceException("生活方式记录不存在");
+        }
+        baseMapper.deleteById(id);
+        return null;
     }
 
     @Override

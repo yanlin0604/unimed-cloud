@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChPatientDiseaseBo;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
+import org.dromara.chronic.domain.bo.ChPatientTagBo;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChPatientTag;
@@ -21,6 +22,7 @@ import org.dromara.common.core.utils.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -148,5 +150,90 @@ public class PatientProfileManager {
      */
     public ChPatientDetailVo queryProfile(Long patientId) {
         return patientProfileService.queryDetailById(patientId);
+    }
+
+    /**
+     * 编辑患者档案（含病种与标签全量替换）
+     * <p>
+     * 主档案走 service.updateByBo；diseases/tags 走"先清空-再批量插入"的全量替换策略，
+     * 与前端"表单一次性提交全部关联数据"的语义一致。
+     *
+     * @param bo 携带 diseases / tags 的患者 BO
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void editArchive(ChPatientProfileBo bo) {
+        if (bo.getPatientId() == null) {
+            throw new ServiceException("患者ID不能为空");
+        }
+        if (Boolean.FALSE.equals(patientProfileService.updateByBo(bo))) {
+            throw new ServiceException("更新患者档案失败");
+        }
+        replaceDiseases(bo.getPatientId(), convertDiseases(bo.getDiseases()));
+        replaceTags(bo.getPatientId(), convertTags(bo.getTags()));
+
+        ChPatientTimeline timeline = new ChPatientTimeline();
+        timeline.setPatientId(bo.getPatientId());
+        timeline.setEventType("ARCHIVE");
+        timeline.setEventTitle("患者档案变更");
+        timeline.setEventDetail("管理员更新档案信息");
+        timeline.setEventTime(new Date());
+        patientTimelineMapper.insert(timeline);
+    }
+
+    /**
+     * BO → 实体批量转换（病种）
+     */
+    public List<ChPatientDisease> convertDiseases(List<ChPatientDiseaseBo> source) {
+        if (CollUtil.isEmpty(source)) {
+            return new ArrayList<>();
+        }
+        List<ChPatientDisease> list = new ArrayList<>(source.size());
+        for (ChPatientDiseaseBo item : source) {
+            ChPatientDisease entity = MapstructUtils.convert(item, ChPatientDisease.class);
+            if (entity != null) {
+                if (entity.getConfirmDate() == null) {
+                    entity.setConfirmDate(new Date());
+                }
+                list.add(entity);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * BO → 实体批量转换（标签）
+     */
+    public List<ChPatientTag> convertTags(List<ChPatientTagBo> source) {
+        if (CollUtil.isEmpty(source)) {
+            return new ArrayList<>();
+        }
+        List<ChPatientTag> list = new ArrayList<>(source.size());
+        for (ChPatientTagBo item : source) {
+            ChPatientTag entity = MapstructUtils.convert(item, ChPatientTag.class);
+            if (entity != null) {
+                list.add(entity);
+            }
+        }
+        return list;
+    }
+
+    private void replaceDiseases(Long patientId, List<ChPatientDisease> diseases) {
+        patientDiseaseMapper.delete(
+            Wrappers.<ChPatientDisease>lambdaQuery().eq(ChPatientDisease::getPatientId, patientId)
+        );
+        if (CollUtil.isNotEmpty(diseases)) {
+            diseases.forEach(item -> item.setPatientId(patientId));
+            patientDiseaseMapper.insertBatch(diseases);
+        }
+    }
+
+    private void replaceTags(Long patientId, List<ChPatientTag> tags) {
+        patientTagMapper.delete(
+            Wrappers.<ChPatientTag>lambdaQuery().eq(ChPatientTag::getPatientId, patientId)
+        );
+        if (CollUtil.isNotEmpty(tags)) {
+            tags.forEach(item -> item.setPatientId(patientId));
+            patientTagMapper.insertBatch(tags);
+        }
     }
 }

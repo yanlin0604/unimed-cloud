@@ -64,4 +64,12 @@ public interface IChPatientProfileService {
      * @return 是否成功
      */
     Boolean updateByBo(ChPatientProfileBo bo);
+
+    /**
+     * 删除患者主档案（逻辑删除）
+     *
+     * @param patientIds 患者ID集合
+     * @return 是否成功
+     */
+    Boolean deleteByIds(java.util.Collection<Long> patientIds);
 }

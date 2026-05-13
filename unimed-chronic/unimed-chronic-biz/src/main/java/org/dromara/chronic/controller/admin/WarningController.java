@@ -10,6 +10,9 @@ import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.manager.WarningManager;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.log.annotation.Log;
+import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
@@ -43,6 +46,17 @@ public class WarningController {
     public R<ChWarningEventVo> detail(
         @Parameter(description = "预警事件ID") @PathVariable Long warningId) {
         return R.ok(warningManager.queryDetail(warningId));
+    }
+
+    @Operation(summary = "手动触发预警事件")
+    @SaCheckPermission("chronic:warning:create")
+    @Log(title = "手动触发预警事件", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping("/chronic/admin/warning/create")
+    public R<Long> create(
+        @Parameter(description = "患者ID") @RequestParam Long patientId,
+        @Parameter(description = "规则ID") @RequestParam Long ruleId) {
+        return R.ok(warningManager.createWarningEvent(patientId, ruleId));
     }
 
     @Operation(summary = "处理预警事件")
