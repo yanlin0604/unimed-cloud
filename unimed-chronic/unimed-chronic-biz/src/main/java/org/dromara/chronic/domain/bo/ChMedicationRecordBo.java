@@ -54,10 +54,10 @@ public class ChMedicationRecordBo extends BaseEntity {
     private Date stopDate;
 
     @Schema(description = "配药数量")
-    private Integer dispenseQuantity;
+    private String dispenseQuantity;
 
     @Schema(description = "处方周期")
-    private Integer prescriptionPeriod;
+    private String prescriptionPeriod;
 
     @Schema(description = "开方医生ID")
     private Long prescriberUserId;

@@ -44,9 +44,9 @@ public class ChMedicationRecordVo implements Serializable {
     @Schema(description = "停止日期")
     private Date stopDate;
     @Schema(description = "配药量")
-    private Integer dispenseQuantity;
+    private String dispenseQuantity;
     @Schema(description = "处方周期")
-    private Integer prescriptionPeriod;
+    private String prescriptionPeriod;
     @Schema(description = "处方医生用户ID")
     private Long prescriberUserId;
     @Schema(description = "处方已验证")

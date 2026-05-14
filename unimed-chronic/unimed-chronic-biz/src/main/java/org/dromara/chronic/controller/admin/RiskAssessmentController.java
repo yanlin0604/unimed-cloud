@@ -14,6 +14,8 @@ import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
+import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +43,13 @@ public class RiskAssessmentController {
     public R<ChRiskAssessmentVo> assess(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated @RequestBody ChRiskAssessmentBo bo) {
         bo.setPatientId(patientId);
         return R.ok(riskAssessmentManager.assess(bo));
+    }
+
+    @Operation(summary = "分页查询风险评估")
+    @SaCheckPermission("chronic:risk-assessment:list")
+    @GetMapping("/chronic/admin/risk-assessment/page")
+    public TableDataInfo<ChRiskAssessmentVo> page(ChRiskAssessmentBo bo, PageQuery pageQuery) {
+        return riskAssessmentService.queryPageList(bo, pageQuery);
     }
 
     @Operation(summary = "查询最新风险评估")

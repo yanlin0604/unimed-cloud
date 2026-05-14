@@ -23,6 +23,8 @@ public interface IChRiskAssessmentService {
 
     List<ChManageLevelRecordVo> queryHistory(Long patientId);
 
+    TableDataInfo<ChRiskAssessmentVo> queryPageList(ChRiskAssessmentBo bo, PageQuery pageQuery);
+
     TableDataInfo<ChAssessmentRuleVo> queryRulePage(ChAssessmentRuleBo bo, PageQuery pageQuery);
 
     ChAssessmentRuleVo queryRuleById(Long ruleId);

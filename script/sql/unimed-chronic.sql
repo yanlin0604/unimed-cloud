@@ -1907,4 +1907,58 @@ CREATE TABLE `ch_webhook_subscription`  (
   INDEX `idx_ws_tenant_id`(`tenant_id` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Webhook订阅表' ROW_FORMAT = Dynamic;
 
+-- ----------------------------
+-- Table structure for ch_lab_test
+-- ----------------------------
+DROP TABLE IF EXISTS `ch_lab_test`;
+CREATE TABLE `ch_lab_test`  (
+  `test_id` bigint NOT NULL AUTO_INCREMENT COMMENT '检验ID',
+  `patient_id` bigint NULL DEFAULT NULL COMMENT '患者ID',
+  `test_date` datetime NULL DEFAULT NULL COMMENT '检验日期',
+  `test_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检验类型(血常规/肝功能/肾功能等)',
+  `test_items` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '检验项目明细JSON',
+  `report_image` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '报告图片URL',
+  `hospital` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检验医院',
+  `doctor` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检验医生',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
+  `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
+  `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',
+  `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_by` bigint NULL DEFAULT NULL COMMENT '更新者',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
+  PRIMARY KEY (`test_id`) USING BTREE,
+  INDEX `idx_lt_patient_id`(`patient_id` ASC) USING BTREE,
+  INDEX `idx_lt_tenant_id`(`tenant_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '检验记录表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for ch_medical_exam
+-- ----------------------------
+DROP TABLE IF EXISTS `ch_medical_exam`;
+CREATE TABLE `ch_medical_exam`  (
+  `exam_id` bigint NOT NULL AUTO_INCREMENT COMMENT '检查ID',
+  `patient_id` bigint NULL DEFAULT NULL COMMENT '患者ID',
+  `exam_date` datetime NULL DEFAULT NULL COMMENT '检查日期',
+  `exam_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检查类型(X光/CT/B超/心电图等)',
+  `exam_part` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检查部位',
+  `exam_result` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '检查结果描述',
+  `exam_conclusion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检查结论',
+  `report_image` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '报告图片URL',
+  `hospital` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检查医院',
+  `doctor` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '检查医生',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '备注',
+  `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
+  `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',
+  `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_by` bigint NULL DEFAULT NULL COMMENT '更新者',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
+  PRIMARY KEY (`exam_id`) USING BTREE,
+  INDEX `idx_me_patient_id`(`patient_id` ASC) USING BTREE,
+  INDEX `idx_me_tenant_id`(`tenant_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '检查记录表' ROW_FORMAT = Dynamic;
+
 SET FOREIGN_KEY_CHECKS = 1;

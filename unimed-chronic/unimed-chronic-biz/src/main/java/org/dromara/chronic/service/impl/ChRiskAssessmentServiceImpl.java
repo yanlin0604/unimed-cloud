@@ -130,6 +130,18 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
     }
 
     @Override
+    public TableDataInfo<ChRiskAssessmentVo> queryPageList(ChRiskAssessmentBo bo, PageQuery pageQuery) {
+        LambdaQueryWrapper<ChRiskAssessment> lqw = Wrappers.lambdaQuery();
+        lqw.eq(ObjectUtil.isNotNull(bo.getPatientId()), ChRiskAssessment::getPatientId, bo.getPatientId());
+        lqw.eq(StringUtils.isNotBlank(bo.getDiseaseCode()), ChRiskAssessment::getDiseaseCode, bo.getDiseaseCode());
+        lqw.eq(StringUtils.isNotBlank(bo.getRiskLevel()), ChRiskAssessment::getRiskLevel, bo.getRiskLevel());
+        lqw.orderByDesc(ChRiskAssessment::getCreateTime);
+        Page<ChRiskAssessmentVo> page = riskAssessmentMapper.selectVoPage(pageQuery.build(), lqw);
+        fillRiskNames(page.getRecords());
+        return TableDataInfo.build(page);
+    }
+
+    @Override
     public TableDataInfo<ChAssessmentRuleVo> queryRulePage(ChAssessmentRuleBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<ChAssessmentRule> lqw = Wrappers.lambdaQuery();
         lqw.eq(StringUtils.isNotBlank(bo.getDiseaseCode()), ChAssessmentRule::getDiseaseCode, bo.getDiseaseCode());

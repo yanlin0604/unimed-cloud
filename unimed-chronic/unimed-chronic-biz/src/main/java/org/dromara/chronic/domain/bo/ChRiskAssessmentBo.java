@@ -45,6 +45,9 @@ public class ChRiskAssessmentBo extends BaseEntity {
     @Schema(description = "因子数据 JSON，例如 {\"smoking\":true,\"familyHistory\":true}")
     private String factorData;
 
+    @Schema(description = "风险等级")
+    private String riskLevel;
+
     @Schema(description = "评估人ID")
     private Long assessorUserId;
 }
