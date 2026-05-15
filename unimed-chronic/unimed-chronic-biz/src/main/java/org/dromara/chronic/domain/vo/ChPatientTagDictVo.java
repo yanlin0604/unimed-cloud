@@ -4,7 +4,7 @@ import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.dromara.chronic.common.constant.ChronicDictTypeConstant;
-import org.dromara.chronic.domain.entity.ChPatientTag;
+import org.dromara.chronic.domain.entity.ChPatientTagDict;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
 
@@ -13,14 +13,14 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 患者标签视图对象 ch_patient_tag
+ * 患者标签字典视图对象 ch_patient_tag_dict
  *
  * @author unimed
  */
-@Schema(description = "患者标签视图对象")
+@Schema(description = "患者标签字典视图对象")
 @Data
-@AutoMapper(target = ChPatientTag.class)
-public class ChPatientTagVo implements Serializable {
+@AutoMapper(target = ChPatientTagDict.class)
+public class ChPatientTagDictVo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -28,8 +28,11 @@ public class ChPatientTagVo implements Serializable {
     @Schema(description = "主键ID")
     private Long id;
 
-    @Schema(description = "患者ID")
-    private Long patientId;
+    @Schema(description = "标签编码")
+    private String tagCode;
+
+    @Schema(description = "标签名称")
+    private String tagName;
 
     @Schema(description = "标签大类")
     private String tagType;
@@ -38,14 +41,23 @@ public class ChPatientTagVo implements Serializable {
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "tagType", other = ChronicDictTypeConstant.CHRONIC_TAG_TYPE)
     private String tagTypeName;
 
-    @Schema(description = "标签字典编码")
-    private String tagCode;
+    @Schema(description = "细分类")
+    private String category;
 
-    @Schema(description = "标签名称（按 tagCode 查 ch_patient_tag_dict 回填）")
-    private String tagName;
+    @Schema(description = "展示色")
+    private String color;
 
-    @Schema(description = "展示色（按 tagCode 查 ch_patient_tag_dict 回填）")
-    private String tagColor;
+    @Schema(description = "状态 0启用 1停用")
+    private String status;
+
+    @Schema(description = "排序")
+    private Integer sortOrder;
+
+    @Schema(description = "使用次数（关联 ch_patient_tag 聚合）")
+    private Long useCount;
+
+    @Schema(description = "备注")
+    private String remark;
 
     @Schema(description = "创建时间")
     private Date createTime;

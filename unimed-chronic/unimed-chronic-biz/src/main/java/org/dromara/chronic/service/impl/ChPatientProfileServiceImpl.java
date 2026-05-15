@@ -155,8 +155,8 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
 
     private List<Long> resolvePatientIds(Map<String, Object> params) {
         String diseaseCode = ObjectUtil.defaultIfNull(params.get("diseaseCode"), "").toString();
-        String tagValue = ObjectUtil.defaultIfNull(params.get("tagValue"), "").toString();
-        if (StringUtils.isAllBlank(diseaseCode, tagValue)) {
+        String tagCode = ObjectUtil.defaultIfNull(params.get("tagCode"), "").toString();
+        if (StringUtils.isAllBlank(diseaseCode, tagCode)) {
             return new ArrayList<>();
         }
         List<Long> patientIds = new ArrayList<>();
@@ -167,11 +167,11 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
                     .eq(ChPatientDisease::getDiseaseCode, diseaseCode)
             ).stream().map(obj -> Long.valueOf(String.valueOf(obj))).toList());
         }
-        if (StringUtils.isNotBlank(tagValue)) {
+        if (StringUtils.isNotBlank(tagCode)) {
             patientIds.addAll(patientTagMapper.selectObjs(
                 Wrappers.<ChPatientTag>lambdaQuery()
                     .select(ChPatientTag::getPatientId)
-                    .eq(ChPatientTag::getTagValue, tagValue)
+                    .eq(ChPatientTag::getTagCode, tagCode)
             ).stream().map(obj -> Long.valueOf(String.valueOf(obj))).toList());
         }
         return CollUtil.distinct(patientIds);

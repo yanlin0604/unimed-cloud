@@ -67,8 +67,8 @@ public class PatientTagController extends BaseController {
     @RepeatSubmit
     @PostMapping("/batch")
     public R<Void> batchAdd(@Parameter(description = "患者ID列表") @RequestParam Long[] patientIds,
-                            @Parameter(description = "标签类型") @RequestParam String tagType,
-                            @Parameter(description = "标签值") @RequestParam String tagValue) {
+                            @Parameter(description = "标签大类 RISK/CUSTOM/COMORBIDITY") @RequestParam String tagType,
+                            @Parameter(description = "标签字典编码 ch_patient_tag_dict.tag_code") @RequestParam String tagCode) {
         if (patientIds == null || patientIds.length == 0) {
             return R.fail("患者ID列表不能为空");
         }
@@ -77,7 +77,7 @@ public class PatientTagController extends BaseController {
             ChPatientTag entity = new ChPatientTag();
             entity.setPatientId(patientId);
             entity.setTagType(tagType);
-            entity.setTagValue(tagValue);
+            entity.setTagCode(tagCode);
             entities.add(entity);
         }
         return patientTagMapper.insertBatch(entities) ? R.ok() : R.fail();
@@ -117,7 +117,7 @@ public class PatientTagController extends BaseController {
         LambdaQueryWrapper<ChPatientTag> lqw = Wrappers.lambdaQuery();
         lqw.eq(ObjectUtil.isNotNull(bo.getPatientId()), ChPatientTag::getPatientId, bo.getPatientId());
         lqw.eq(StringUtils.isNotBlank(bo.getTagType()), ChPatientTag::getTagType, bo.getTagType());
-        lqw.like(StringUtils.isNotBlank(bo.getTagValue()), ChPatientTag::getTagValue, bo.getTagValue());
+        lqw.eq(StringUtils.isNotBlank(bo.getTagCode()), ChPatientTag::getTagCode, bo.getTagCode());
         lqw.orderByDesc(ChPatientTag::getCreateTime);
         return lqw;
     }

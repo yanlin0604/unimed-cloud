@@ -2,6 +2,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-05-15** - `/init-project` 全仓扫描更新：版本升级（Spring Boot 3.5.12 / Spring Cloud 2025.0.1 / MyBatis-Plus 3.5.16 / MyBatis 3.5.19）；新增 unimed-gateway-mvc 模块；unimed-common 新增 8 个子模块（alibaba-bom/bom/bus/elasticsearch/json/service-impl/social/sse）；慢病模块新增 PatientTag/PatientTagDict/LabTest/MedicalExam/Ocr 控制器及 DoctorCustomGroup/PatientManagePlan/PatientContract/PatientConsent/PatientSos 控制器；更新 Mermaid 结构图和模块索引
 - **2026-04-22** - `/init-project` 初始化项目 AI 上下文；更新慢病模块文档；补全 API 模块索引
 - **2026-04-20** - JDK 升级：所有服务 Dockerfile 统一升至 `bellsoft/liberica-openjdk-rocky:21.0.8-cds`（含 seata-server、snailjob-server），pom `java.version=21`；同步清理 `#FROM ...:17.0.16-cds` 历史注释
 - **2026-04-07** - 方言采集模块上线：新增 4 个控制器（DhDialectPrompt/DhDialectRecord/DhDialectInvite/PortalDialect）；3 张新表（dh_dialect_prompt/dh_dialect_record/dh_dialect_invite）；支持匿名提交、录音上传、邀请码管理、批量导入排序
@@ -11,11 +12,11 @@
 
 ## 项目愿景
 
-基于 Dromara 生态的企业级微服务系统，整合认证授权、网关路由、系统管理、数字人服务、工作流引擎，为医疗健康领域提供完整数字化解决方案。
+基于 Dromara 生态的企业级微服务系统，整合认证授权、网关路由、系统管理、数字人服务、工作流引擎、慢病管理，为医疗健康领域提供完整数字化解决方案。
 
 ## 架构总览
 
-**技术栈**: Java 21 + Spring Boot 3.5.7 + Spring Cloud 2025.0.0 | Nacos + Dubbo | MySQL + MyBatis-Plus 3.5.14 | Redis + Redisson | Sa-Token 1.44.0 | Warm-Flow 1.8.2 | RocketMQ 2.3.4 | WebFlux
+**技术栈**: Java 21 + Spring Boot 3.5.12 + Spring Cloud 2025.0.1 | Nacos + Dubbo | MySQL + MyBatis-Plus 3.5.16 + MyBatis 3.5.19 | Redis + Redisson 3.52.0 | Sa-Token 1.44.0 | Warm-Flow 1.8.4 | RocketMQ 2.3.4 | WebFlux
 
 **架构模式**: 微服务 + Nacos 注册/配置 + Gateway 统一入口 + Dubbo RPC + Seata 分布式事务 + 多租户隔离
 
@@ -25,6 +26,7 @@
 graph TD
     A["(根) Unimed-Cloud-Plus"] --> B["unimed-auth"];
     A --> C["unimed-gateway"];
+    A --> C2["unimed-gateway-mvc"];
     A --> D["unimed-modules"];
     A --> Y["unimed-dh"];
     A --> Z["unimed-chronic"];
@@ -50,14 +52,21 @@ graph TD
     G --> V["unimed-seata-server"];
     G --> W["unimed-snailjob-server"];
     H --> X["unimed-demo"];
+    H --> X2["unimed-test-mq"];
 
     click B "./unimed-auth/CLAUDE.md" "认证授权"
-    click C "./unimed-gateway/CLAUDE.md" "网关"
+    click C "./unimed-gateway/CLAUDE.md" "网关(WebFlux)"
+    click C2 "./unimed-gateway-mvc/CLAUDE.md" "网关(MVC)"
     click I "./unimed-modules/unimed-system/CLAUDE.md" "系统管理"
+    click J "./unimed-modules/unimed-gen/CLAUDE.md" "代码生成"
+    click K "./unimed-modules/unimed-job/CLAUDE.md" "任务调度"
+    click L "./unimed-modules/unimed-resource/CLAUDE.md" "资源服务"
     click M "./unimed-modules/unimed-workflow/CLAUDE.md" "工作流"
     click N "./unimed-dh/unimed-dh-core/CLAUDE.md" "数字人业务"
     click O "./unimed-dh/unimed-dh-relay/CLAUDE.md" "数字人中转"
-    click S "./unimed-visual/unimed-monitor/CLAUDE.md" "监控"
+    click ZB "./unimed-chronic/unimed-chronic-biz/CLAUDE.md" "慢病业务"
+    click T "./unimed-visual/unimed-monitor/CLAUDE.md" "监控"
+    click X "./unimed-example/unimed-demo/CLAUDE.md" "示例模块"
 ```
 
 ## 模块索引
@@ -65,16 +74,17 @@ graph TD
 | 模块路径 | 名称 | 端口 | 职责 |
 |---------|------|------|------|
 | unimed-auth | 认证授权中心 | 9221 | 用户认证、权限管理、租户管理、API Token |
-| unimed-gateway | API 网关 | 9200 | 路由转发、限流熔断 |
+| unimed-gateway | API 网关 (WebFlux) | 9200 | 路由转发、限流熔断（响应式） |
+| unimed-gateway-mvc | API 网关 (MVC) | - | 路由转发（Spring MVC 同步模型） |
 | unimed-modules/unimed-system | 系统管理 | 9201 | 用户/角色/菜单/字典/租户 |
 | unimed-modules/unimed-gen | 代码生成 | 9202 | 代码模板、表结构管理 |
-| unimed-modules/unimed-job | 任务调度 | 9203 | 定时任务、分布式任务 |
-| unimed-modules/unimed-resource | 资源服务 | 9204 | 文件存储、OSS、邮件短信 |
+| unimed-modules/unimed-job | 任务调度 | 9203 | 定时任务、分布式任务 (SnailJob) |
+| unimed-modules/unimed-resource | 资源服务 | 9204 | 文件存储(OSS)、邮件、短信 |
 | unimed-dh/unimed-dh-relay | 数字人中转 | 9205 | API 中转、WebRTC、AI 对话 |
 | unimed-dh/unimed-dh-core | 数字人业务 | 9206 | B端管理+C端门户+方言采集（dhcore 包） |
+| unimed-chronic/unimed-chronic-biz | 慢病业务 | 9208 | 慢病域业务实现（admin/doctor/patient/openapi 四层管控） |
 | unimed-chronic/unimed-chronic-api | 慢病接口 | - | 慢病域 API 骨架 |
-| unimed-chronic/unimed-chronic-biz | 慢病业务 | - | 慢病域业务骨架 |
-| unimed-modules/unimed-workflow | 工作流 | 9207 | 流程定义、任务管理 |
+| unimed-modules/unimed-workflow | 工作流 | 9207 | 流程定义、任务管理 (Warm-Flow) |
 | unimed-visual/unimed-monitor | 监控中心 | 9100 | Spring Boot Admin |
 | unimed-visual/unimed-nacos | 注册中心 | 8848 | Nacos |
 | unimed-visual/unimed-seata-server | 分布式事务 | - | Seata |
@@ -91,9 +101,9 @@ graph TD
 | unimed-api-workflow | RemoteWorkflowService |
 | unimed-api-auth | RemoteTokenService |
 
-### unimed-common 子模块（32 个）
+### unimed-common 子模块（38 个）
 
-unimed-common-core、unimed-common-web、unimed-common-security、unimed-common-mybatis、unimed-common-redis、unimed-common-nacos、unimed-common-dubbo、unimed-common-log、unimed-common-doc、unimed-common-excel、unimed-common-encrypt、unimed-common-sensitive、unimed-common-translation、unimed-common-tenant、unimed-common-idempotent、unimed-common-ratelimiter、unimed-common-lock、unimed-common-job、unimed-common-mail、unimed-common-sms、unimed-common-oss、unimed-common-websocket、unimed-common-seata、unimed-common-rocketmq、unimed-common-satoken、unimed-common-loadbalancer、unimed-common-logstash、unimed-common-skylog、unimed-common-prometheus 等
+unimed-common-core、unimed-common-web、unimed-common-security、unimed-common-mybatis、unimed-common-redis、unimed-common-nacos、unimed-common-dubbo、unimed-common-log、unimed-common-doc、unimed-common-excel、unimed-common-encrypt、unimed-common-sensitive、unimed-common-translation、unimed-common-tenant、unimed-common-idempotent、unimed-common-ratelimiter、unimed-common-lock、unimed-common-job、unimed-common-mail、unimed-common-sms、unimed-common-oss、unimed-common-websocket、unimed-common-seata、unimed-common-rocketmq、unimed-common-satoken、unimed-common-loadbalancer、unimed-common-logstash、unimed-common-skylog、unimed-common-prometheus、unimed-common-bom、unimed-common-alibaba-bom、unimed-common-bus、unimed-common-elasticsearch、unimed-common-json、unimed-common-service-impl、unimed-common-social、unimed-common-sse 等
 
 ## 运行与开发
 
@@ -118,6 +128,7 @@ mvn clean package -Pprod -DskipTests
 
 - **unimed-dh-relay**: 3 个测试文件（WebRtcServiceTest、ChatServiceTest、DigitalHumanDeleteServiceTest）
 - **unimed-demo**: 5 个测试文件（AssertUnitTest、DemoUnitTest、ParamUnitTest、TagUnitTest、TOrderTest）
+- **unimed-chronic-biz**: 1 个测试文件（OcrParserTest）
 - 其他业务模块暂无专属测试文件
 
 ## 编码规范
@@ -146,6 +157,7 @@ module/
 - **跨服务调用**: 在 unimed-api 定义接口，实现端 `@DubboService`，调用端 `@DubboReference`
 - **响应式服务**: 参考 unimed-dh-relay 的 WebClient + Mono 模式
 - **数字人数据库**: 参考 `script/sql/update/dh-*.sql` 历史变更脚本
+- **慢病模块开发**: 参考 unimed-chronic-biz 的分层架构（admin/doctor/patient/openapi 四层分包）
 
 ### 关键基类
 - `BaseController` - 控制器基类

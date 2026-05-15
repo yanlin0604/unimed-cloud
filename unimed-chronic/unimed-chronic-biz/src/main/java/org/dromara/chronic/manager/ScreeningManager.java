@@ -117,7 +117,7 @@ public class ScreeningManager {
         List<ChPatientTag> tags = new ArrayList<>();
         ChPatientTag tag = new ChPatientTag();
         tag.setTagType("RISK");
-        tag.setTagValue(mapRiskLevelToTagValue(riskLevel));
+        tag.setTagCode(mapRiskLevelToTagCode(riskLevel));
         tags.add(tag);
         return tags;
     }
@@ -157,12 +157,15 @@ public class ScreeningManager {
         return diseases;
     }
 
-    private String mapRiskLevelToTagValue(String riskLevel) {
+    /**
+     * 风险等级 -> 标签字典编码（系统预置 RISK 大类标签，见 chronic-patient-tag-dict.sql）
+     */
+    private String mapRiskLevelToTagCode(String riskLevel) {
         return switch (riskLevel) {
-            case "VERY_HIGH" -> "高危";
-            case "HIGH" -> "中高危";
-            case "MEDIUM" -> "中危";
-            default -> "低危";
+            case "VERY_HIGH" -> "RISK_VERY_HIGH";
+            case "HIGH" -> "RISK_HIGH";
+            case "MEDIUM" -> "RISK_MEDIUM";
+            default -> "RISK_LOW";
         };
     }
 

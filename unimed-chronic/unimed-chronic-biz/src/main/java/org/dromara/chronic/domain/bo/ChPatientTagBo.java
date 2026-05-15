@@ -27,11 +27,11 @@ public class ChPatientTagBo extends BaseEntity {
     @Schema(description = "患者ID")
     private Long patientId;
 
-    @Schema(description = "标签类型", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "标签类型不能为空")
+    @Schema(description = "标签大类 RISK/CUSTOM/COMORBIDITY", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "标签大类不能为空")
     private String tagType;
 
-    @Schema(description = "标签值", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "标签值不能为空")
-    private String tagValue;
+    @Schema(description = "标签字典编码 ch_patient_tag_dict.tag_code", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "标签编码不能为空")
+    private String tagCode;
 }

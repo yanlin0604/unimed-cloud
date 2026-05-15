@@ -9,15 +9,15 @@ import lombok.NoArgsConstructor;
 import org.dromara.common.tenant.core.TenantEntity;
 
 /**
- * 患者标签对象 ch_patient_tag
+ * 患者标签字典对象 ch_patient_tag_dict
  *
  * @author unimed
  */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@TableName("ch_patient_tag")
-public class ChPatientTag extends TenantEntity {
+@TableName("ch_patient_tag_dict")
+public class ChPatientTagDict extends TenantEntity {
 
     /**
      * 主键ID
@@ -26,19 +26,44 @@ public class ChPatientTag extends TenantEntity {
     private Long id;
 
     /**
-     * 患者ID
+     * 标签编码（业务唯一）
      */
-    private Long patientId;
+    private String tagCode;
 
     /**
-     * 标签大类（字典 chronic_tag_type）RISK/CUSTOM/COMORBIDITY
+     * 标签名称
+     */
+    private String tagName;
+
+    /**
+     * 标签大类 字典 chronic_tag_type
      */
     private String tagType;
 
     /**
-     * 标签字典编码（ch_patient_tag_dict.tag_code）
+     * 细分类
      */
-    private String tagCode;
+    private String category;
+
+    /**
+     * 展示色
+     */
+    private String color;
+
+    /**
+     * 状态 0启用 1停用
+     */
+    private String status;
+
+    /**
+     * 排序
+     */
+    private Integer sortOrder;
+
+    /**
+     * 备注
+     */
+    private String remark;
 
     /**
      * 删除标志
