@@ -9,10 +9,12 @@ import org.dromara.chronic.domain.bo.ChWarningActionBo;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.chronic.domain.entity.ChWarningAction;
 import org.dromara.chronic.domain.entity.ChWarningEvent;
+import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningActionVo;
 import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.mapper.ChWarningActionMapper;
 import org.dromara.chronic.mapper.ChWarningEventMapper;
+import org.dromara.chronic.mapper.ChWarningRuleMapper;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.chronic.support.rule.WarningStatusTransitionValidator;
 import org.dromara.common.core.exception.ServiceException;
@@ -22,9 +24,14 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 预警事件服务实现
@@ -39,6 +46,29 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
 
     private final ChWarningEventMapper eventMapper;
     private final ChWarningActionMapper actionMapper;
+    private final ChWarningRuleMapper warningRuleMapper;
+
+    /**
+     * 批量回填规则名称：取 ch_warning_rule.rule_name 作为 ruleName
+     */
+    private void fillRuleName(Collection<ChWarningEventVo> vos) {
+        if (vos == null || vos.isEmpty()) {
+            return;
+        }
+        Set<Long> ruleIds = vos.stream()
+            .map(ChWarningEventVo::getRuleId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        if (ruleIds.isEmpty()) {
+            return;
+        }
+        List<ChWarningRule> rules = warningRuleMapper.selectByIds(ruleIds);
+        Map<Long, String> ruleIdToName = new HashMap<>(rules.size());
+        for (ChWarningRule rule : rules) {
+            ruleIdToName.put(rule.getRuleId(), rule.getRuleName());
+        }
+        vos.forEach(vo -> vo.setRuleName(ruleIdToName.get(vo.getRuleId())));
+    }
 
     @Override
     public Long createEvent(ChWarningEventBo bo) {
@@ -56,6 +86,7 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         ChWarningEventVo vo = eventMapper.selectVoById(warningId);
         if (vo != null) {
             vo.setActions(queryActionsByWarningId(warningId));
+            fillRuleName(List.of(vo));
         }
         return vo;
     }
@@ -69,16 +100,19 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         lqw.eq(StringUtils.isNotBlank(bo.getEventStatus()), ChWarningEvent::getEventStatus, bo.getEventStatus());
         lqw.orderByDesc(ChWarningEvent::getWarningTime);
         Page<ChWarningEventVo> page = eventMapper.selectVoPage(pageQuery.build(), lqw);
+        fillRuleName(page.getRecords());
         return TableDataInfo.build(page);
     }
 
     @Override
     public List<ChWarningEventVo> queryByPatientId(Long patientId) {
-        return eventMapper.selectVoList(
+        List<ChWarningEventVo> list = eventMapper.selectVoList(
             Wrappers.<ChWarningEvent>lambdaQuery()
                 .eq(ChWarningEvent::getPatientId, patientId)
                 .orderByDesc(ChWarningEvent::getWarningTime)
         );
+        fillRuleName(list);
+        return list;
     }
 
     @Override

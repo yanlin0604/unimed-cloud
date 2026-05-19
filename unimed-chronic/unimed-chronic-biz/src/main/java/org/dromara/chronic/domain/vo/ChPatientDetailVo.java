@@ -167,6 +167,13 @@ public class ChPatientDetailVo implements Serializable {
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "manageStatus", other = ChronicDictTypeConstant.CHRONIC_MANAGE_STATUS)
     private String manageStatusName;
 
+    @Schema(description = "风险等级（取最新一次风险评估）")
+    private String riskLevel;
+
+    @Schema(description = "风险等级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "riskLevel", other = ChronicDictTypeConstant.CHRONIC_RISK_LEVEL)
+    private String riskLevelName;
+
     @Schema(description = "患者来源名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "source", other = ChronicDictTypeConstant.CHRONIC_PATIENT_SOURCE)
     private String sourceName;

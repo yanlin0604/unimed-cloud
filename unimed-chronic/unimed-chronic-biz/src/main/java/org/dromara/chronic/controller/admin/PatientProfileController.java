@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
+import org.dromara.chronic.domain.bo.ChPatientDiseaseBo;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileImportVo;
@@ -154,5 +155,57 @@ public class PatientProfileController extends BaseController {
             return R.fail("patientIds 不能为空");
         }
         return toAjax(patientProfileService.deleteByIds(java.util.Arrays.asList(patientIds)));
+    }
+
+    // ==================== 病种粒度操作 ====================
+
+    /**
+     * 新增单条病种
+     */
+    @Operation(summary = "新增患者病种")
+    @SaCheckPermission("chronic:patient:edit")
+    @Log(title = "患者病种", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping("/disease")
+    public R<Long> addDisease(@Validated @RequestBody ChPatientDiseaseBo bo) {
+        return R.ok(patientProfileManager.bindDisease(bo));
+    }
+
+    /**
+     * 修改单条病种
+     */
+    @Operation(summary = "修改患者病种")
+    @SaCheckPermission("chronic:patient:edit")
+    @Log(title = "患者病种", businessType = BusinessType.UPDATE)
+    @RepeatSubmit
+    @PutMapping("/disease")
+    public R<Void> editDisease(@Validated @RequestBody ChPatientDiseaseBo bo) {
+        patientProfileManager.updateDisease(bo);
+        return R.ok();
+    }
+
+    /**
+     * 切换病种启停状态
+     */
+    @Operation(summary = "切换病种启停状态")
+    @SaCheckPermission("chronic:patient:edit")
+    @Log(title = "患者病种状态", businessType = BusinessType.UPDATE)
+    @PutMapping("/disease/{id}/status")
+    public R<Void> toggleDiseaseStatus(@Parameter(description = "病种主键") @PathVariable Long id,
+                                       @Parameter(description = "目标状态") @RequestParam Boolean enableStatus) {
+        patientProfileManager.toggleDiseaseStatus(id, enableStatus);
+        return R.ok();
+    }
+
+    /**
+     * 移除单条病种
+     */
+    @Operation(summary = "移除患者病种")
+    @SaCheckPermission("chronic:patient:edit")
+    @Log(title = "患者病种", businessType = BusinessType.DELETE)
+    @DeleteMapping("/disease/{id}")
+    public R<Void> removeDisease(@Parameter(description = "病种主键") @PathVariable Long id) {
+        patientProfileManager.removeDisease(id);
+        return R.ok();
     }
 }

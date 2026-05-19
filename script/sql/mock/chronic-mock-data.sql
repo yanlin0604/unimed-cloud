@@ -954,6 +954,253 @@ INSERT INTO ch_webhook_subscription (third_party_name, event_types, callback_url
 ('HIS集成中间件', '["ENCOUNTER_SUBMITTED","DIAGNOSIS_UPDATED"]', 'https://his-bridge.hospital.local/webhook', 'sk_internal_c3d4e5f60718293a4b5c6d7e8f900112', 5, 'EXPONENTIAL_BACKOFF', 0, '2026-05-01 02:10:00', 'FAILED', 103, '000000', 1, '2026-01-10 11:00:00');
 
 -- ============================================
+-- 第十一部分：患者档案页数据补全（2026-05-18）
+-- 目的：解决档案页总览/各 Tab 渲染时数据缺失或字段未填导致的"空白"问题
+-- 策略：
+--   1. UPDATE 修复历史 INSERT 中缺失字段（rule_name / compliance / tag_code）
+--   2. 新增标签字典 ch_patient_tag_dict（前端依据 tag_code 回填 tagName/tagColor）
+--   3. 补全检验/检查/OCR/最新指标/未处理预警/教育推送 等 Tab 数据
+--   4. 重点保证患者 1001（张伟，高血压）与 1011（赵敏，糖尿病）数据完整可演示
+-- ============================================
+
+-- ----------------------------------------------------------------
+-- 11.1 修复历史数据缺失字段
+-- ----------------------------------------------------------------
+
+-- 预警规则 rule_name 字段（旧 mock 仅写 description，新 DDL 已加 rule_name）
+UPDATE ch_warning_rule
+SET rule_name = SUBSTRING(description, 1, 100)
+WHERE (rule_name IS NULL OR rule_name = '') AND description IS NOT NULL;
+
+-- 用药依从性 compliance（旧 mock 全部为 NULL）
+UPDATE ch_medication_record SET compliance = 'GOOD'
+WHERE compliance IS NULL AND patient_id IN (1001, 1002, 1003, 1005, 1007, 1008, 1010, 1011, 1015, 1016, 1017);
+UPDATE ch_medication_record SET compliance = 'FAIR'
+WHERE compliance IS NULL AND patient_id IN (1004, 1006, 1009, 1012, 1013);
+UPDATE ch_medication_record SET compliance = 'POOR'
+WHERE compliance IS NULL AND patient_id IN (1014, 1018, 1019);
+UPDATE ch_medication_record SET compliance = 'GOOD' WHERE compliance IS NULL;
+
+-- 患者标签 tag_code（前端依赖 tag_code 查字典回填 tagName/tagColor）
+UPDATE ch_patient_tag SET tag_code = 'RISK_VERY_HIGH' WHERE tag_type = 'RISK' AND tag_value LIKE '%极高危%';
+UPDATE ch_patient_tag SET tag_code = 'RISK_HIGH'     WHERE tag_type = 'RISK' AND (tag_value LIKE '%高血压高危%' OR tag_value LIKE '%糖尿病高危%' OR tag_value LIKE '%慢阻肺高危%');
+UPDATE ch_patient_tag SET tag_code = 'RISK_MEDIUM'   WHERE tag_type = 'RISK' AND tag_value LIKE '%中危%';
+UPDATE ch_patient_tag SET tag_code = 'RISK_LOW'      WHERE tag_type = 'RISK' AND tag_value LIKE '%低危%';
+UPDATE ch_patient_tag SET tag_code = 'COMO_HTN'      WHERE tag_type = 'COMORBIDITY' AND tag_value = '高血压';
+UPDATE ch_patient_tag SET tag_code = 'COMO_T2DM'     WHERE tag_type = 'COMORBIDITY' AND tag_value = '糖尿病';
+UPDATE ch_patient_tag SET tag_code = 'COMO_CHD'      WHERE tag_type = 'COMORBIDITY' AND tag_value = '冠心病';
+UPDATE ch_patient_tag SET tag_code = 'COMO_DM_NEPHRO' WHERE tag_type = 'COMORBIDITY' AND tag_value = '糖尿病肾病';
+UPDATE ch_patient_tag SET tag_code = 'TAG_REGULAR_MED' WHERE tag_type = 'CUSTOM' AND tag_value = '规律服药';
+UPDATE ch_patient_tag SET tag_code = 'TAG_SMOKING'     WHERE tag_type = 'CUSTOM' AND tag_value = '吸烟';
+
+-- ----------------------------------------------------------------
+-- 11.2 患者标签字典（前端通过 tag_code 回填 tagName/tagColor）
+-- ----------------------------------------------------------------
+TRUNCATE TABLE ch_patient_tag_dict;
+INSERT INTO ch_patient_tag_dict (tag_code, tag_name, tag_type, category, color, status, sort_order, remark, create_dept, tenant_id, create_by, create_time) VALUES
+('RISK_LOW',       '低危',         'RISK',        'risk',     '#52C41A', '0', 10, '风险分层-低危',     103, '000000', 1, '2025-11-01 00:00:00'),
+('RISK_MEDIUM',    '中危',         'RISK',        'risk',     '#FAAD14', '0', 20, '风险分层-中危',     103, '000000', 1, '2025-11-01 00:00:00'),
+('RISK_HIGH',      '高危',         'RISK',        'risk',     '#FF4D4F', '0', 30, '风险分层-高危',     103, '000000', 1, '2025-11-01 00:00:00'),
+('RISK_VERY_HIGH', '极高危',       'RISK',        'risk',     '#A8071A', '0', 40, '风险分层-极高危',   103, '000000', 1, '2025-11-01 00:00:00'),
+('COMO_HTN',       '合并高血压',   'COMORBIDITY', 'disease',  '#722ED1', '0', 50, '合并症-高血压',     103, '000000', 1, '2025-11-01 00:00:00'),
+('COMO_T2DM',      '合并糖尿病',   'COMORBIDITY', 'disease',  '#13C2C2', '0', 60, '合并症-2型糖尿病',  103, '000000', 1, '2025-11-01 00:00:00'),
+('COMO_CHD',       '合并冠心病',   'COMORBIDITY', 'disease',  '#EB2F96', '0', 70, '合并症-冠心病',     103, '000000', 1, '2025-11-01 00:00:00'),
+('COMO_DM_NEPHRO', '合并糖尿病肾病','COMORBIDITY','disease',  '#9254DE', '0', 80, '合并症-糖尿病肾病', 103, '000000', 1, '2025-11-01 00:00:00'),
+('TAG_REGULAR_MED','规律服药',     'CUSTOM',      'behavior', '#1890FF', '0', 100,'依从性-规律服药',   103, '000000', 1, '2025-11-01 00:00:00'),
+('TAG_SMOKING',    '吸烟',         'CUSTOM',      'behavior', '#FA8C16', '0', 110,'生活方式-吸烟',     103, '000000', 1, '2025-11-01 00:00:00'),
+('TAG_ELDERLY',    '独居老人',     'CUSTOM',      'social',   '#8C8C8C', '0', 120,'社会属性-独居老人', 103, '000000', 1, '2025-11-01 00:00:00'),
+('TAG_POVERTY',    '低保户',       'CUSTOM',      'economic', '#13A8A8', '0', 130,'经济属性-低保户',   103, '000000', 1, '2025-11-01 00:00:00');
+
+-- 给患者 1001/1004/1010/1019 增加一些自定义标签（演示标签丰富度）
+INSERT INTO ch_patient_tag (patient_id, tag_type, tag_code, tag_value, create_dept, tenant_id, create_by, create_time) VALUES
+(1001, 'CUSTOM', 'TAG_ELDERLY',    '独居老人', 103, '000000', 1, '2025-12-16 09:00:00'),
+(1004, 'CUSTOM', 'TAG_ELDERLY',    '独居老人', 103, '000000', 1, '2025-12-16 11:00:00'),
+(1010, 'CUSTOM', 'TAG_POVERTY',    '低保户',   103, '000000', 1, '2025-11-10 09:00:00'),
+(1019, 'CUSTOM', 'TAG_ELDERLY',    '独居老人', 103, '000000', 1, '2026-04-11 09:00:00');
+
+-- ----------------------------------------------------------------
+-- 11.3 检验记录 ch_lab_test（lab-test-tab 渲染依赖）
+-- ----------------------------------------------------------------
+TRUNCATE TABLE ch_lab_test;
+INSERT INTO ch_lab_test (patient_id, test_date, test_type, test_items, hospital, doctor, remark, create_dept, tenant_id, create_by, create_time) VALUES
+-- 1001 张伟（高血压）：血脂 + 肝肾功能
+(1001, '2026-01-20 09:30:00', '血脂全套',
+ '[{"itemName":"总胆固醇","value":"5.8","unit":"mmol/L","refRange":"2.8-5.2","abnormal":true},{"itemName":"甘油三酯","value":"2.1","unit":"mmol/L","refRange":"0.45-1.7","abnormal":true},{"itemName":"高密度脂蛋白","value":"1.2","unit":"mmol/L","refRange":">1.0","abnormal":false},{"itemName":"低密度脂蛋白","value":"3.8","unit":"mmol/L","refRange":"<3.4","abnormal":true}]',
+ '东城区社区卫生服务中心', '李医生', '建议低脂饮食，加用他汀类药物', 103, '000000', 1, '2026-01-20 10:00:00'),
+(1001, '2026-04-10 09:00:00', '肝肾功能',
+ '[{"itemName":"谷丙转氨酶","value":"32","unit":"U/L","refRange":"0-40","abnormal":false},{"itemName":"谷草转氨酶","value":"28","unit":"U/L","refRange":"0-40","abnormal":false},{"itemName":"血肌酐","value":"82","unit":"μmol/L","refRange":"44-133","abnormal":false},{"itemName":"血尿素氮","value":"5.6","unit":"mmol/L","refRange":"2.5-7.1","abnormal":false},{"itemName":"血尿酸","value":"395","unit":"μmol/L","refRange":"149-416","abnormal":false}]',
+ '东城区社区卫生服务中心', '李医生', '肝肾功能均在正常范围', 103, '000000', 1, '2026-04-10 10:00:00'),
+(1001, '2026-05-05 08:50:00', '血常规',
+ '[{"itemName":"白细胞","value":"6.8","unit":"10^9/L","refRange":"4-10","abnormal":false},{"itemName":"红细胞","value":"4.5","unit":"10^12/L","refRange":"4-5.5","abnormal":false},{"itemName":"血红蛋白","value":"138","unit":"g/L","refRange":"120-160","abnormal":false},{"itemName":"血小板","value":"235","unit":"10^9/L","refRange":"100-300","abnormal":false}]',
+ '东城区社区卫生服务中心', '李医生', '血常规正常', 103, '000000', 1, '2026-05-05 09:30:00'),
+-- 1011 赵敏（糖尿病）：糖化、血脂
+(1011, '2026-04-05 08:30:00', '糖代谢',
+ '[{"itemName":"空腹血糖","value":"8.5","unit":"mmol/L","refRange":"3.9-6.1","abnormal":true},{"itemName":"糖化血红蛋白","value":"7.8","unit":"%","refRange":"4.0-6.5","abnormal":true},{"itemName":"餐后2小时血糖","value":"12.6","unit":"mmol/L","refRange":"<7.8","abnormal":true}]',
+ '朝阳区社区卫生服务中心', '王医生', '糖化偏高，建议调整降糖方案', 103, '000000', 1, '2026-04-05 09:00:00'),
+(1011, '2026-05-08 08:00:00', '血脂全套',
+ '[{"itemName":"总胆固醇","value":"5.5","unit":"mmol/L","refRange":"2.8-5.2","abnormal":true},{"itemName":"甘油三酯","value":"1.9","unit":"mmol/L","refRange":"0.45-1.7","abnormal":true},{"itemName":"低密度脂蛋白","value":"3.6","unit":"mmol/L","refRange":"<3.4","abnormal":true}]',
+ '朝阳区社区卫生服务中心', '王医生', '血脂偏高', 103, '000000', 1, '2026-05-08 09:00:00'),
+-- 1014 郑霞（糖尿病极高危）
+(1014, '2026-04-10 08:00:00', '糖代谢+肾功能',
+ '[{"itemName":"空腹血糖","value":"9.2","unit":"mmol/L","refRange":"3.9-6.1","abnormal":true},{"itemName":"糖化血红蛋白","value":"8.6","unit":"%","refRange":"4.0-6.5","abnormal":true},{"itemName":"尿微量白蛋白","value":"45","unit":"mg/L","refRange":"0-20","abnormal":true},{"itemName":"血肌酐","value":"96","unit":"μmol/L","refRange":"44-133","abnormal":false}]',
+ '朝阳区社区卫生服务中心', '王医生', '糖尿病肾病早期表现，需密切监测', 103, '000000', 1, '2026-04-10 09:00:00'),
+-- 1019 孙明（慢阻肺）
+(1019, '2026-04-20 09:00:00', '血气分析',
+ '[{"itemName":"PaO2","value":"68","unit":"mmHg","refRange":"80-100","abnormal":true},{"itemName":"PaCO2","value":"48","unit":"mmHg","refRange":"35-45","abnormal":true},{"itemName":"pH","value":"7.38","unit":"","refRange":"7.35-7.45","abnormal":false},{"itemName":"SaO2","value":"92","unit":"%","refRange":">95","abnormal":true}]',
+ '黄浦区社区卫生服务中心', '李医生', '存在轻度低氧血症，建议长程氧疗', 103, '000000', 1, '2026-04-20 10:00:00');
+
+-- ----------------------------------------------------------------
+-- 11.4 检查记录 ch_medical_exam（lab-test-tab 检查子标签依赖）
+-- ----------------------------------------------------------------
+TRUNCATE TABLE ch_medical_exam;
+INSERT INTO ch_medical_exam (patient_id, exam_date, exam_type, exam_part, exam_result, exam_conclusion, hospital, doctor, remark, create_dept, tenant_id, create_by, create_time) VALUES
+-- 1001 张伟：心电图 + 颈动脉超声
+(1001, '2026-01-20 10:00:00', '心电图', '心脏',
+ '窦性心律，心率72次/分，PR间期0.16s，QT间期0.36s，未见明显ST-T改变。',
+ '窦性心律，心电图大致正常', '东城区社区卫生服务中心', '李医生', '建议定期复查', 103, '000000', 1, '2026-01-20 10:30:00'),
+(1001, '2026-04-12 10:00:00', '颈动脉超声', '颈部血管',
+ '双侧颈动脉内膜中层厚度1.0mm，右侧颈动脉分叉处可见1.5×0.6cm软斑，未见明显血流动力学异常。',
+ '右侧颈动脉粥样硬化伴软斑形成', '东城区社区卫生服务中心', '张医生', '建议规律服用他汀类药物', 103, '000000', 1, '2026-04-12 11:00:00'),
+-- 1004 吴刚：心脏彩超
+(1004, '2026-02-10 10:00:00', '心脏彩超', '心脏',
+ 'EF 58%，LVDd 52mm，左心室壁略增厚，二尖瓣轻度反流，主动脉瓣硬化。',
+ '左心室肥厚，主动脉瓣硬化', '东城区社区卫生服务中心', '李医生', '建议心内科会诊', 103, '000000', 1, '2026-02-10 10:30:00'),
+-- 1011 赵敏：眼底 + 足部检查
+(1011, '2026-04-08 09:30:00', '眼底照相', '双眼',
+ '双眼视网膜可见少量微血管瘤，未见出血及渗出，黄斑区未见明显异常。',
+ '糖尿病视网膜病变I期（轻度非增殖期）', '朝阳区社区卫生服务中心', '王医生', '建议每年复查一次眼底', 103, '000000', 1, '2026-04-08 10:00:00'),
+(1011, '2026-04-15 09:00:00', '糖尿病足筛查', '双足',
+ '足背动脉搏动良好，皮温正常，10g单丝试验正常，振动觉测试正常，无明显病损。',
+ '糖尿病足风险低', '朝阳区社区卫生服务中心', '王医生', '建议每日检查足部', 103, '000000', 1, '2026-04-15 09:30:00'),
+-- 1014 郑霞：眼底
+(1014, '2026-04-12 09:00:00', '眼底照相', '双眼',
+ '双眼视网膜可见多发出血点，硬性渗出，黄斑区水肿。',
+ '糖尿病视网膜病变II期（中度非增殖期）', '朝阳区社区卫生服务中心', '王医生', '建议眼科激光治疗', 103, '000000', 1, '2026-04-12 10:00:00'),
+-- 1019 孙明：肺部CT
+(1019, '2026-04-22 09:00:00', '胸部CT', '肺部',
+ '双肺纹理增多，可见弥漫性气体陷闭征，肺气肿改变，未见明显肿块。',
+ '慢性阻塞性肺疾病改变', '黄浦区社区卫生服务中心', '李医生', '建议规范使用支气管扩张剂', 103, '000000', 1, '2026-04-22 10:00:00');
+
+-- ----------------------------------------------------------------
+-- 11.5 健康指标补全（让 latest 接口能返回 5 月最新数据）
+-- 1001 张伟补 4 月底 / 5 月血压数据 + 体重 + 心率
+-- 1011 赵敏补 5 月血糖 + 体重
+-- 1014 郑霞补 5 月血糖
+-- 1019 孙明补 5 月血氧
+-- ----------------------------------------------------------------
+INSERT INTO ch_health_metric_record (patient_id, metric_type, metric_value, unit, measure_scene, measure_period, reference_value_min, reference_value_max, is_abnormal, data_source, create_dept, tenant_id, create_by, create_time) VALUES
+-- 1001 张伟最新数据
+(1001, 'BP_SYSTOLIC',   '128', 'mmHg', 'HOME', 'MORNING', 90.00, 140.00, 0, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+(1001, 'BP_DIASTOLIC',  '80',  'mmHg', 'HOME', 'MORNING', 60.00, 90.00,  0, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+(1001, 'HEART_RATE',    '74',  '次/分', 'HOME', 'MORNING', 60.00, 100.00, 0, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+(1001, 'WEIGHT',        '77.5','kg',   'HOME', 'MORNING', NULL,  NULL,   0, 'MANUAL', 103, '000000', 1, '2026-05-15 07:30:00'),
+(1001, 'BP_SYSTOLIC',   '130', 'mmHg', 'HOME', 'MORNING', 90.00, 140.00, 0, 'DEVICE', 103, '000000', 1, '2026-05-10 08:00:00'),
+(1001, 'BP_DIASTOLIC',  '82',  'mmHg', 'HOME', 'MORNING', 60.00, 90.00,  0, 'DEVICE', 103, '000000', 1, '2026-05-10 08:00:00'),
+(1001, 'BP_SYSTOLIC',   '134', 'mmHg', 'HOME', 'MORNING', 90.00, 140.00, 0, 'DEVICE', 103, '000000', 1, '2026-04-20 08:00:00'),
+(1001, 'BP_DIASTOLIC',  '84',  'mmHg', 'HOME', 'MORNING', 60.00, 90.00,  0, 'DEVICE', 103, '000000', 1, '2026-04-20 08:00:00'),
+(1001, 'BMI',           '26.2','kg/m2','CLINIC','REGULAR',18.50, 24.00,  1, 'MANUAL', 103, '000000', 1, '2026-04-12 11:00:00'),
+-- 1004 吴刚最新血压
+(1004, 'BP_SYSTOLIC',   '156', 'mmHg', 'HOME', 'MORNING', 90.00, 140.00, 1, 'DEVICE', 103, '000000', 1, '2026-05-12 08:00:00'),
+(1004, 'BP_DIASTOLIC',  '96',  'mmHg', 'HOME', 'MORNING', 60.00, 90.00,  1, 'DEVICE', 103, '000000', 1, '2026-05-12 08:00:00'),
+(1004, 'HEART_RATE',    '82',  '次/分', 'HOME', 'MORNING', 60.00, 100.00, 0, 'DEVICE', 103, '000000', 1, '2026-05-12 08:00:00'),
+-- 1011 赵敏最新血糖、体重、血压
+(1011, 'BLOOD_GLUCOSE', '7.2', 'mmol/L','HOME','FASTING', 3.90,  6.10,   1, 'DEVICE', 103, '000000', 1, '2026-05-15 07:00:00'),
+(1011, 'WEIGHT',        '69.2','kg',   'HOME', 'MORNING', NULL,  NULL,   0, 'MANUAL', 103, '000000', 1, '2026-05-15 07:30:00'),
+(1011, 'BP_SYSTOLIC',   '135', 'mmHg', 'HOME', 'MORNING', 90.00, 140.00, 0, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+(1011, 'BP_DIASTOLIC',  '85',  'mmHg', 'HOME', 'MORNING', 60.00, 90.00,  0, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+(1011, 'HEART_RATE',    '78',  '次/分', 'HOME', 'MORNING', 60.00, 100.00, 0, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+-- 1014 郑霞最新血糖
+(1014, 'BLOOD_GLUCOSE', '8.2', 'mmol/L','HOME','FASTING', 3.90,  6.10,   1, 'DEVICE', 103, '000000', 1, '2026-05-15 07:00:00'),
+(1014, 'BP_SYSTOLIC',   '142', 'mmHg', 'HOME', 'MORNING', 90.00, 140.00, 1, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+(1014, 'BP_DIASTOLIC',  '88',  'mmHg', 'HOME', 'MORNING', 60.00, 90.00,  0, 'DEVICE', 103, '000000', 1, '2026-05-15 08:00:00'),
+-- 1019 孙明最新血氧
+(1019, 'SPO2',          '94',  '%',     'HOME','RESTING', 95.00, 100.00, 1, 'DEVICE', 103, '000000', 1, '2026-05-15 09:00:00'),
+(1019, 'HEART_RATE',    '83',  '次/分', 'HOME','RESTING', 60.00, 100.00, 0, 'DEVICE', 103, '000000', 1, '2026-05-15 09:00:00');
+
+-- ----------------------------------------------------------------
+-- 11.6 未处理预警事件（确保"异常关注"红框区块有数据可展示）
+-- 1001 张伟：补一条 NEW 状态预警
+-- 1011 赵敏：补一条 PROCESSING 状态预警
+-- ----------------------------------------------------------------
+INSERT INTO ch_warning_event (patient_id, rule_id, warning_level, warning_value, warning_time, event_status, assignee_user_id, create_dept, tenant_id, create_by, create_time) VALUES
+(1001, 2, 'MEDIUM',   '162mmHg',    '2026-05-13 08:00:00', 'NEW',        3001, 103, '000000', 1, '2026-05-13 08:00:00'),
+(1011, 5, 'MEDIUM',   '12.8mmol/L', '2026-05-10 07:00:00', 'PROCESSING', 3004, 103, '000000', 1, '2026-05-10 07:00:00'),
+(1004, 1, 'HIGH',     '188mmHg',    '2026-05-12 08:00:00', 'CONFIRMED',  3001, 103, '000000', 1, '2026-05-12 08:00:00');
+
+-- 给上述新增预警添加确认动作（仅 PROCESSING/CONFIRMED 状态）
+INSERT INTO ch_warning_action (warning_id, action_type, action_detail, action_user_id, action_time, create_dept, tenant_id, create_by, create_time)
+SELECT warning_id, 'CONFIRM', '系统自动确认预警，已通知医生介入', assignee_user_id, warning_time, 103, '000000', 1, warning_time
+FROM ch_warning_event WHERE event_status IN ('PROCESSING','CONFIRMED') AND warning_time >= '2026-05-10';
+
+-- ----------------------------------------------------------------
+-- 11.7 OCR 任务（OCR 卡片渲染依赖）
+-- ----------------------------------------------------------------
+INSERT INTO ch_ocr_task (patient_id, doc_type, input_type, file_id, file_md5, source_terminal, task_status, recognized_at, confirmed_at, confirmer_user_id, confirmed_patient_id, confirmed_metric_count, create_dept, tenant_id, create_by, create_time) VALUES
+(1001, 'LAB',  'OSS', 10010, 'f1a2b3c4d5e60718293a4b5c6d7e8f99', 'DOCTOR', 'CONFIRMED', '2026-04-10 10:05:00', '2026-04-10 11:00:00', 3001, 1001, 5, 103, '000000', 3001, '2026-04-10 10:00:00'),
+(1001, 'EXAM', 'OSS', 10011, '1a2b3c4d5e6f0718293a4b5c6d7e8f01', 'DOCTOR', 'SUCCESS',   '2026-05-05 09:35:00', NULL,                 NULL, NULL, 0, 103, '000000', 3001, '2026-05-05 09:30:00'),
+(1011, 'LAB',  'OSS', 10012, '2b3c4d5e6f70718293a4b5c6d7e8f012','DOCTOR', 'CONFIRMED', '2026-05-08 09:05:00', '2026-05-08 09:30:00', 3004, 1011, 3, 103, '000000', 3004, '2026-05-08 09:00:00');
+
+-- ----------------------------------------------------------------
+-- 11.8 健康教育推送（让总览"累计推送"卡片有可观数量）
+-- ----------------------------------------------------------------
+INSERT INTO ch_health_education_delivery (content_id, patient_id, trigger_type, push_channel, delivery_status, read_status, read_time, stay_duration, create_dept, tenant_id, create_by, create_time) VALUES
+(1, 1001, 'SEASONAL',    'WECHAT', 'PUSHED', 1, '2026-02-15 10:30:00', 130, 103, '000000', 1, '2026-02-15 09:00:00'),
+(6, 1001, 'MANUAL',      'WECHAT', 'PUSHED', 1, '2026-03-01 14:00:00',  95, 103, '000000', 1, '2026-03-01 13:30:00'),
+(8, 1001, 'RULE_ENGINE', 'WECHAT', 'PUSHED', 1, '2026-03-15 09:30:00', 160, 103, '000000', 1, '2026-03-15 09:00:00'),
+(1, 1001, 'RULE_ENGINE', 'WECHAT', 'PUSHED', 0, NULL,                  0,   103, '000000', 1, '2026-04-10 09:00:00'),
+(6, 1001, 'MANUAL',      'SMS',    'PUSHED', 1, '2026-04-20 11:00:00',  60, 103, '000000', 1, '2026-04-20 09:00:00'),
+(5, 1001, 'SEASONAL',    'WECHAT', 'PUSHED', 1, '2026-05-08 09:30:00', 145, 103, '000000', 1, '2026-05-08 09:00:00'),
+(8, 1001, 'MANUAL',      'WECHAT', 'PUSHED', 0, NULL,                  0,   103, '000000', 1, '2026-05-14 09:00:00'),
+(2, 1011, 'MANUAL',      'WECHAT', 'PUSHED', 1, '2026-04-10 10:30:00', 175, 103, '000000', 1, '2026-04-10 09:00:00'),
+(7, 1011, 'RULE_ENGINE', 'WECHAT', 'PUSHED', 1, '2026-04-20 10:00:00', 200, 103, '000000', 1, '2026-04-20 09:00:00'),
+(2, 1011, 'MANUAL',      'WECHAT', 'PUSHED', 1, '2026-05-08 10:00:00', 165, 103, '000000', 1, '2026-05-08 09:00:00'),
+(6, 1011, 'SEASONAL',    'WECHAT', 'PUSHED', 0, NULL,                  0,   103, '000000', 1, '2026-05-15 09:00:00');
+
+-- ----------------------------------------------------------------
+-- 11.9 知情同意补充（确保所有有签约的患者都有 SIGN_CONTRACT + DATA_SHARE 同意记录）
+-- 注：签约时强制要求 SIGN_CONTRACT 同意，但 DATA_SHARE 是可选
+-- ----------------------------------------------------------------
+INSERT INTO ch_consent_record (patient_id, consent_type, sign_method, sign_time, operator_ip, device_info, related_biz_type, related_biz_id, create_dept, tenant_id, create_by, create_time)
+SELECT p.patient_id, 'DATA_SHARE', 'SMS_OTP', DATE_ADD(c.contract_period_start, INTERVAL 1 HOUR), '192.168.1.100', 'WeChat-Miniapp', 'DATA_SHARE', NULL, 103, '000000', 1, DATE_ADD(c.contract_period_start, INTERVAL 1 HOUR)
+FROM ch_patient_profile p
+INNER JOIN ch_patient_contract c ON p.patient_id = c.patient_id
+WHERE NOT EXISTS (
+    SELECT 1 FROM ch_consent_record cr
+    WHERE cr.patient_id = p.patient_id AND cr.consent_type = 'DATA_SHARE'
+)
+AND p.patient_id IN (1001, 1011, 1014, 1019);
+
+-- ----------------------------------------------------------------
+-- 11.10 档案共享申请补充
+-- ----------------------------------------------------------------
+INSERT INTO ch_archive_share_apply (patient_id, apply_org_id, target_org_id, apply_reason, approval_status, create_dept, tenant_id, create_by, create_time) VALUES
+(1011, 1003, 1004, '糖尿病视网膜病变需上级眼科会诊调档', 'APPROVED', 103, '000000', 1, '2026-04-08 10:00:00'),
+(1019, 1004, 1003, '慢阻肺急性加重病史共享', 'PENDING', 103, '000000', 1, '2026-05-05 09:00:00');
+
+-- ----------------------------------------------------------------
+-- 11.11 医生用户兜底
+-- 现有 mock 中 doctor_user_id=3001-3009 在 sys_user 表里没有对应记录，
+-- 导致 @Translation(USER_ID_TO_NICKNAME) 翻译失败、医生团队显示"暂无"。
+-- 简化方案：将所有 doctor_user_id 统一为系统已存在的管理员账号 user_id=1，
+-- 使侧边栏「医生团队」、各 Tab 的执行人/开方人/评估人等翻译均能正常显示。
+-- ----------------------------------------------------------------
+UPDATE ch_patient_profile        SET doctor_user_id     = 1 WHERE doctor_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_followup_task          SET assignee_user_id   = 1 WHERE assignee_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_followup_record        SET visitor_user_id    = 1 WHERE visitor_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_medication_record      SET prescriber_user_id = 1 WHERE prescriber_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_medication_adjust      SET adjuster_user_id   = 1 WHERE adjuster_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_warning_event          SET assignee_user_id   = 1 WHERE assignee_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_warning_action         SET action_user_id     = 1 WHERE action_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_risk_assessment        SET assessor_user_id   = 1 WHERE assessor_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_message_session        SET doctor_user_id     = 1 WHERE doctor_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_sos_record             SET handler_user_id    = 1 WHERE handler_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_ocr_task               SET confirmer_user_id  = 1 WHERE confirmer_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_doctor_team            SET leader_user_id     = 1 WHERE leader_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_doctor_team_member     SET user_id            = 1 WHERE user_id BETWEEN 3000 AND 3999;
+UPDATE ch_screening_batch        SET doctor_user_id     = 1 WHERE doctor_user_id BETWEEN 3000 AND 3999;
+UPDATE ch_patient_disease        SET diagnosis_doctor_user_id = 1 WHERE diagnosis_doctor_user_id BETWEEN 3000 AND 3999;
+
+-- ============================================
 -- 恢复外键检查
 -- ============================================
 SET FOREIGN_KEY_CHECKS = 1;
@@ -961,7 +1208,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================
 -- 数据生成完成
 -- ============================================
--- 总覆盖表数: 66 张
+-- 总覆盖表数: 68 张（新增 ch_lab_test / ch_medical_exam / ch_patient_tag_dict 数据）
 -- 主要业务数据：患者档案22条 / 患者疾病32条 / 患者签约15条 / 用药记录25条
 -- 随访：计划12条 / 计划项12条 / 任务20条 / 记录15条 / 答卷6条
 -- 健康指标30条 / 预警事件8条 / 预警处置6条 / 体检8条 / 体检项12条

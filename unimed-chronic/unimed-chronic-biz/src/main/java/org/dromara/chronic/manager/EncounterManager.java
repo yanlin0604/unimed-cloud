@@ -10,6 +10,7 @@ import org.dromara.chronic.domain.vo.ChEncounterRecordVo;
 import org.dromara.chronic.mapper.ChAuditLogMapper;
 import org.dromara.chronic.service.IChEncounterRecordService;
 import org.dromara.chronic.service.impl.ChPatientTimelineServiceImpl;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Component;
@@ -66,9 +67,38 @@ public class EncounterManager {
         return encounterRecordService.queryPageList(bo, pageQuery);
     }
 
+    /**
+     * 患者最近一次诊疗记录（直接查 ch_encounter_record，避免时间线缺事件导致总览空的问题）
+     */
+    public ChEncounterRecordVo queryLatestByPatientId(Long patientId) {
+        return encounterRecordService.queryLatestByPatientId(patientId);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public Long updateDraft(ChEncounterRecordBo bo, List<ChEncounterDiagnosisBo> diagnosisList) {
         return encounterRecordService.updateById(bo, diagnosisList);
+    }
+
+    /**
+     * 删除诊疗记录（仅允许草稿）
+     * <ul>
+     *   <li>记录不存在：幂等返回 encounterId，不抛错</li>
+     *   <li>已提交：抛 ServiceException，由全局异常处理转 R.fail</li>
+     *   <li>草稿：级联清空诊断子表 + 删除主表 + 写审计日志</li>
+     * </ul>
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Long delete(Long encounterId, Long operatorId) {
+        ChEncounterRecord record = encounterRecordService.getById(encounterId);
+        if (record == null) {
+            return encounterId;
+        }
+        if ("SUBMITTED".equals(record.getSubmitStatus())) {
+            throw new ServiceException("已提交的诊疗记录不允许删除");
+        }
+        encounterRecordService.deleteById(encounterId);
+        logAudit("ENCOUNTER_DELETE", "ENCOUNTER", "删除诊疗记录草稿: encounterId=" + encounterId, operatorId);
+        return encounterId;
     }
 
     private void writeTimeline(Long encounterId, Long operatorId) {

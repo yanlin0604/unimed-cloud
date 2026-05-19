@@ -11,20 +11,27 @@ import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.entity.ChConsentRecord;
 import org.dromara.chronic.domain.entity.ChPatientContract;
+import org.dromara.chronic.domain.entity.ChPatientCloseApply;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChPatientTag;
+import org.dromara.chronic.domain.entity.ChPatientTagDict;
 import org.dromara.chronic.domain.entity.ChPatientTimeline;
+import org.dromara.chronic.domain.entity.ChRiskAssessment;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientDiseaseVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
+import org.dromara.chronic.domain.vo.ChPatientTagVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
 import org.dromara.chronic.mapper.ChConsentRecordMapper;
+import org.dromara.chronic.mapper.ChPatientCloseApplyMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
 import org.dromara.chronic.mapper.ChPatientDiseaseMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
+import org.dromara.chronic.mapper.ChPatientTagDictMapper;
 import org.dromara.chronic.mapper.ChPatientTagMapper;
 import org.dromara.chronic.mapper.ChPatientTimelineMapper;
+import org.dromara.chronic.mapper.ChRiskAssessmentMapper;
 import org.dromara.chronic.service.IChPatientProfileService;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -51,9 +58,12 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
     private final ChPatientProfileMapper baseMapper;
     private final ChPatientDiseaseMapper patientDiseaseMapper;
     private final ChPatientTagMapper patientTagMapper;
+    private final ChPatientTagDictMapper patientTagDictMapper;
     private final ChPatientTimelineMapper patientTimelineMapper;
     private final ChPatientContractMapper patientContractMapper;
     private final ChConsentRecordMapper consentRecordMapper;
+    private final ChRiskAssessmentMapper riskAssessmentMapper;
+    private final ChPatientCloseApplyMapper patientCloseApplyMapper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
@@ -61,11 +71,15 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         List<ChPatientProfileVo> result = baseMapper.selectVoList(buildQueryWrapper(bo));
         fillContractStatus(result);
         fillConsentStatus(result);
+        fillCloseApplyStatus(result);
         return result;
     }
 
     public TableDataInfo<ChPatientProfileVo> queryPageList(ChPatientProfileBo bo, PageQuery pageQuery) {
         Page<ChPatientProfileVo> result = baseMapper.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
+        fillContractStatus(result.getRecords());
+        fillConsentStatus(result.getRecords());
+        fillCloseApplyStatus(result.getRecords());
         return TableDataInfo.build(result);
     }
 
@@ -81,9 +95,11 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         );
         fillPatientDiseaseNames(diseaseList);
         detailVo.setDiseaseList(diseaseList);
-        detailVo.setTags(patientTagMapper.selectVoList(
+        List<ChPatientTagVo> tagList = patientTagMapper.selectVoList(
             Wrappers.<ChPatientTag>lambdaQuery().eq(ChPatientTag::getPatientId, patientId)
-        ));
+        );
+        fillTagInfo(tagList);
+        detailVo.setTags(tagList);
         List<ChPatientTimelineVo> timelines = patientTimelineMapper.selectVoList(
             Wrappers.<ChPatientTimeline>lambdaQuery()
                 .eq(ChPatientTimeline::getPatientId, patientId)
@@ -92,6 +108,7 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         detailVo.setLatestTimeline(CollUtil.isEmpty(timelines) ? null : timelines.get(0));
         fillContractStatus(detailVo, patientId);
         fillConsentStatus(detailVo, patientId);
+        fillRiskLevel(detailVo, patientId);
         return detailVo;
     }
 
@@ -179,14 +196,49 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
 
     private void fillPatientDiseaseNames(List<ChPatientDiseaseVo> list) {
         if (CollUtil.isEmpty(list)) return;
-        List<String> diseaseCodes = list.stream().map(ChPatientDiseaseVo::getDiseaseCode)
-            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        // 合并 diseaseCode 与 parentDiseaseCode 一次性查询字典，避免 N+1
+        List<String> codes = new ArrayList<>();
+        list.forEach(v -> {
+            if (StringUtils.isNotBlank(v.getDiseaseCode())) codes.add(v.getDiseaseCode());
+            if (StringUtils.isNotBlank(v.getParentDiseaseCode())) codes.add(v.getParentDiseaseCode());
+        });
+        List<String> diseaseCodes = codes.stream().distinct().collect(Collectors.toList());
         if (!diseaseCodes.isEmpty()) {
             try {
                 Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
-                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+                list.forEach(v -> {
+                    v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode()));
+                    if (StringUtils.isNotBlank(v.getParentDiseaseCode())) {
+                        v.setParentDiseaseName(diseaseNameMap.get(v.getParentDiseaseCode()));
+                    }
+                });
             } catch (Exception e) { /* ignore */ }
         }
+    }
+
+    /**
+     * 批量回填患者标签的 tagName / tagColor（按 tag_code 查 ch_patient_tag_dict）
+     * 字典查不到时保留 tagCode 兜底，避免前端展示英文 code
+     */
+    private void fillTagInfo(List<ChPatientTagVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<String> tagCodes = list.stream().map(ChPatientTagVo::getTagCode)
+            .filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (tagCodes.isEmpty()) return;
+        try {
+            List<ChPatientTagDict> dicts = patientTagDictMapper.selectList(
+                Wrappers.<ChPatientTagDict>lambdaQuery().in(ChPatientTagDict::getTagCode, tagCodes)
+            );
+            Map<String, ChPatientTagDict> codeMap = dicts.stream()
+                .collect(Collectors.toMap(ChPatientTagDict::getTagCode, d -> d, (a, b) -> a));
+            list.forEach(v -> {
+                ChPatientTagDict dict = codeMap.get(v.getTagCode());
+                if (dict != null) {
+                    v.setTagName(dict.getTagName());
+                    v.setTagColor(dict.getColor());
+                }
+            });
+        } catch (Exception e) { /* ignore */ }
     }
 
     private void fillContractStatus(List<ChPatientProfileVo> list) {
@@ -253,6 +305,59 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
             detailVo.setConsentStatus(count > 0 ? "SIGNED" : "UNSIGNED");
         } catch (Exception e) {
             detailVo.setConsentStatus("UNSIGNED");
+        }
+    }
+
+    /**
+     * 聚合最新一次风险评估的 risk_level 到详情 VO
+     * 用于侧边栏「风险等级」主行展示，避免显示"-"
+     */
+    private void fillRiskLevel(ChPatientDetailVo detailVo, Long patientId) {
+        try {
+            ChRiskAssessment latest = riskAssessmentMapper.selectOne(
+                Wrappers.<ChRiskAssessment>lambdaQuery()
+                    .eq(ChRiskAssessment::getPatientId, patientId)
+                    .orderByDesc(ChRiskAssessment::getCreateTime)
+                    .last("LIMIT 1")
+            );
+            if (latest != null) {
+                detailVo.setRiskLevel(latest.getRiskLevel());
+            }
+        } catch (Exception e) { /* ignore */ }
+    }
+
+    /**
+     * 批量回填每个患者最新一条结案申请信息（applyId/状态/类型/时间），
+     * 用于列表行展示"待审核/已通过/已驳回"标签与按钮分流。
+     */
+    private void fillCloseApplyStatus(List<ChPatientProfileVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> patientIds = list.stream()
+            .map(ChPatientProfileVo::getPatientId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (patientIds.isEmpty()) return;
+        try {
+            // 一次拉取候选患者全部申请，按 create_time 倒序，内存中按 patientId 取首条（即最新）
+            List<ChPatientCloseApply> applies = patientCloseApplyMapper.selectList(
+                Wrappers.<ChPatientCloseApply>lambdaQuery()
+                    .in(ChPatientCloseApply::getPatientId, patientIds)
+                    .orderByDesc(ChPatientCloseApply::getCreateTime)
+            );
+            Map<Long, ChPatientCloseApply> latestMap = new java.util.HashMap<>();
+            for (ChPatientCloseApply apply : applies) {
+                latestMap.putIfAbsent(apply.getPatientId(), apply);
+            }
+            list.forEach(v -> {
+                ChPatientCloseApply latest = latestMap.get(v.getPatientId());
+                if (latest != null) {
+                    v.setCloseApplyId(latest.getApplyId());
+                    v.setCloseApplyStatus(latest.getAuditStatus());
+                    v.setCloseType(latest.getCloseType());
+                    v.setCloseApplyTime(latest.getCreateTime());
+                }
+            });
+        } catch (Exception e) {
+            // 兜底：不让"结案"非关键字段拖垮整个列表查询
         }
     }
 }

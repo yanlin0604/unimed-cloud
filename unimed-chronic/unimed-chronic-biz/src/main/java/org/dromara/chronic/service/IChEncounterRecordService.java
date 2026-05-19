@@ -29,4 +29,15 @@ public interface IChEncounterRecordService {
     Long updateById(ChEncounterRecordBo bo, List<ChEncounterDiagnosisBo> diagnosisList);
 
     ChEncounterRecord queryBySourceBizNo(String sourceBizNo, Long patientId);
+
+    /**
+     * 查询患者最近一次诊疗记录（按 encounter_time desc，包含草稿与已提交）
+     */
+    ChEncounterRecordVo queryLatestByPatientId(Long patientId);
+
+    /**
+     * 删除诊疗记录（级联清理诊断子表）。
+     * 不在此层做状态校验或审计，调用方（Manager）负责。
+     */
+    boolean deleteById(Long encounterId);
 }

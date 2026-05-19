@@ -53,6 +53,15 @@ public class ChPatientDiseaseBo extends BaseEntity {
     @Schema(description = "管理级别")
     private String manageLevel;
 
+    @Schema(description = "启用状态(true启用 false停用)")
+    private Boolean enableStatus;
+
+    @Schema(description = "确诊医生用户ID")
+    private Long diagnosisDoctorUserId;
+
+    @Schema(description = "确诊机构ID")
+    private Long diagnosisOrgId;
+
     @Schema(description = "病种范围（查询用）")
     private List<String> diseaseScope;
 }

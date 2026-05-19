@@ -69,10 +69,32 @@ public class EncounterController {
         return encounterManager.queryPageList(bo, pageQuery);
     }
 
+    @Operation(summary = "患者最近一次诊疗记录（用于档案总览）")
+    @SaCheckPermission("chronic:encounter:list")
+    @GetMapping("/chronic/admin/patient/{patientId}/encounter/latest")
+    public R<ChEncounterRecordVo> latest(@Parameter(description = "患者ID") @PathVariable Long patientId) {
+        return R.ok(encounterManager.queryLatestByPatientId(patientId));
+    }
+
     @Operation(summary = "诊疗记录详情")
     @SaCheckPermission("chronic:encounter:query")
     @GetMapping("/chronic/admin/encounter/{encounterId}")
     public R<ChEncounterRecordVo> detail(@Parameter(description = "诊疗记录ID") @PathVariable Long encounterId) {
         return R.ok(encounterManager.queryById(encounterId));
+    }
+
+    @Operation(summary = "全局分页查询诊疗记录(支持 patientId/encounterType/submitStatus/diseaseCode/encounterTimeStart/encounterTimeEnd 过滤)")
+    @SaCheckPermission("chronic:encounter:list")
+    @GetMapping("/chronic/admin/encounter/page")
+    public TableDataInfo<ChEncounterRecordVo> pageAll(ChEncounterRecordBo bo, PageQuery pageQuery) {
+        return encounterManager.queryPageList(bo, pageQuery);
+    }
+
+    @Operation(summary = "删除诊疗记录(仅草稿)")
+    @SaCheckPermission("chronic:encounter:remove")
+    @Log(title = "诊疗记录", businessType = BusinessType.DELETE)
+    @DeleteMapping("/chronic/admin/encounter/{encounterId}")
+    public R<Long> remove(@Parameter(description = "诊疗记录ID") @PathVariable Long encounterId) {
+        return R.ok(encounterManager.delete(encounterId, LoginHelper.getUserId()));
     }
 }

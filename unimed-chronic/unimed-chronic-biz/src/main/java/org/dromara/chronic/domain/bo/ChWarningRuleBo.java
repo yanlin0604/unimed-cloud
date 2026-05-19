@@ -27,6 +27,9 @@ public class ChWarningRuleBo extends BaseEntity {
     @Schema(description = "规则ID")
     private Long ruleId;
 
+    @Schema(description = "规则名称")
+    private String ruleName;
+
     @Schema(description = "病种编码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "病种编码不能为空")
     private String diseaseCode;

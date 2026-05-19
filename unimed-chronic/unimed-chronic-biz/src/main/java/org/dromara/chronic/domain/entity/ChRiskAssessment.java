@@ -35,6 +35,11 @@ public class ChRiskAssessment extends TenantEntity {
 
     private Long assessorUserId;
 
+    /**
+     * 机构ID（对应系统库 sys_dept.dept_id）
+     */
+    private Long orgId;
+
     @TableLogic
     private String delFlag;
 }

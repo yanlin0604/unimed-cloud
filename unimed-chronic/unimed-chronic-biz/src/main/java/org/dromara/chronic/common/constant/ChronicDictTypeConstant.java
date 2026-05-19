@@ -221,6 +221,13 @@ public final class ChronicDictTypeConstant {
     /** 筛查批次状态 */
     public static final String CHRONIC_SCREENING_STATUS = "chronic_screening_status";
 
+    // ==================== 患者结案 ====================
+
+    /** 结案申请审核状态 (PENDING/APPROVED/REJECTED/WITHDRAWN) */
+    public static final String CHRONIC_CLOSE_APPLY_STATUS = "chronic_close_apply_status";
+    /** 结案类型 (VOLUNTARY/TRANSFER/LOST/DEATH/RECOVERED/MOVED_OUT/OTHER) */
+    public static final String CHRONIC_CLOSE_TYPE = "chronic_close_type";
+
     // ==================== 医疗文档OCR ====================
 
     /** OCR来源类型 (ADMIN/DOCTOR/PATIENT) */

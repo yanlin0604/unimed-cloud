@@ -59,4 +59,10 @@ public class ChHealthEducationDeliveryVo implements Serializable {
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "deliveryStatus", other = ChronicDictTypeConstant.CHRONIC_DELIVERY_STATUS)
     private String deliveryStatusName;
 
+    @Schema(description = "宣教内容标题（按 contentId 回填）")
+    private String contentTitle;
+
+    @Schema(description = "创建时间")
+    private Date createTime;
+
 }

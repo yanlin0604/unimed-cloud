@@ -103,6 +103,8 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
         lqw.eq(StringUtils.isNotBlank(bo.getDiseaseCode()), ChEncounterRecord::getDiseaseCode, bo.getDiseaseCode());
         lqw.eq(StringUtils.isNotBlank(bo.getEncounterType()), ChEncounterRecord::getEncounterType, bo.getEncounterType());
         lqw.eq(StringUtils.isNotBlank(bo.getSubmitStatus()), ChEncounterRecord::getSubmitStatus, bo.getSubmitStatus());
+        lqw.ge(ObjectUtil.isNotNull(bo.getEncounterTimeStart()), ChEncounterRecord::getEncounterTime, bo.getEncounterTimeStart());
+        lqw.le(ObjectUtil.isNotNull(bo.getEncounterTimeEnd()), ChEncounterRecord::getEncounterTime, bo.getEncounterTimeEnd());
         lqw.orderByDesc(ChEncounterRecord::getEncounterTime);
         Page<ChEncounterRecordVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
         fillEncounterDiseaseNames(page.getRecords());
@@ -151,6 +153,40 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
         lqw.eq(ChEncounterRecord::getSourceBizNo, sourceBizNo);
         lqw.eq(ChEncounterRecord::getPatientId, patientId);
         return baseMapper.selectOne(lqw, false);
+    }
+
+    @Override
+    public ChEncounterRecordVo queryLatestByPatientId(Long patientId) {
+        if (patientId == null) {
+            return null;
+        }
+        // 取 encounter_time 最新的一条（包含草稿与已提交），与诊疗历史 Tab 列表的第一条对齐
+        LambdaQueryWrapper<ChEncounterRecord> lqw = Wrappers.<ChEncounterRecord>lambdaQuery()
+            .eq(ChEncounterRecord::getPatientId, patientId)
+            .orderByDesc(ChEncounterRecord::getEncounterTime)
+            .last("LIMIT 1");
+        ChEncounterRecordVo vo = baseMapper.selectVoOne(lqw, false);
+        if (vo != null) {
+            vo.setDiagnosisList(diagnosisMapper.selectVoList(
+                Wrappers.<ChEncounterDiagnosis>lambdaQuery()
+                    .eq(ChEncounterDiagnosis::getEncounterId, vo.getId())
+            ));
+            fillEncounterDiseaseNames(Collections.singletonList(vo));
+        }
+        return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteById(Long encounterId) {
+        if (encounterId == null) {
+            return false;
+        }
+        LambdaQueryWrapper<ChEncounterDiagnosis> dlqw = Wrappers.<ChEncounterDiagnosis>lambdaQuery()
+            .eq(ChEncounterDiagnosis::getEncounterId, encounterId);
+        diagnosisMapper.delete(dlqw);
+        baseMapper.deleteById(encounterId);
+        return true;
     }
 
     private void fillEncounterDiseaseNames(List<ChEncounterRecordVo> list) {

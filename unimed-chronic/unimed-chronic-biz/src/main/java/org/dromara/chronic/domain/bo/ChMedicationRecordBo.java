@@ -67,4 +67,13 @@ public class ChMedicationRecordBo extends BaseEntity {
 
     @Schema(description = "用药状态")
     private String status;
+
+    @Schema(description = "用药依从性 GOOD/FAIR/POOR（字典 chronic_compliance_level）")
+    private String compliance;
+
+    @Schema(description = "处方依据")
+    private String prescriptionBasis;
+
+    @Schema(description = "用药备注")
+    private String remark;
 }

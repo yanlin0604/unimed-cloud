@@ -10,6 +10,7 @@ import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 管理方案子项视图对象
@@ -32,6 +33,12 @@ public class ChManagePlanItemVo implements Serializable {
     private String itemType;
     @Schema(description = "项内容")
     private String itemContent;
+    @Schema(description = "目标指标类型(如 BP_SYSTOLIC)")
+    private String targetMetricType;
+    @Schema(description = "目标下限值")
+    private BigDecimal targetMinValue;
+    @Schema(description = "目标上限值")
+    private BigDecimal targetMaxValue;
     @Schema(description = "项类型名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "itemType", other = ChronicDictTypeConstant.CHRONIC_PLAN_ITEM_TYPE)
     private String itemTypeName;

@@ -63,9 +63,24 @@ public class ChPatientDisease extends TenantEntity {
     private String parentDiseaseCode;
 
     /**
+     * 管理级别(字典 chronic_manage_level)
+     */
+    private String manageLevel;
+
+    /**
      * 启用状态(1启用 0停用)
      */
     private Boolean enableStatus;
+
+    /**
+     * 确诊医生用户ID
+     */
+    private Long diagnosisDoctorUserId;
+
+    /**
+     * 确诊机构ID
+     */
+    private Long diagnosisOrgId;
 
     /**
      * 删除标志

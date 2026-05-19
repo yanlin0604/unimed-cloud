@@ -2,6 +2,7 @@ package org.dromara.chronic.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChArchiveShareApplyBo;
@@ -81,7 +82,8 @@ public class ArchiveShareManager {
         lqw.eq(bo.getTargetOrgId() != null, ChArchiveShareApply::getTargetOrgId, bo.getTargetOrgId());
         lqw.eq(StringUtils.isNotBlank(bo.getApprovalStatus()), ChArchiveShareApply::getApprovalStatus, bo.getApprovalStatus());
         lqw.orderByDesc(ChArchiveShareApply::getCreateTime);
-        return applyMapper.selectVoPage(pageQuery.build(), lqw);
+        Page<ChArchiveShareApplyVo> page = applyMapper.selectVoPage(pageQuery.build(), lqw);
+        return TableDataInfo.build(page);
     }
 
     @Transactional(rollbackFor = Exception.class)

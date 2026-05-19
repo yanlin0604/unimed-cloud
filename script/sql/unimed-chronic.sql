@@ -28,6 +28,7 @@ CREATE TABLE `ch_archive_share_apply`  (
   `target_org_id` bigint NULL DEFAULT NULL COMMENT '目标机构ID',
   `apply_reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '申请原因',
   `approval_status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '审批状态',
+  `workflow_instance_id` bigint NULL DEFAULT NULL COMMENT '工作流实例ID(启动审批流程后回填)',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
   `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',
   `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
@@ -37,7 +38,8 @@ CREATE TABLE `ch_archive_share_apply`  (
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_asa_patient_id`(`patient_id` ASC) USING BTREE,
-  INDEX `idx_asa_tenant_id`(`tenant_id` ASC) USING BTREE
+  INDEX `idx_asa_tenant_id`(`tenant_id` ASC) USING BTREE,
+  INDEX `idx_asa_workflow_instance_id`(`workflow_instance_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案共享申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -1077,6 +1079,9 @@ CREATE TABLE `ch_medication_record`  (
   `prescriber_user_id` bigint NULL DEFAULT NULL COMMENT '处方医生用户ID',
   `prescriber_verified` tinyint(1) NULL DEFAULT 0 COMMENT '处方是否已审核',
   `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用药状态(ACTIVE/STOPPED)',
+  `compliance` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用药依从性(GOOD/FAIR/POOR，字典 chronic_compliance_level)',
+  `prescription_basis` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '处方依据',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用药备注',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
   `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',
   `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
@@ -1417,6 +1422,7 @@ CREATE TABLE `ch_patient_disease`  (
   `confirm_date` date NULL DEFAULT NULL COMMENT '确诊日期',
   `is_complication` tinyint(1) NULL DEFAULT NULL COMMENT '是否并发症',
   `parent_disease_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '父级疾病编码',
+  `manage_level` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '管理级别(字典 chronic_manage_level)',
   `enable_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '启用状态(1启用 0停用)',
   `diagnosis_doctor_user_id` bigint NULL DEFAULT NULL COMMENT '确诊医生用户ID',
   `diagnosis_org_id` bigint NULL DEFAULT NULL COMMENT '确诊机构ID',
@@ -1941,6 +1947,7 @@ CREATE TABLE `ch_warning_event`  (
 DROP TABLE IF EXISTS `ch_warning_rule`;
 CREATE TABLE `ch_warning_rule`  (
   `rule_id` bigint NOT NULL AUTO_INCREMENT COMMENT '规则ID',
+  `rule_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '规则名称',
   `disease_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '疾病编码',
   `metric_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '指标类型',
   `warning_level` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '预警等级(LOW/MEDIUM/HIGH/CRITICAL)',

@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 宣教服务实现
@@ -57,11 +60,31 @@ public class ChHealthEducationServiceImpl implements IChHealthEducationService {
 
     @Override
     public List<ChHealthEducationDeliveryVo> queryDeliveriesByPatientId(Long patientId) {
-        return deliveryMapper.selectVoList(
+        List<ChHealthEducationDeliveryVo> deliveries = deliveryMapper.selectVoList(
             Wrappers.<ChHealthEducationDelivery>lambdaQuery()
                 .eq(ChHealthEducationDelivery::getPatientId, patientId)
                 .orderByDesc(ChHealthEducationDelivery::getCreateTime)
         );
+        if (deliveries.isEmpty()) {
+            return deliveries;
+        }
+        // 批量回填 contentTitle，避免 N+1 查询
+        Set<Long> contentIds = deliveries.stream()
+            .map(ChHealthEducationDeliveryVo::getContentId)
+            .filter(ObjectUtil::isNotNull)
+            .collect(Collectors.toSet());
+        if (!contentIds.isEmpty()) {
+            Map<Long, String> titleMap = contentMapper.selectVoList(
+                Wrappers.<ChHealthEducationContent>lambdaQuery()
+                    .in(ChHealthEducationContent::getContentId, contentIds)
+            ).stream().collect(Collectors.toMap(
+                ChHealthEducationContentVo::getContentId,
+                ChHealthEducationContentVo::getTitle,
+                (a, b) -> a
+            ));
+            deliveries.forEach(d -> d.setContentTitle(titleMap.get(d.getContentId())));
+        }
+        return deliveries;
     }
 
     @Override

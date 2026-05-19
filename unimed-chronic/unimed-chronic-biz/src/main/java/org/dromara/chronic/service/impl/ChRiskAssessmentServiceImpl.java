@@ -31,6 +31,8 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -96,17 +98,18 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
 
         ChRiskAssessmentVo vo = MapstructUtils.convert(entity, ChRiskAssessmentVo.class);
         vo.setFactorItems(MapstructUtils.convert(factorItems, org.dromara.chronic.domain.vo.ChRiskFactorItemVo.class));
+        fillReportSnapshot(vo);
         return vo;
     }
 
     @Override
-    public ChRiskAssessmentVo queryLatest(Long patientId) {
-        ChRiskAssessment entity = riskAssessmentMapper.selectOne(
-            Wrappers.<ChRiskAssessment>lambdaQuery()
-                .eq(ChRiskAssessment::getPatientId, patientId)
-                .orderByDesc(ChRiskAssessment::getCreateTime)
-                .last("limit 1")
-        );
+    public ChRiskAssessmentVo queryLatest(Long patientId, String diseaseCode) {
+        LambdaQueryWrapper<ChRiskAssessment> wrapper = Wrappers.<ChRiskAssessment>lambdaQuery()
+            .eq(ChRiskAssessment::getPatientId, patientId)
+            .eq(StringUtils.isNotBlank(diseaseCode), ChRiskAssessment::getDiseaseCode, diseaseCode)
+            .orderByDesc(ChRiskAssessment::getCreateTime)
+            .last("limit 1");
+        ChRiskAssessment entity = riskAssessmentMapper.selectOne(wrapper);
         if (entity == null) {
             return null;
         }
@@ -114,8 +117,36 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
         vo.setFactorItems(riskFactorItemMapper.selectVoList(
             Wrappers.<ChRiskFactorItem>lambdaQuery().eq(ChRiskFactorItem::getAssessmentId, entity.getAssessmentId())
         ));
-        fillRiskNames(java.util.Collections.singletonList(vo));
+        fillRiskNames(Collections.singletonList(vo));
+        fillReportSnapshot(vo);
         return vo;
+    }
+
+    @Override
+    public ChRiskAssessmentVo queryDetail(Long assessmentId) {
+        ChRiskAssessment entity = riskAssessmentMapper.selectById(assessmentId);
+        if (entity == null) {
+            return null;
+        }
+        ChRiskAssessmentVo vo = MapstructUtils.convert(entity, ChRiskAssessmentVo.class);
+        vo.setFactorItems(riskFactorItemMapper.selectVoList(
+            Wrappers.<ChRiskFactorItem>lambdaQuery().eq(ChRiskFactorItem::getAssessmentId, assessmentId)
+        ));
+        fillRiskNames(Collections.singletonList(vo));
+        fillReportSnapshot(vo);
+        return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean deleteByIds(Collection<Long> assessmentIds) {
+        if (CollUtil.isEmpty(assessmentIds)) {
+            return Boolean.FALSE;
+        }
+        riskFactorItemMapper.delete(
+            Wrappers.<ChRiskFactorItem>lambdaQuery().in(ChRiskFactorItem::getAssessmentId, assessmentIds)
+        );
+        return riskAssessmentMapper.deleteByIds(assessmentIds) > 0;
     }
 
     @Override
@@ -138,6 +169,7 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
         lqw.orderByDesc(ChRiskAssessment::getCreateTime);
         Page<ChRiskAssessmentVo> page = riskAssessmentMapper.selectVoPage(pageQuery.build(), lqw);
         fillRiskNames(page.getRecords());
+        page.getRecords().forEach(this::fillReportSnapshot);
         return TableDataInfo.build(page);
     }
 
@@ -189,6 +221,37 @@ public class ChRiskAssessmentServiceImpl implements IChRiskAssessmentService {
             "metricData", metricData,
             "factorData", factorData
         ));
+    }
+
+    /**
+     * 从 assessmentReport JSON 解析派生字段：totalScore / metricSnapshot / factorSnapshot
+     * 解析失败时静默忽略，不影响主流程。
+     */
+    @SuppressWarnings("unchecked")
+    private void fillReportSnapshot(ChRiskAssessmentVo vo) {
+        if (vo == null || StringUtils.isBlank(vo.getAssessmentReport())) {
+            return;
+        }
+        try {
+            Map<String, Object> report = JsonUtils.parseMap(vo.getAssessmentReport());
+            if (report == null) {
+                return;
+            }
+            Object totalScore = report.get("totalScore");
+            if (totalScore instanceof Number num) {
+                vo.setTotalScore(num.intValue());
+            }
+            Object metricData = report.get("metricData");
+            if (metricData instanceof Map<?, ?> metricMap) {
+                vo.setMetricSnapshot((Map<String, Object>) metricMap);
+            }
+            Object factorData = report.get("factorData");
+            if (factorData instanceof Map<?, ?> factorMap) {
+                vo.setFactorSnapshot((Map<String, Object>) factorMap);
+            }
+        } catch (Exception ignore) {
+            // 兼容历史脏数据：报告不是 JSON 时直接跳过
+        }
     }
 
     private void fillManageLevelDiseaseNames(List<ChManageLevelRecordVo> list) {

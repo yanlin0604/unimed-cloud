@@ -50,6 +50,21 @@ public class ChMedicationRecord extends TenantEntity {
 
     private String status;
 
+    /**
+     * 用药依从性 GOOD/FAIR/POOR（字典 chronic_compliance_level）
+     */
+    private String compliance;
+
+    /**
+     * 处方依据
+     */
+    private String prescriptionBasis;
+
+    /**
+     * 用药备注
+     */
+    private String remark;
+
     @TableLogic
     private String delFlag;
 }

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -147,13 +148,26 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
             .filter(StringUtils::isNotBlank)
             .distinct()
             .collect(Collectors.toList());
+        Map<String, String> diseaseNameMap = new HashMap<>();
         if (!diseaseCodes.isEmpty()) {
             try {
-                Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
-                list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+                diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
             } catch (Exception e) {
                 /* ignore */
             }
         }
+        // 表 ch_manage_plan 当前无 plan_name 字段，为避免前端展示"-"，用病种名兜底拼接
+        Map<String, String> finalDiseaseNameMap = diseaseNameMap;
+        list.forEach(v -> {
+            String diseaseName = finalDiseaseNameMap.get(v.getDiseaseCode());
+            v.setDiseaseName(diseaseName);
+            if (StringUtils.isBlank(v.getPlanName())) {
+                if (StringUtils.isNotBlank(diseaseName)) {
+                    v.setPlanName(diseaseName + "管理方案");
+                } else if (StringUtils.isNotBlank(v.getDiseaseCode())) {
+                    v.setPlanName(v.getDiseaseCode() + "管理方案");
+                }
+            }
+        });
     }
 }

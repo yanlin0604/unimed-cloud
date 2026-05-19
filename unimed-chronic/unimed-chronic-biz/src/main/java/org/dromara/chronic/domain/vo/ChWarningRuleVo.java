@@ -28,6 +28,8 @@ public class ChWarningRuleVo implements Serializable {
 
     @Schema(description = "规则ID")
     private Long ruleId;
+    @Schema(description = "规则名称")
+    private String ruleName;
     @Schema(description = "病种编码")
     private String diseaseCode;
     @Schema(description = "指标类型")
@@ -46,6 +48,10 @@ public class ChWarningRuleVo implements Serializable {
     private Date timeWindowEnd;
     @Schema(description = "恢复规则")
     private String recoveryRule;
+    @Schema(description = "规则描述")
+    private String description;
+    @Schema(description = "机构ID（对应系统库 sys_dept.dept_id）")
+    private Long orgId;
     @Schema(description = "创建时间")
     private Date createTime;
 
@@ -59,4 +65,8 @@ public class ChWarningRuleVo implements Serializable {
 
     @Schema(description = "病种名称")
     private String diseaseName;
+
+    @Schema(description = "机构名称（按 orgId 查 sys_dept 回填）")
+    @Translation(type = TransConstant.DEPT_ID_TO_NAME, mapper = "orgId")
+    private String orgName;
 }

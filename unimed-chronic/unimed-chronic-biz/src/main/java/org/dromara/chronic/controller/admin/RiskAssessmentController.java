@@ -19,6 +19,7 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -52,11 +53,19 @@ public class RiskAssessmentController {
         return riskAssessmentService.queryPageList(bo, pageQuery);
     }
 
-    @Operation(summary = "查询最新风险评估")
+    @Operation(summary = "查询风险评估详情")
+    @SaCheckPermission("chronic:risk-assessment:query")
+    @GetMapping("/chronic/admin/risk-assessment/{assessmentId}")
+    public R<ChRiskAssessmentVo> detail(@Parameter(description = "评估ID") @PathVariable Long assessmentId) {
+        return R.ok(riskAssessmentService.queryDetail(assessmentId));
+    }
+
+    @Operation(summary = "查询最新风险评估（可按病种过滤）")
     @SaCheckPermission("chronic:risk-assessment:query")
     @GetMapping("/chronic/admin/patient/{patientId}/risk-assessment/latest")
-    public R<ChRiskAssessmentVo> latest(@Parameter(description = "患者ID") @PathVariable Long patientId) {
-        return R.ok(riskAssessmentService.queryLatest(patientId));
+    public R<ChRiskAssessmentVo> latest(@Parameter(description = "患者ID") @PathVariable Long patientId,
+                                        @Parameter(description = "病种编码（可选）") @RequestParam(required = false) String diseaseCode) {
+        return R.ok(riskAssessmentService.queryLatest(patientId, diseaseCode));
     }
 
     @Operation(summary = "查询管理等级变更历史")
@@ -64,5 +73,13 @@ public class RiskAssessmentController {
     @GetMapping("/chronic/admin/patient/{patientId}/manage-level/history")
     public R<List<ChManageLevelRecordVo>> history(@Parameter(description = "患者ID") @PathVariable Long patientId) {
         return R.ok(riskAssessmentService.queryHistory(patientId));
+    }
+
+    @Operation(summary = "删除风险评估")
+    @SaCheckPermission("chronic:risk-assessment:remove")
+    @Log(title = "风险评估", businessType = BusinessType.DELETE)
+    @DeleteMapping("/chronic/admin/risk-assessment/{assessmentIds}")
+    public R<Void> remove(@Parameter(description = "评估ID数组") @PathVariable Collection<Long> assessmentIds) {
+        return riskAssessmentService.deleteByIds(assessmentIds) ? R.ok() : R.fail();
     }
 }

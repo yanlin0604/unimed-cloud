@@ -54,6 +54,15 @@ public class ChMedicationRecordVo implements Serializable {
     @Schema(description = "状态")
     private String status;
 
+    @Schema(description = "用药依从性 GOOD/FAIR/POOR")
+    private String compliance;
+
+    @Schema(description = "处方依据")
+    private String prescriptionBasis;
+
+    @Schema(description = "用药备注")
+    private String remark;
+
     @Schema(description = "用药状态名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "status", other = ChronicDictTypeConstant.CHRONIC_MEDICATION_STATUS)
     private String statusName;
@@ -65,6 +74,10 @@ public class ChMedicationRecordVo implements Serializable {
     @Schema(description = "给药途径名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "route", other = ChronicDictTypeConstant.CHRONIC_ROUTE)
     private String routeName;
+
+    @Schema(description = "依从性名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "compliance", other = ChronicDictTypeConstant.CHRONIC_COMPLIANCE_LEVEL)
+    private String complianceName;
 
     @Schema(description = "开方医生昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "prescriberUserId")

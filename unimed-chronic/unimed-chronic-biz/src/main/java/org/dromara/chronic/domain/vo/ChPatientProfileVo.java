@@ -203,4 +203,22 @@ public class ChPatientProfileVo implements Serializable {
     @Schema(description = "管理医生昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "doctorUserId")
     private String doctorNickName;
+
+    // ============ 结案申请回显（列表批量填充，最新一条） ============
+
+    @Schema(description = "最新结案申请ID")
+    private Long closeApplyId;
+
+    @Schema(description = "最新结案申请审核状态 PENDING/APPROVED/REJECTED/WITHDRAWN；null 表示从未发起")
+    private String closeApplyStatus;
+
+    @Schema(description = "最新结案申请审核状态名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "closeApplyStatus", other = ChronicDictTypeConstant.CHRONIC_CLOSE_APPLY_STATUS)
+    private String closeApplyStatusName;
+
+    @Schema(description = "最新结案类型")
+    private String closeType;
+
+    @Schema(description = "最新结案申请创建时间")
+    private Date closeApplyTime;
 }

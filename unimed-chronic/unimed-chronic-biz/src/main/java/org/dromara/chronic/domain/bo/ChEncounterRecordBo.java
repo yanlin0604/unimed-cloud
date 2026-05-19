@@ -79,4 +79,10 @@ public class ChEncounterRecordBo extends BaseEntity {
 
     @Schema(description = "诊断列表")
     private List<ChEncounterDiagnosisBo> diagnosisList;
+
+    @Schema(description = "就诊时间范围-起始(仅用于查询)")
+    private LocalDateTime encounterTimeStart;
+
+    @Schema(description = "就诊时间范围-结束(仅用于查询)")
+    private LocalDateTime encounterTimeEnd;
 }

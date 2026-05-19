@@ -132,6 +132,9 @@ public class PatientProfileManager {
         if (entity.getConfirmDate() == null) {
             entity.setConfirmDate(new Date());
         }
+        if (entity.getEnableStatus() == null) {
+            entity.setEnableStatus(Boolean.TRUE);
+        }
         patientDiseaseMapper.insert(entity);
 
         ChPatientTimeline timeline = new ChPatientTimeline();
@@ -143,6 +146,81 @@ public class PatientProfileManager {
         patientTimelineMapper.insert(timeline);
 
         return entity.getId();
+    }
+
+    /**
+     * 按主键更新单条病种
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void updateDisease(ChPatientDiseaseBo bo) {
+        if (bo.getId() == null) {
+            throw new ServiceException("病种ID不能为空");
+        }
+        ChPatientDisease exists = patientDiseaseMapper.selectById(bo.getId());
+        if (exists == null) {
+            throw new ServiceException("病种记录不存在");
+        }
+        ChPatientDisease entity = MapstructUtils.convert(bo, ChPatientDisease.class);
+        // 防止把 patientId 改成别人
+        entity.setPatientId(exists.getPatientId());
+        patientDiseaseMapper.updateById(entity);
+
+        ChPatientTimeline timeline = new ChPatientTimeline();
+        timeline.setPatientId(exists.getPatientId());
+        timeline.setEventType("DISEASE_UPDATE");
+        timeline.setEventTitle("病种信息变更");
+        timeline.setEventDetail("更新病种: " + (bo.getDiseaseCode() != null ? bo.getDiseaseCode() : exists.getDiseaseCode()));
+        timeline.setEventTime(new Date());
+        patientTimelineMapper.insert(timeline);
+    }
+
+    /**
+     * 仅切换病种启停状态（不联动随访任务）
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void toggleDiseaseStatus(Long id, Boolean enableStatus) {
+        if (id == null || enableStatus == null) {
+            throw new ServiceException("参数缺失");
+        }
+        ChPatientDisease exists = patientDiseaseMapper.selectById(id);
+        if (exists == null) {
+            throw new ServiceException("病种记录不存在");
+        }
+        ChPatientDisease update = new ChPatientDisease();
+        update.setId(id);
+        update.setEnableStatus(enableStatus);
+        patientDiseaseMapper.updateById(update);
+
+        ChPatientTimeline timeline = new ChPatientTimeline();
+        timeline.setPatientId(exists.getPatientId());
+        timeline.setEventType("DISEASE_STATUS");
+        timeline.setEventTitle(enableStatus ? "病种启用" : "病种停用");
+        timeline.setEventDetail("病种 " + exists.getDiseaseCode() + " 状态切换为 " + (enableStatus ? "启用" : "停用"));
+        timeline.setEventTime(new Date());
+        patientTimelineMapper.insert(timeline);
+    }
+
+    /**
+     * 移除单条病种（逻辑删除，由 {@link ChPatientDisease#getDelFlag()} 控制）
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void removeDisease(Long id) {
+        if (id == null) {
+            throw new ServiceException("病种ID不能为空");
+        }
+        ChPatientDisease exists = patientDiseaseMapper.selectById(id);
+        if (exists == null) {
+            throw new ServiceException("病种记录不存在");
+        }
+        patientDiseaseMapper.deleteById(id);
+
+        ChPatientTimeline timeline = new ChPatientTimeline();
+        timeline.setPatientId(exists.getPatientId());
+        timeline.setEventType("DISEASE_REMOVE");
+        timeline.setEventTitle("病种移除");
+        timeline.setEventDetail("移除病种: " + exists.getDiseaseCode());
+        timeline.setEventTime(new Date());
+        patientTimelineMapper.insert(timeline);
     }
 
     /**

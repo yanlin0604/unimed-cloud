@@ -48,6 +48,9 @@ public class ChWarningEventVo implements Serializable {
     @Schema(description = "处置动作列表")
     private List<ChWarningActionVo> actions;
 
+    @Schema(description = "规则名称（取 ch_warning_rule.description，由 service 层回填）")
+    private String ruleName;
+
     @Schema(description = "预警等级名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "warningLevel", other = ChronicDictTypeConstant.CHRONIC_WARNING_LEVEL)
     private String warningLevelName;

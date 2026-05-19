@@ -8,6 +8,7 @@ import org.dromara.chronic.domain.vo.ChRiskAssessmentVo;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -19,7 +20,23 @@ public interface IChRiskAssessmentService {
 
     ChRiskAssessmentVo assess(ChRiskAssessmentBo bo);
 
-    ChRiskAssessmentVo queryLatest(Long patientId);
+    /**
+     * 查询患者最新风险评估
+     *
+     * @param patientId   患者ID
+     * @param diseaseCode 病种编码（可选，传入则只查该病种最新一条）
+     */
+    ChRiskAssessmentVo queryLatest(Long patientId, String diseaseCode);
+
+    /**
+     * 查询风险评估详情（含 factorItems 与解析后的快照字段）
+     */
+    ChRiskAssessmentVo queryDetail(Long assessmentId);
+
+    /**
+     * 批量删除风险评估（级联清理 ch_risk_factor_item）
+     */
+    Boolean deleteByIds(Collection<Long> assessmentIds);
 
     List<ChManageLevelRecordVo> queryHistory(Long patientId);
 

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChHealthEducationContentBo;
 import org.dromara.chronic.domain.vo.ChHealthEducationContentVo;
+import org.dromara.chronic.domain.vo.ChHealthEducationDeliveryVo;
 import org.dromara.chronic.manager.EducationPushManager;
 import org.dromara.chronic.service.IChHealthEducationService;
 import org.dromara.common.core.domain.R;
@@ -67,5 +68,12 @@ public class EducationContentController {
                                  @Parameter(description = "触发类型") @RequestParam(defaultValue = "MANUAL") String triggerType,
                                  @Parameter(description = "推送渠道") @RequestParam(defaultValue = "WECHAT") String pushChannel) {
         return R.ok(educationPushManager.broadcastToPatients(contentId, patientIds, triggerType, pushChannel));
+    }
+
+    @Operation(summary = "查询患者宣教投递记录")
+    @SaCheckPermission("chronic:education:list")
+    @GetMapping("/chronic/admin/education-content/patient/{patientId}/deliveries")
+    public R<List<ChHealthEducationDeliveryVo>> patientDeliveries(@Parameter(description = "患者ID") @PathVariable Long patientId) {
+        return R.ok(healthEducationService.queryDeliveriesByPatientId(patientId));
     }
 }
