@@ -30,6 +30,8 @@ public class ChHealthExamVo implements Serializable {
     private Long examId;
     @Schema(description = "患者ID")
     private Long patientId;
+    @Schema(description = "患者姓名")
+    private String patientName;
     @Schema(description = "外部流水号")
     private String externalSn;
     @Schema(description = "体检类型")

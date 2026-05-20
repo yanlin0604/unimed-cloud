@@ -12,9 +12,11 @@ import org.dromara.chronic.domain.bo.ChEncounterDiagnosisBo;
 import org.dromara.chronic.domain.bo.ChEncounterRecordBo;
 import org.dromara.chronic.domain.entity.ChEncounterDiagnosis;
 import org.dromara.chronic.domain.entity.ChEncounterRecord;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.vo.ChEncounterRecordVo;
 import org.dromara.chronic.mapper.ChEncounterDiagnosisMapper;
 import org.dromara.chronic.mapper.ChEncounterRecordMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChEncounterRecordService;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -42,6 +44,7 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
 
     private final ChEncounterRecordMapper baseMapper;
     private final ChEncounterDiagnosisMapper diagnosisMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
@@ -92,6 +95,7 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
                     .eq(ChEncounterDiagnosis::getEncounterId, encounterId)
             ));
             fillEncounterDiseaseNames(Collections.singletonList(vo));
+            fillEncounterPatientNames(Collections.singletonList(vo));
         }
         return vo;
     }
@@ -108,6 +112,7 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
         lqw.orderByDesc(ChEncounterRecord::getEncounterTime);
         Page<ChEncounterRecordVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
         fillEncounterDiseaseNames(page.getRecords());
+        fillEncounterPatientNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
@@ -172,6 +177,7 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
                     .eq(ChEncounterDiagnosis::getEncounterId, vo.getId())
             ));
             fillEncounterDiseaseNames(Collections.singletonList(vo));
+            fillEncounterPatientNames(Collections.singletonList(vo));
         }
         return vo;
     }
@@ -197,6 +203,19 @@ public class ChEncounterRecordServiceImpl implements IChEncounterRecordService {
             try {
                 Map<String, String> diseaseNameMap = diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
                 list.forEach(v -> v.setDiseaseName(diseaseNameMap.get(v.getDiseaseCode())));
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
+    private void fillEncounterPatientNames(List<ChEncounterRecordVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> patientIds = list.stream().map(ChEncounterRecordVo::getPatientId)
+            .filter(id -> id != null).distinct().collect(Collectors.toList());
+        if (!patientIds.isEmpty()) {
+            try {
+                Map<Long, String> nameMap = patientProfileMapper.selectBatchIds(patientIds).stream()
+                    .collect(Collectors.toMap(ChPatientProfile::getPatientId, ChPatientProfile::getName, (a, b) -> a));
+                list.forEach(v -> v.setPatientName(nameMap.get(v.getPatientId())));
             } catch (Exception e) { /* ignore */ }
         }
     }

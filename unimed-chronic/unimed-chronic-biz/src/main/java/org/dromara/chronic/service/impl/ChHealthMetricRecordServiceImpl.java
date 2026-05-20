@@ -1,5 +1,6 @@
 package org.dromara.chronic.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -8,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChHealthMetricRecordBo;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.vo.ChHealthMetricRecordVo;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChHealthMetricRecordService;
 import org.dromara.chronic.utils.MetricValueUtils;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -20,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 健康指标记录服务实现
@@ -32,6 +37,7 @@ import java.util.List;
 public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordService {
 
     private final ChHealthMetricRecordMapper baseMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
 
     @Override
     public Long reportMetric(ChHealthMetricRecordBo bo) {
@@ -67,6 +73,7 @@ public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordSer
         lqw.eq(ObjectUtil.isNotNull(bo.getIsAbnormal()), ChHealthMetricRecord::getIsAbnormal, bo.getIsAbnormal());
         lqw.orderByDesc(ChHealthMetricRecord::getCreateTime);
         Page<ChHealthMetricRecordVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
+        fillPatientName(page.getRecords());
         return TableDataInfo.build(page);
     }
 
@@ -131,6 +138,19 @@ public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordSer
                 bo.setReferenceValueMax(new BigDecimal("37.3"));
             }
             default -> { /* 无预设参考值的指标类型，跳过 */ }
+        }
+    }
+
+    private void fillPatientName(List<ChHealthMetricRecordVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> patientIds = list.stream().map(ChHealthMetricRecordVo::getPatientId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!patientIds.isEmpty()) {
+            try {
+                Map<Long, String> nameMap = patientProfileMapper.selectBatchIds(patientIds).stream()
+                    .collect(Collectors.toMap(ChPatientProfile::getPatientId, ChPatientProfile::getName, (a, b) -> a));
+                list.forEach(v -> v.setPatientName(nameMap.get(v.getPatientId())));
+            } catch (Exception e) { /* ignore */ }
         }
     }
 }

@@ -27,6 +27,8 @@ public class ChMedicalExamVo implements Serializable {
 
     @Schema(description = "患者ID")
     private Long patientId;
+    @Schema(description = "患者姓名")
+    private String patientName;
 
     @Schema(description = "检查日期")
     private Date examDate;

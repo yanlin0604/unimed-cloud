@@ -76,6 +76,7 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
         if (vo != null) {
             vo.setItems(queryItemsByExamId(examId));
             fillExamOrgNames(Collections.singletonList(vo));
+            fillPatientNames(Collections.singletonList(vo));
         }
         return vo;
     }
@@ -89,6 +90,7 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
         lqw.orderByDesc(ChHealthExam::getExamDate);
         Page<ChHealthExamVo> page = examMapper.selectVoPage(pageQuery.build(), lqw);
         fillExamOrgNames(page.getRecords());
+        fillPatientNames(page.getRecords());
         return TableDataInfo.build(page);
     }
 
@@ -100,6 +102,7 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
                 .orderByDesc(ChHealthExam::getExamDate)
         );
         fillExamOrgNames(list);
+        fillPatientNames(list);
         return list;
     }
 
@@ -250,6 +253,19 @@ public class ChHealthExamServiceImpl implements IChHealthExamService {
             try {
                 Map<Long, String> orgNameMap = orgNameHelper.batchGetOrgName(orgIds);
                 list.forEach(v -> v.setExamOrgName(orgNameMap.get(v.getExamOrgId())));
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
+    private void fillPatientNames(List<ChHealthExamVo> list) {
+        if (CollUtil.isEmpty(list)) return;
+        List<Long> patientIds = list.stream().map(ChHealthExamVo::getPatientId)
+            .filter(ObjectUtil::isNotNull).distinct().collect(Collectors.toList());
+        if (!patientIds.isEmpty()) {
+            try {
+                Map<Long, String> nameMap = patientProfileMapper.selectBatchIds(patientIds).stream()
+                    .collect(Collectors.toMap(ChPatientProfile::getPatientId, ChPatientProfile::getName, (a, b) -> a));
+                list.forEach(v -> v.setPatientName(nameMap.get(v.getPatientId())));
             } catch (Exception e) { /* ignore */ }
         }
     }

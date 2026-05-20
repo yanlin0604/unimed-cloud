@@ -80,4 +80,7 @@ public class ChEncounterRecordVo implements Serializable {
 
     @Schema(description = "病种名称")
     private String diseaseName;
+
+    @Schema(description = "患者姓名")
+    private String patientName;
 }

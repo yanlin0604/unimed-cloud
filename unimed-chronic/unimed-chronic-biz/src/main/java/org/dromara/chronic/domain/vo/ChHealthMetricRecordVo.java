@@ -72,4 +72,7 @@ public class ChHealthMetricRecordVo implements Serializable {
     @Schema(description = "数据来源名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "dataSource", other = ChronicDictTypeConstant.CHRONIC_DATA_SOURCE)
     private String dataSourceName;
+
+    @Schema(description = "患者姓名")
+    private String patientName;
 }
