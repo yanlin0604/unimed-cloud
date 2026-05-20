@@ -11,7 +11,7 @@
  Target Server Version : 80046 (8.0.46)
  File Encoding         : 65001
 
- Date: 15/05/2026 18:09:16
+ Date: 19/05/2026 11:16:37
 */
 
 SET NAMES utf8mb4;
@@ -40,7 +40,7 @@ CREATE TABLE `ch_archive_share_apply`  (
   INDEX `idx_asa_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_asa_tenant_id`(`tenant_id` ASC) USING BTREE,
   INDEX `idx_asa_workflow_instance_id`(`workflow_instance_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案共享申请表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '档案共享申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_area_dict
@@ -154,7 +154,7 @@ CREATE TABLE `ch_consent_record`  (
   PRIMARY KEY (`consent_id`) USING BTREE,
   INDEX `idx_cr_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_cr_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '知情同意记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '知情同意记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_contract_fulfillment
@@ -476,7 +476,7 @@ CREATE TABLE `ch_encounter_diagnosis`  (
   INDEX `idx_ed_encounter_id`(`encounter_id` ASC) USING BTREE,
   INDEX `idx_ed_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_ed_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '诊疗诊断表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2056371914372292611 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '诊疗诊断表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_encounter_record
@@ -512,7 +512,7 @@ CREATE TABLE `ch_encounter_record`  (
   INDEX `idx_er_encounter_time`(`encounter_time` ASC) USING BTREE,
   INDEX `idx_er_source_biz_no`(`source_biz_no` ASC) USING BTREE,
   INDEX `idx_er_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '诊疗记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2056371914330349570 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '诊疗记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_external_sync_log
@@ -744,7 +744,7 @@ CREATE TABLE `ch_health_education_delivery`  (
   PRIMARY KEY (`delivery_id`) USING BTREE,
   INDEX `idx_hed_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_hed_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '健康教育推送表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '健康教育推送表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_health_exam
@@ -831,7 +831,7 @@ CREATE TABLE `ch_health_metric_record`  (
   INDEX `idx_hmr_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_hmr_tenant_id`(`tenant_id` ASC) USING BTREE,
   INDEX `idx_hmr_patient_type_time`(`patient_id` ASC, `metric_type` ASC, `create_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '健康指标记录表(建议按create_time做RANGE时间分区)' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2056276441879814146 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '健康指标记录表(建议按create_time做RANGE时间分区)' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_icd_dict
@@ -901,7 +901,7 @@ CREATE TABLE `ch_lab_test`  (
   PRIMARY KEY (`test_id`) USING BTREE,
   INDEX `idx_lt_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_lt_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '检验记录表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '检验记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for ch_lifestyle_record
@@ -1032,7 +1032,7 @@ CREATE TABLE `ch_medical_exam`  (
   PRIMARY KEY (`exam_id`) USING BTREE,
   INDEX `idx_me_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_me_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '检查记录表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '检查记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for ch_medication_adjust
@@ -1240,7 +1240,7 @@ CREATE TABLE `ch_ocr_task`  (
   INDEX `idx_ot_task_status`(`task_status` ASC) USING BTREE,
   INDEX `idx_ot_tenant_id`(`tenant_id` ASC) USING BTREE,
   INDEX `idx_ot_file_md5`(`patient_id` ASC, `file_md5` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'OCR任务表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'OCR任务表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_ops_health_check
@@ -1379,7 +1379,7 @@ CREATE TABLE `ch_patient_close_apply`  (
   INDEX `idx_pca_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_pca_audit_status`(`audit_status` ASC) USING BTREE,
   INDEX `idx_pca_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '患者结案申请表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '患者结案申请表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_patient_contract
@@ -1513,7 +1513,7 @@ CREATE TABLE `ch_patient_tag`  (
   INDEX `idx_pt_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_pt_tenant_id`(`tenant_id` ASC) USING BTREE,
   INDEX `idx_patient_tag_code`(`patient_id` ASC, `tag_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '患者标签表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2056235178459672578 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '患者标签表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_patient_tag_dict
@@ -1540,7 +1540,7 @@ CREATE TABLE `ch_patient_tag_dict`  (
   UNIQUE INDEX `uk_tag_code_tenant`(`tag_code` ASC, `tenant_id` ASC) USING BTREE,
   INDEX `idx_tag_type`(`tag_type` ASC) USING BTREE,
   INDEX `idx_status_sort`(`status` ASC, `sort_order` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '慢病-患者标签字典' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2056289720639430658 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '慢病-患者标签字典' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_patient_timeline
@@ -1563,7 +1563,7 @@ CREATE TABLE `ch_patient_timeline`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_ptl_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_ptl_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 42 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '患者时间线表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 49 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '患者时间线表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_referral_record
@@ -1667,7 +1667,7 @@ CREATE TABLE `ch_risk_assessment`  (
   INDEX `idx_ra_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_ra_tenant_id`(`tenant_id` ASC) USING BTREE,
   INDEX `idx_ra_tenant_org_disease`(`tenant_id` ASC, `org_id` ASC, `disease_code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '风险评估表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2056366963977887747 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '风险评估表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_risk_factor_item
@@ -1914,7 +1914,7 @@ CREATE TABLE `ch_warning_action`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_wa_warning_id`(`warning_id` ASC) USING BTREE,
   INDEX `idx_wa_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '预警处置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '预警处置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_warning_event
@@ -1939,7 +1939,7 @@ CREATE TABLE `ch_warning_event`  (
   PRIMARY KEY (`warning_id`) USING BTREE,
   INDEX `idx_we_patient_id`(`patient_id` ASC) USING BTREE,
   INDEX `idx_we_tenant_id`(`tenant_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '预警事件表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2056276442148249603 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '预警事件表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for ch_warning_rule
