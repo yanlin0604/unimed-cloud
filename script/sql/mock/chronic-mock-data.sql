@@ -911,18 +911,18 @@ INSERT INTO ch_file_attachment (biz_type, biz_id, file_name, file_size, create_d
 
 -- 10.1 随访计划项（12条）
 INSERT INTO ch_followup_plan_item (plan_id, item_type, visit_type, due_date, item_config, create_dept, tenant_id, create_by, create_time) VALUES
-(1, 'FOLLOWUP', 'PHONE', '2026-01-16', '{"questionnaire_id":1,"reminder_days":3}', 103, '000000', 1, '2025-12-17 10:00:00'),
+(1, 'FOLLOWUP', 'PHONE', '2026-01-16', '{"questionnaireId":1,"reminder_days":3}', 103, '000000', 1, '2025-12-17 10:00:00'),
 (1, 'MONITOR', 'SELF_FILL', '2026-01-16', '{"metrics":["BP_SYSTOLIC","BP_DIASTOLIC"],"frequency":"DAILY"}', 103, '000000', 1, '2025-12-17 10:00:00'),
-(2, 'FOLLOWUP', 'OFFLINE', '2026-01-17', '{"questionnaire_id":1,"location":"社区门诊"}', 103, '000000', 1, '2025-12-18 10:00:00'),
+(2, 'FOLLOWUP', 'OFFLINE', '2026-01-17', '{"questionnaireId":1,"location":"社区门诊"}', 103, '000000', 1, '2025-12-18 10:00:00'),
 (2, 'MONITOR', 'SELF_FILL', '2026-01-17', '{"metrics":["BP_SYSTOLIC","BP_DIASTOLIC","HEART_RATE"],"frequency":"DAILY"}', 103, '000000', 1, '2025-12-18 10:00:00'),
-(4, 'FOLLOWUP', 'PHONE', '2026-01-05', '{"questionnaire_id":1,"reminder_days":2}', 103, '000000', 1, '2025-12-21 10:00:00'),
+(4, 'FOLLOWUP', 'PHONE', '2026-01-05', '{"questionnaireId":1,"reminder_days":2}', 103, '000000', 1, '2025-12-21 10:00:00'),
 (4, 'MONITOR', 'SELF_FILL', '2026-01-05', '{"metrics":["BP_SYSTOLIC","BP_DIASTOLIC","HEART_RATE"],"frequency":"DAILY","device":"DEV-BP-002"}', 103, '000000', 1, '2025-12-21 10:00:00'),
-(5, 'FOLLOWUP', 'PHONE', '2025-12-22', '{"questionnaire_id":1,"reminder_days":3}', 103, '000000', 1, '2025-11-22 10:00:00'),
-(8, 'FOLLOWUP', 'PHONE', '2026-04-22', '{"questionnaire_id":2,"reminder_days":3}', 103, '000000', 1, '2026-03-23 10:00:00'),
+(5, 'FOLLOWUP', 'PHONE', '2025-12-22', '{"questionnaireId":1,"reminder_days":3}', 103, '000000', 1, '2025-11-22 10:00:00'),
+(8, 'FOLLOWUP', 'PHONE', '2026-04-22', '{"questionnaireId":2,"reminder_days":3}', 103, '000000', 1, '2026-03-23 10:00:00'),
 (8, 'MONITOR', 'SELF_FILL', '2026-04-22', '{"metrics":["BLOOD_GLUCOSE"],"frequency":"DAILY"}', 103, '000000', 1, '2026-03-23 10:00:00'),
-(10, 'FOLLOWUP', 'OFFLINE', '2026-04-10', '{"questionnaire_id":2,"location":"内分泌科门诊"}', 103, '000000', 1, '2026-03-26 10:00:00'),
+(10, 'FOLLOWUP', 'OFFLINE', '2026-04-10', '{"questionnaireId":2,"location":"内分泌科门诊"}', 103, '000000', 1, '2026-03-26 10:00:00'),
 (10, 'MONITOR', 'SELF_FILL', '2026-04-10', '{"metrics":["BLOOD_GLUCOSE"],"frequency":"DAILY","device":"DEV-BG-002"}', 103, '000000', 1, '2026-03-26 10:00:00'),
-(12, 'FOLLOWUP', 'PHONE', '2026-05-13', '{"questionnaire_id":3,"reminder_days":3}', 103, '000000', 1, '2026-04-13 10:00:00');
+(12, 'FOLLOWUP', 'PHONE', '2026-05-13', '{"questionnaireId":3,"reminder_days":3}', 103, '000000', 1, '2026-04-13 10:00:00');
 
 -- 10.2 医生微信绑定（5条）
 INSERT INTO ch_doctor_wechat_bind (user_id, openid, unionid, bind_time, create_dept, tenant_id, create_by, create_time) VALUES
