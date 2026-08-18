@@ -13,7 +13,7 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,20 +30,21 @@ import org.springframework.web.bind.annotation.*;
 public class PatientConsentController {
 
     private final IChConsentRecordService consentRecordService;
+    private final PatientContextHelper patientContextHelper;
 
     @Operation(summary = "签署知情同意")
     @Log(title = "知情同意签署", businessType = BusinessType.INSERT)
     @RepeatSubmit
     @PostMapping("/chronic/patient/consent/sign")
     public R<Long> sign(@RequestBody ChConsentRecordBo bo) {
-        bo.setPatientId(LoginHelper.getUserId());
+        bo.setPatientId(patientContextHelper.getCurrentPatientId());
         return R.ok(consentRecordService.insertByBo(bo));
     }
 
     @Operation(summary = "查询签名记录分页")
     @GetMapping("/chronic/patient/consent/page")
     public TableDataInfo<ChConsentRecordVo> page(ChConsentRecordBo bo, PageQuery pageQuery) {
-        bo.setPatientId(LoginHelper.getUserId());
+        bo.setPatientId(patientContextHelper.getCurrentPatientId());
         return consentRecordService.queryPageList(bo, pageQuery);
     }
 }

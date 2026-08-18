@@ -11,7 +11,7 @@ import org.dromara.chronic.domain.vo.ChMessageSessionVo;
 import org.dromara.chronic.service.IChMessageSessionService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
-import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,11 +30,12 @@ import java.util.List;
 public class PatientMessageController {
 
     private final IChMessageSessionService messageSessionService;
+    private final PatientContextHelper patientContextHelper;
 
     @Operation(summary = "查询我的会话列表")
     @GetMapping("/chronic/patient/message/sessions")
     public R<List<ChMessageSessionVo>> mySessions() {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(messageSessionService.queryByPatientId(patientId));
     }
 

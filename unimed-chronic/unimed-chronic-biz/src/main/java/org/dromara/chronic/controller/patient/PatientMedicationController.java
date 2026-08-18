@@ -7,9 +7,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
 import org.dromara.chronic.service.IChMedicationService;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
-import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +31,7 @@ import java.util.List;
 public class PatientMedicationController {
 
     private final IChMedicationService medicationService;
+    private final PatientContextHelper patientContextHelper;
 
     /**
      * 查看用药列表
@@ -38,7 +39,7 @@ public class PatientMedicationController {
     @Operation(summary = "查看用药列表")
     @GetMapping("/chronic/patient/medication/list")
     public R<List<ChMedicationRecordVo>> list() {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(medicationService.queryMedicationList(patientId));
     }
 
@@ -49,7 +50,7 @@ public class PatientMedicationController {
     @RepeatSubmit
     @PostMapping("/chronic/patient/medication/checkin")
     public R<Boolean> checkin(@Parameter(description = "用药记录ID") @RequestParam Long medId) {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(medicationService.checkinMedication(medId, patientId));
     }
 }

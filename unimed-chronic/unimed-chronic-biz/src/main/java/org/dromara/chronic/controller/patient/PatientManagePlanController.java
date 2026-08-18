@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.vo.ChManagePlanVo;
 import org.dromara.chronic.service.IChManagePlanService;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,11 +25,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class PatientManagePlanController {
 
     private final IChManagePlanService managePlanService;
+    private final PatientContextHelper patientContextHelper;
 
     @Operation(summary = "查询当前管理方案")
     @GetMapping("/chronic/patient/manage-plan/current")
     public R<ChManagePlanVo> currentPlan() {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(managePlanService.queryCurrentPlan(patientId));
     }
 }

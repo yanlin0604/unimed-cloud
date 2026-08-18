@@ -12,7 +12,7 @@ import org.dromara.common.core.domain.R;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
-import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,11 +33,12 @@ import java.util.List;
 public class PatientReportController {
 
     private final IChReportService reportService;
+    private final PatientContextHelper patientContextHelper;
 
     @Operation(summary = "查询我的报告列表")
     @GetMapping("/chronic/patient/report/list")
     public R<List<ChReportInstanceVo>> myList() {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(reportService.queryByPatientId(patientId));
     }
 
@@ -51,7 +52,7 @@ public class PatientReportController {
     @Log(title = "报告下载", businessType = BusinessType.EXPORT)
     @GetMapping("/chronic/patient/report/{reportId}/download")
     public void download(@Parameter(description = "报告ID") @PathVariable Long reportId, HttpServletResponse response) throws Exception {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         ChReportInstanceVo report = reportService.queryReportById(reportId);
         if (report == null || !patientId.equals(report.getPatientId())) {
             throw new ServiceException("报告不存在或无权访问");

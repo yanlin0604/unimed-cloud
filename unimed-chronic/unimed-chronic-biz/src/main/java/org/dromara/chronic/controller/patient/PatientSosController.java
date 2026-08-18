@@ -11,7 +11,7 @@ import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
-import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PatientSosController {
 
     private final IChWarningEventService warningEventService;
+    private final PatientContextHelper patientContextHelper;
     private final SosNotificationManager sosNotificationManager;
 
     /**
@@ -40,7 +41,7 @@ public class PatientSosController {
     @PostMapping("/chronic/patient/sos")
     public R<Void> sos(
             @Parameter(description = "求助描述") @RequestParam(required = false) String description) {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         // 创建紧急预警事件
         ChWarningEventBo eventBo = new ChWarningEventBo();
         eventBo.setPatientId(patientId);

@@ -7,11 +7,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChWarningActionBo;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChWarningAction;
 import org.dromara.chronic.domain.entity.ChWarningEvent;
 import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningActionVo;
 import org.dromara.chronic.domain.vo.ChWarningEventVo;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.mapper.ChWarningActionMapper;
 import org.dromara.chronic.mapper.ChWarningEventMapper;
 import org.dromara.chronic.mapper.ChWarningRuleMapper;
@@ -47,6 +49,7 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
     private final ChWarningEventMapper eventMapper;
     private final ChWarningActionMapper actionMapper;
     private final ChWarningRuleMapper warningRuleMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
 
     /**
      * 批量回填规则名称：取 ch_warning_rule.rule_name 作为 ruleName
@@ -68,6 +71,25 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
             ruleIdToName.put(rule.getRuleId(), rule.getRuleName());
         }
         vos.forEach(vo -> vo.setRuleName(ruleIdToName.get(vo.getRuleId())));
+    }
+
+    /**
+     * 批量回填患者姓名
+     */
+    private void fillPatientName(Collection<ChWarningEventVo> vos) {
+        if (vos == null || vos.isEmpty()) {
+            return;
+        }
+        Set<Long> patientIds = vos.stream()
+            .map(ChWarningEventVo::getPatientId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        if (patientIds.isEmpty()) {
+            return;
+        }
+        Map<Long, String> patientNames = patientProfileMapper.selectByIds(patientIds).stream()
+            .collect(Collectors.toMap(ChPatientProfile::getPatientId, ChPatientProfile::getName, (a, b) -> a));
+        vos.forEach(vo -> vo.setPatientName(patientNames.get(vo.getPatientId())));
     }
 
     @Override
@@ -101,7 +123,23 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         lqw.orderByDesc(ChWarningEvent::getWarningTime);
         Page<ChWarningEventVo> page = eventMapper.selectVoPage(pageQuery.build(), lqw);
         fillRuleName(page.getRecords());
+        fillPatientName(page.getRecords());
         return TableDataInfo.build(page);
+    }
+
+    @Override
+    public List<ChWarningEventVo> queryTodoByAssignee(Long assigneeUserId) {
+        if (assigneeUserId == null) {
+            throw new ServiceException("未获取当前医生身份");
+        }
+        List<ChWarningEventVo> list = eventMapper.selectVoList(
+            Wrappers.<ChWarningEvent>lambdaQuery()
+                .eq(ChWarningEvent::getAssigneeUserId, assigneeUserId)
+                .notIn(ChWarningEvent::getEventStatus, List.of("RESOLVED", "ARCHIVED"))
+                .orderByDesc(ChWarningEvent::getWarningTime));
+        fillRuleName(list);
+        fillPatientName(list);
+        return list;
     }
 
     @Override

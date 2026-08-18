@@ -21,11 +21,16 @@ public interface IChMedicationService {
 
     List<ChMedicationRecordVo> queryMedicationList(Long patientId);
 
+    TableDataInfo<ChMedicationRecordVo> queryMedicationPage(Long patientId, String status, String drugName,
+                                                            PageQuery pageQuery);
+
     Boolean addMedication(ChMedicationRecordBo bo);
 
     Boolean stopMedication(Long medId, String reason);
 
     List<ChMedicationAdjustVo> queryAdjustList(Long patientId);
+
+    TableDataInfo<ChMedicationAdjustVo> queryAdjustPage(Long patientId, String adjustType, PageQuery pageQuery);
 
     Long recordAdjust(ChMedicationAdjustBo bo);
 

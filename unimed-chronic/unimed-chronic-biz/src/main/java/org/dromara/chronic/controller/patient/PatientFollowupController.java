@@ -5,16 +5,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.dromara.chronic.domain.bo.ChFollowupRecordBo;
+import org.dromara.chronic.domain.bo.ChFollowupSubmitBo;
 import org.dromara.chronic.domain.vo.ChFollowupPlanVo;
+import org.dromara.chronic.domain.vo.ChFollowupTaskDetailVo;
 import org.dromara.chronic.domain.vo.ChFollowupTaskVo;
 import org.dromara.chronic.manager.FollowupManager;
 import org.dromara.chronic.service.IChFollowupService;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
-import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,28 +36,39 @@ public class PatientFollowupController {
 
     private final IChFollowupService followupService;
     private final FollowupManager followupManager;
+    private final PatientContextHelper patientContextHelper;
 
     @Operation(summary = "查询随访计划")
     @GetMapping("/plan")
     public R<ChFollowupPlanVo> plan() {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(followupService.queryCurrentPlan(patientId));
     }
 
     @Operation(summary = "查询随访任务")
     @GetMapping("/task")
     public R<List<ChFollowupTaskVo>> task() {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(followupService.queryPatientTasks(patientId));
+    }
+
+    @Operation(summary = "查询随访任务详情")
+    @GetMapping("/task/{taskId}")
+    public R<ChFollowupTaskDetailVo> taskDetail(@Parameter(description = "任务ID") @PathVariable Long taskId) {
+        Long patientId = patientContextHelper.getCurrentPatientId();
+        // 归属校验：仅能查看本人任务
+        return R.ok(followupService.queryTaskDetail(taskId, patientId, null));
     }
 
     @Operation(summary = "患者自填随访提交")
     @Log(title = "患者自填随访", businessType = BusinessType.UPDATE)
     @RepeatSubmit
     @PostMapping("/task/{taskId}/submit")
-    public R<Long> submit(@Parameter(description = "任务ID") @PathVariable Long taskId, @Validated @RequestBody ChFollowupRecordBo bo) {
-        bo.setTaskId(taskId);
-        bo.setVisitType("SELF_FILL");
-        return R.ok(followupManager.completeTask(bo));
+    public R<Long> submit(@Parameter(description = "任务ID") @PathVariable Long taskId,
+                          @Validated @RequestBody ChFollowupSubmitBo bo) {
+        Long patientId = patientContextHelper.getCurrentPatientId();
+        // 患者身份取自登录上下文，禁止前端传入 patientId；随访方式固定为患者自填
+        return R.ok(followupManager.completeTask(taskId, bo, patientId, null,
+            patientContextHelper.getCurrentAccountId(), "SELF_FILL"));
     }
 }

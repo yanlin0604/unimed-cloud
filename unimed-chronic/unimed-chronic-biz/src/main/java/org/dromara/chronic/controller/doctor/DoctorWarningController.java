@@ -9,6 +9,7 @@ import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.manager.WarningManager;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +30,13 @@ public class DoctorWarningController {
     private final WarningManager warningManager;
     private final IChWarningEventService warningEventService;
 
+    @Operation(summary = "查询当前医生待办预警")
+    @GetMapping("/chronic/doctor/warning/todo")
+    public R<List<ChWarningEventVo>> todo() {
+        // 处理人身份取自登录上下文，禁止前端传入
+        return R.ok(warningEventService.queryTodoByAssignee(LoginHelper.getUserId()));
+    }
+
     @Operation(summary = "查询患者预警列表")
     @GetMapping("/chronic/doctor/warning/patient/{patientId}")
     public R<List<ChWarningEventVo>> patientWarnings(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId) {
@@ -46,7 +54,6 @@ public class DoctorWarningController {
     public R<Void> handle(@Parameter(description = "预警ID", required = true) @PathVariable Long warningId,
                           @Parameter(description = "操作类型", required = true) @RequestParam String actionType,
                           @Parameter(description = "操作详情") @RequestParam(required = false) String actionDetail) {
-        Long userId = null;
-        return R.ok(warningManager.handleEvent(warningId, actionType, actionDetail, userId));
+        return R.ok(warningManager.handleEvent(warningId, actionType, actionDetail, LoginHelper.getUserId()));
     }
 }

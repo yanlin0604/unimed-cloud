@@ -11,6 +11,7 @@ import org.dromara.chronic.domain.bo.ChMedicationRecordBo;
 import org.dromara.chronic.domain.entity.ChDrugInteraction;
 import org.dromara.chronic.domain.entity.ChMedicationAdjust;
 import org.dromara.chronic.domain.entity.ChMedicationRecord;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.vo.ChDrugInteractionVo;
 import org.dromara.chronic.domain.vo.ChMedicationAdjustVo;
 import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
@@ -18,6 +19,7 @@ import org.dromara.chronic.domain.vo.DrugInteractionCheckVo;
 import org.dromara.chronic.mapper.ChDrugInteractionMapper;
 import org.dromara.chronic.mapper.ChMedicationAdjustMapper;
 import org.dromara.chronic.mapper.ChMedicationRecordMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChMedicationService;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -32,6 +34,10 @@ import org.dromara.common.redis.utils.RedisUtils;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 用药管理服务实现
@@ -45,6 +51,7 @@ public class ChMedicationServiceImpl implements IChMedicationService {
     private final ChMedicationRecordMapper medicationRecordMapper;
     private final ChMedicationAdjustMapper medicationAdjustMapper;
     private final ChDrugInteractionMapper drugInteractionMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
 
     @Override
     public List<ChMedicationRecordVo> queryMedicationList(Long patientId) {
@@ -53,6 +60,21 @@ public class ChMedicationServiceImpl implements IChMedicationService {
                 .eq(ChMedicationRecord::getPatientId, patientId)
                 .orderByDesc(ChMedicationRecord::getStartDate)
         );
+    }
+
+    @Override
+    public TableDataInfo<ChMedicationRecordVo> queryMedicationPage(Long patientId, String status,
+                                                                    String drugName, PageQuery pageQuery) {
+        Page<ChMedicationRecordVo> page = medicationRecordMapper.selectVoPage(
+            pageQuery.build(),
+            Wrappers.<ChMedicationRecord>lambdaQuery()
+                .eq(ObjectUtil.isNotNull(patientId), ChMedicationRecord::getPatientId, patientId)
+                .eq(StringUtils.isNotBlank(status), ChMedicationRecord::getStatus, status)
+                .like(StringUtils.isNotBlank(drugName), ChMedicationRecord::getDrugName, drugName)
+                .orderByDesc(ChMedicationRecord::getStartDate));
+        fillMedicationPatientNames(page.getRecords(), ChMedicationRecordVo::getPatientId,
+            ChMedicationRecordVo::setPatientName);
+        return TableDataInfo.build(page);
     }
 
     @Override
@@ -96,6 +118,37 @@ public class ChMedicationServiceImpl implements IChMedicationService {
                 .eq(ChMedicationAdjust::getPatientId, patientId)
                 .orderByDesc(ChMedicationAdjust::getCreateTime)
         );
+    }
+
+    @Override
+    public TableDataInfo<ChMedicationAdjustVo> queryAdjustPage(Long patientId, String adjustType,
+                                                                PageQuery pageQuery) {
+        Page<ChMedicationAdjustVo> page = medicationAdjustMapper.selectVoPage(
+            pageQuery.build(),
+            Wrappers.<ChMedicationAdjust>lambdaQuery()
+                .eq(ObjectUtil.isNotNull(patientId), ChMedicationAdjust::getPatientId, patientId)
+                .eq(StringUtils.isNotBlank(adjustType), ChMedicationAdjust::getAdjustType, adjustType)
+                .orderByDesc(ChMedicationAdjust::getCreateTime));
+        fillMedicationPatientNames(page.getRecords(), ChMedicationAdjustVo::getPatientId,
+            ChMedicationAdjustVo::setPatientName);
+        return TableDataInfo.build(page);
+    }
+
+    /**
+     * 批量回填患者姓名（用药记录/调整记录分页共用）
+     */
+    private <T> void fillMedicationPatientNames(List<T> vos, Function<T, Long> idGetter,
+                                                BiConsumer<T, String> nameSetter) {
+        if (vos == null || vos.isEmpty()) {
+            return;
+        }
+        List<Long> patientIds = vos.stream().map(idGetter).filter(ObjectUtil::isNotNull).distinct().toList();
+        if (patientIds.isEmpty()) {
+            return;
+        }
+        Map<Long, String> patientNames = patientProfileMapper.selectByIds(patientIds).stream()
+            .collect(Collectors.toMap(ChPatientProfile::getPatientId, ChPatientProfile::getName, (a, b) -> a));
+        vos.forEach(vo -> nameSetter.accept(vo, patientNames.get(idGetter.apply(vo))));
     }
 
     @Override

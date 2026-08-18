@@ -24,6 +24,11 @@ public interface IChWarningEventService {
 
     List<ChWarningEventVo> queryByPatientId(Long patientId);
 
+    /**
+     * 查询指派给指定医生的未解决预警（NEW/CONFIRMED/PROCESSING/ESCALATED）
+     */
+    List<ChWarningEventVo> queryTodoByAssignee(Long assigneeUserId);
+
     Void updateStatus(Long warningId, String newStatus);
 
     /**

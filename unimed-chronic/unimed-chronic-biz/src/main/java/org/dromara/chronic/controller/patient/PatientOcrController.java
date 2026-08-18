@@ -10,7 +10,7 @@ import org.dromara.chronic.manager.OcrManager;
 import org.dromara.chronic.service.IOcrService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
-import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.validation.annotation.Validated;
@@ -29,13 +29,14 @@ import org.springframework.web.bind.annotation.*;
 public class PatientOcrController {
 
     private final OcrManager ocrManager;
+    private final PatientContextHelper patientContextHelper;
     private final IOcrService ocrService;
 
     @Operation(summary = "创建本人医疗文档OCR任务")
     @RepeatSubmit
     @PostMapping("/chronic/patient/medical-document-ocr/tasks")
     public R<Long> add(@Validated @RequestBody OcrTaskBo bo) {
-        bo.setPatientId(LoginHelper.getUserId());
+        bo.setPatientId(patientContextHelper.getCurrentPatientId());
         bo.setSourceType("PATIENT");
         return R.ok(ocrManager.recognize(bo));
     }
@@ -44,7 +45,7 @@ public class PatientOcrController {
     @GetMapping("/chronic/patient/medical-document-ocr/page")
     public TableDataInfo<OcrTaskVo> page(OcrTaskBo bo,
                                                         PageQuery pageQuery) {
-        bo.setPatientId(LoginHelper.getUserId());
+        bo.setPatientId(patientContextHelper.getCurrentPatientId());
         bo.setSourceType("PATIENT");
         return ocrService.queryPageList(bo, pageQuery);
     }

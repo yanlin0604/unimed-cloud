@@ -10,7 +10,7 @@ import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.chronic.support.PatientContextHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,18 +28,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class PatientContractController {
 
     private final IChPatientContractService contractService;
+    private final PatientContextHelper patientContextHelper;
 
     @Operation(summary = "查询当前签约关系")
     @GetMapping("/chronic/patient/contract/current")
     public R<ChPatientContractVo> currentContract() {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(contractService.queryCurrentContract(patientId));
     }
 
     @Operation(summary = "查询履约明细分页")
     @GetMapping("/chronic/patient/contract/fulfillment/page")
     public TableDataInfo<ChContractFulfillmentVo> fulfillmentPage(PageQuery pageQuery) {
-        Long patientId = LoginHelper.getUserId();
+        Long patientId = patientContextHelper.getCurrentPatientId();
         ChPatientContractVo contract = contractService.queryCurrentContract(patientId);
         if (contract == null) {
             return TableDataInfo.build();

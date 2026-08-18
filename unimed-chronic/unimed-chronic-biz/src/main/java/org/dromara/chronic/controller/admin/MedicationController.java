@@ -42,6 +42,25 @@ public class MedicationController extends BaseController {
     private final IChMedicationService medicationService;
     private final MedicationManager medicationManager;
 
+    @Operation(summary = "分页查询用药记录")
+    @SaCheckPermission("chronic:medication:list")
+    @GetMapping("/chronic/admin/medication/page")
+    public TableDataInfo<ChMedicationRecordVo> medicationPage(@Parameter(description = "患者ID") @RequestParam(required = false) Long patientId,
+                                                              @Parameter(description = "用药状态") @RequestParam(required = false) String status,
+                                                              @Parameter(description = "药品名称") @RequestParam(required = false) String drugName,
+                                                              PageQuery pageQuery) {
+        return medicationService.queryMedicationPage(patientId, status, drugName, pageQuery);
+    }
+
+    @Operation(summary = "分页查询用药调整记录")
+    @SaCheckPermission("chronic:medication:list")
+    @GetMapping("/chronic/admin/medication-adjust/page")
+    public TableDataInfo<ChMedicationAdjustVo> adjustPage(@Parameter(description = "患者ID") @RequestParam(required = false) Long patientId,
+                                                          @Parameter(description = "调整类型") @RequestParam(required = false) String adjustType,
+                                                          PageQuery pageQuery) {
+        return medicationService.queryAdjustPage(patientId, adjustType, pageQuery);
+    }
+
     @Operation(summary = "查询患者用药列表")
     @SaCheckPermission("chronic:medication:list")
     @GetMapping("/chronic/admin/patient/{patientId}/medication")

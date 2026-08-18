@@ -2,7 +2,7 @@ package org.dromara.chronic.manager;
 
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
-import org.dromara.chronic.domain.bo.ChFollowupRecordBo;
+import org.dromara.chronic.domain.bo.ChFollowupSubmitBo;
 import org.dromara.chronic.service.IChFollowupService;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,9 @@ public class FollowupManager {
         return followupService.createPlan(bo);
     }
 
-    public Long completeTask(ChFollowupRecordBo bo) {
-        return followupService.completeTask(bo);
+    public Long completeTask(Long taskId, ChFollowupSubmitBo bo, Long expectedPatientId,
+                             Long expectedAssigneeUserId, Long visitorUserId, String forcedVisitType) {
+        return followupService.completeTask(taskId, bo, expectedPatientId, expectedAssigneeUserId,
+            visitorUserId, forcedVisitType);
     }
 }
