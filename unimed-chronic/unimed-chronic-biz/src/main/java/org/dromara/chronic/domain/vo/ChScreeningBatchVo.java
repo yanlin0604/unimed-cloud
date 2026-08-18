@@ -46,4 +46,10 @@ public class ChScreeningBatchVo implements Serializable {
     @Schema(description = "负责医生昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "doctorUserId")
     private String doctorNickName;
+
+    /**
+     * 批次内筛查记录数（由 service 层批量聚合回填，非 DB 列）
+     */
+    @Schema(description = "批次内筛查记录数")
+    private Long recordCount;
 }

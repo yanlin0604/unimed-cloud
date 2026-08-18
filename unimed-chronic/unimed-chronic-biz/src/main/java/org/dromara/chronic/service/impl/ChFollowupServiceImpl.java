@@ -35,6 +35,7 @@ import org.dromara.chronic.mapper.ChFollowupRecordMapper;
 import org.dromara.chronic.mapper.ChFollowupTaskMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChFollowupService;
+import org.dromara.chronic.support.FollowupOverdueRefresher;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -72,6 +73,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     private final ChFollowupAnswerMapper answerMapper;
     private final ChPatientProfileMapper patientProfileMapper;
     private final DiseaseNameHelper diseaseNameHelper;
+    private final FollowupOverdueRefresher overdueRefresher;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -132,6 +134,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     public TableDataInfo<ChFollowupTaskVo> queryTaskPage(Long patientId, Long assigneeUserId,
                                                           String taskStatus, String visitType,
                                                           PageQuery pageQuery) {
+        overdueRefresher.refreshIfNeeded();
         Page<ChFollowupTaskVo> page = followupTaskMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChFollowupTask>lambdaQuery()
@@ -279,6 +282,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         if (assigneeUserId == null) {
             throw new ServiceException("未获取当前医生身份");
         }
+        overdueRefresher.refreshIfNeeded();
         List<ChFollowupTaskVo> list = followupTaskMapper.selectVoList(
             Wrappers.<ChFollowupTask>lambdaQuery()
                 .eq(ChFollowupTask::getAssigneeUserId, assigneeUserId)
@@ -349,6 +353,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
 
     @Override
     public List<ChFollowupTaskVo> queryPatientTasks(Long patientId) {
+        overdueRefresher.refreshIfNeeded();
         List<ChFollowupTaskVo> list = followupTaskMapper.selectVoList(
             Wrappers.<ChFollowupTask>lambdaQuery()
                 .eq(ChFollowupTask::getPatientId, patientId)

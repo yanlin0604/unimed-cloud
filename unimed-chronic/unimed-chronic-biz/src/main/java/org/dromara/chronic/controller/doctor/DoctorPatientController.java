@@ -17,6 +17,7 @@ import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChPatientProfileService;
 import org.dromara.chronic.service.IClinicalPathwayService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
@@ -55,6 +56,8 @@ public class DoctorPatientController extends BaseController {
     @SaCheckPermission("chronic:doctor:patient:list")
     @GetMapping("/page")
     public TableDataInfo<ChPatientProfileVo> page(ChPatientProfileBo bo, PageQuery pageQuery) {
+        // 责任医生取自登录上下文，禁止前端传入，避免越权查看他人患者
+        bo.setDoctorUserId(LoginHelper.getUserId());
         return patientProfileService.queryPageList(bo, pageQuery);
     }
 

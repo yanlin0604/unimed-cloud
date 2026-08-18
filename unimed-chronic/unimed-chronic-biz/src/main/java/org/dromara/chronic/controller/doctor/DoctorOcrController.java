@@ -70,6 +70,15 @@ public class DoctorOcrController {
         return R.ok(ocrManager.confirm(taskId, bo));
     }
 
+    @Operation(summary = "重试医疗文档OCR识别")
+    @SaCheckPermission("chronic:doctor:medical-document-ocr:edit")
+    @Log(title = "医生端医疗文档OCR重试", businessType = BusinessType.UPDATE)
+    @RepeatSubmit
+    @PutMapping("/medical-document-ocr/{taskId}/retry")
+    public R<OcrTaskVo> retry(@Parameter(description = "任务ID") @PathVariable Long taskId) {
+        return R.ok(ocrManager.retry(taskId));
+    }
+
     @Operation(summary = "废弃医疗文档OCR草稿")
     @SaCheckPermission("chronic:doctor:medical-document-ocr:edit")
     @PutMapping("/medical-document-ocr/{taskId}/discard")

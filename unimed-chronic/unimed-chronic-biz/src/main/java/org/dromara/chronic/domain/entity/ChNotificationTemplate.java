@@ -23,6 +23,11 @@ public class ChNotificationTemplate extends TenantEntity {
     private Long templateId;
 
     /**
+     * 模板名称
+     */
+    private String templateName;
+
+    /**
      * 通道: WECHAT/SMS/IN_APP/IVR
      */
     private String channel;
@@ -30,6 +35,11 @@ public class ChNotificationTemplate extends TenantEntity {
     private String templateCode;
 
     private String templateContent;
+
+    /**
+     * 是否启用: 1启用 0停用
+     */
+    private String isActive;
 
     @TableLogic
     private String delFlag;

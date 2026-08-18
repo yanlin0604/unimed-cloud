@@ -25,12 +25,17 @@ import org.dromara.chronic.support.ocr.domain.OcrParseResult;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 医疗文档OCR任务服务实现
@@ -142,6 +147,9 @@ public class OcrServiceImpl implements IOcrService {
         ChOcrTask task = requireTask(taskId);
         task.setStatus(STATUS_SUCCESS);
         task.setRawOcrJson(result.getRawOcrJson());
+        // 报告主信息草稿快照：与 ch_ocr_draft 里的 reportItem/metricItem 同源，
+        // 供患者端（chronic-patient ocr-detail）无需再拉 draft 列表即可直接渲染。
+        task.setReportDraftJson(buildReportDraftJson(result));
         task.setErrorCode(null);
         task.setErrorMsg(null);
         taskMapper.updateById(task);
@@ -164,6 +172,49 @@ public class OcrServiceImpl implements IOcrService {
             }
         }
         return null;
+    }
+
+    /**
+     * 组装 ch_ocr_task.report_draft_json：
+     * {"reportItems":[{itemName,resultValue,unit,referenceRange,isAbnormal}],
+     *  "metricItems":[{metricType,itemName,resultValue,unit,referenceRange,isAbnormal}]}
+     * <p>
+     * 结构与患者端 web/chronic-patient ocr-detail 的解析约定保持一致；
+     * 无任何草稿项时返回 null（MyBatis-Plus NOT_NULL 更新策略下不会覆盖历史值）。
+     */
+    private String buildReportDraftJson(OcrParseResult result) {
+        List<Map<String, Object>> reportItems = new ArrayList<>();
+        if (CollUtil.isNotEmpty(result.getReportItems())) {
+            for (ChOcrReportItem item : result.getReportItems()) {
+                Map<String, Object> node = new LinkedHashMap<>(8);
+                node.put("itemName", item.getItemName());
+                node.put("resultValue", item.getResultValue());
+                node.put("unit", item.getUnit());
+                node.put("referenceRange", item.getReferenceRange());
+                node.put("isAbnormal", item.getIsAbnormal());
+                reportItems.add(node);
+            }
+        }
+        List<Map<String, Object>> metricItems = new ArrayList<>();
+        if (CollUtil.isNotEmpty(result.getMetricItems())) {
+            for (ChOcrMetricItem item : result.getMetricItems()) {
+                Map<String, Object> node = new LinkedHashMap<>(8);
+                node.put("metricType", item.getMetricType());
+                node.put("itemName", item.getOriginalName());
+                node.put("resultValue", item.getMetricValue());
+                node.put("unit", item.getUnit());
+                node.put("referenceRange", item.getReferenceRange());
+                node.put("isAbnormal", item.getIsAbnormal());
+                metricItems.add(node);
+            }
+        }
+        if (reportItems.isEmpty() && metricItems.isEmpty()) {
+            return null;
+        }
+        Map<String, Object> draft = new LinkedHashMap<>(4);
+        draft.put("reportItems", reportItems);
+        draft.put("metricItems", metricItems);
+        return JsonUtils.toJsonString(draft);
     }
 
     @Override

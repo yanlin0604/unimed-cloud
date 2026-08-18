@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChDoctorWechatBindBo;
 import org.dromara.chronic.domain.vo.ChDoctorWechatBindVo;
+import org.dromara.chronic.domain.vo.DoctorLoginVo;
 import org.dromara.chronic.service.IChDoctorWechatBindService;
 import org.dromara.common.core.domain.R;
 import org.springframework.validation.annotation.Validated;
@@ -24,6 +25,25 @@ import org.springframework.web.bind.annotation.*;
 public class DoctorAuthController {
 
     private final IChDoctorWechatBindService wechatBindService;
+
+    /**
+     * 微信小程序登录：code -> openid -> 绑定的 sys_user -> 签发 token
+     * 未登录可访问
+     */
+    @Operation(summary = "微信小程序登录")
+    @PostMapping("/chronic/doctor/auth/wechat/code")
+    public R<DoctorLoginVo> wechatCodeLogin(@Validated @RequestBody WxCodeLoginBody body) {
+        return R.ok(wechatBindService.loginByWxCode(body.getCode()));
+    }
+
+    /**
+     * 微信登录请求体
+     */
+    @lombok.Data
+    public static class WxCodeLoginBody {
+        @jakarta.validation.constraints.NotBlank(message = "微信 code 不能为空")
+        private String code;
+    }
 
     /**
      * 微信登录：通过openid查询绑定关系，映射到sys_user

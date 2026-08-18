@@ -43,7 +43,9 @@ public class ScreeningManager {
 
     public ChScreeningBatchVo startBatch(ChScreeningBatchBo bo) {
         if (ObjectUtil.isNull(bo.getStatus())) {
-            bo.setStatus("ACTIVE");
+            // 状态枚举以 ch_screening_batch.status 为准：PLANNED/ONGOING/FINISHED/CANCELED
+            // （历史版本这里写的是不在枚举内的 ACTIVE，导致状态无法与字典/前端对齐）
+            bo.setStatus("ONGOING");
         }
         screeningBatchService.insertByBo(bo);
         return screeningBatchService.queryById(bo.getBatchId());

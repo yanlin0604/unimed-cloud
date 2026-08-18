@@ -19,6 +19,7 @@ import org.dromara.chronic.mapper.ChFollowupQuestionnaireMapper;
 import org.dromara.chronic.mapper.ChFollowupRecordMapper;
 import org.dromara.chronic.mapper.ChFollowupTaskMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
+import org.dromara.chronic.support.FollowupOverdueRefresher;
 import org.dromara.common.core.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -58,6 +59,7 @@ public class ChFollowupServiceImplTest {
     private ChFollowupAnswerMapper answerMapper;
     private ChPatientProfileMapper patientProfileMapper;
     private DiseaseNameHelper diseaseNameHelper;
+    private FollowupOverdueRefresher overdueRefresher;
 
     private ChFollowupServiceImpl service;
 
@@ -73,8 +75,10 @@ public class ChFollowupServiceImplTest {
         answerMapper = mock(ChFollowupAnswerMapper.class);
         patientProfileMapper = mock(ChPatientProfileMapper.class);
         diseaseNameHelper = mock(DiseaseNameHelper.class);
+        overdueRefresher = mock(FollowupOverdueRefresher.class);
         service = new ChFollowupServiceImpl(planMapper, planItemMapper, taskMapper, recordMapper,
-            questionnaireMapper, answerMapper, patientProfileMapper, diseaseNameHelper, new ObjectMapper());
+            questionnaireMapper, answerMapper, patientProfileMapper, diseaseNameHelper, overdueRefresher,
+            new ObjectMapper());
     }
 
     private ChFollowupTask pendingTask() {

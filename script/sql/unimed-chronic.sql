@@ -56,6 +56,7 @@ CREATE TABLE `ch_area_dict`  (
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `update_by` bigint NULL DEFAULT NULL COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`area_code`) USING BTREE,
   INDEX `idx_ad_parent_area_code`(`parent_area_code` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '区域字典表' ROW_FORMAT = Dynamic;
@@ -640,6 +641,7 @@ CREATE TABLE `ch_followup_questionnaire`  (
   `version` int NULL DEFAULT 1 COMMENT '版本',
   `questions` json NULL COMMENT '题目',
   `is_national_standard` tinyint(1) NULL DEFAULT 0 COMMENT '是否国家标准',
+  `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
   `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',
   `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
@@ -1633,6 +1635,8 @@ CREATE TABLE `ch_report_template`  (
   `template_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '模板名称',
   `template_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '模板类型(ANNUAL_CHECKUP/QUARTERLY_MANAGE/AREA_STAT)',
   `template_content` json NULL COMMENT '模板内容',
+  `disease_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '适用病种编码(NULL表示通用)',
+  `is_active` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
   `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',
   `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
@@ -1703,6 +1707,7 @@ CREATE TABLE `ch_screening_batch`  (
   `doctor_user_id` bigint NULL DEFAULT NULL COMMENT '医生用户ID',
   `location` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '筛查地点',
   `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '备注',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'PLANNED' COMMENT '批次状态(PLANNED/ONGOING/FINISHED/CANCELED)',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
   `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',
   `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',

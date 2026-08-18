@@ -25,30 +25,41 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class BaiduOcrClient {
 
+    private static final String INPUT_TYPE_HINT = "，可选值：IMAGE_BASE64/IMAGE_URL/OSS_FILE/PDF_FILE";
+
     private final BaiduOcrProperties properties;
 
     private volatile MedicalAipOcr aipOcr;
 
     /**
      * 调用百度OCR识别
+     * <p>
+     * 识别通道由 inputType 显式分派（而非"猜哪个载荷字段非空"）：
+     * IMAGE_BASE64 → recognizeByImage、IMAGE_URL / OSS_FILE → recognizeByImageUrl、PDF_FILE → recognizeByPdf。
      */
     public BaiduOcrResponse recognize(BaiduOcrRequest request) {
         ensureEnabled();
         MedicalAipOcr client = getClient();
         String apiUrl = resolveOcrUrl(request.getDocumentType());
+        String inputType = request.getInputType() == null ? "" : request.getInputType();
         try {
             HashMap<String, String> options = new HashMap<>();
-            JSONObject result;
-            if (StringUtils.isNotBlank(request.getImageBase64())) {
-                byte[] imageBytes = Base64.getDecoder().decode(request.getImageBase64());
-                result = client.recognizeByImage(apiUrl, imageBytes, options);
-            } else if (StringUtils.isNotBlank(request.getFileUrl())) {
-                result = client.recognizeByImageUrl(apiUrl, request.getFileUrl(), options);
-            } else if (StringUtils.isNotBlank(request.getPdfBase64())) {
-                result = client.recognizeByPdf(apiUrl, request.getPdfBase64(), options);
-            } else {
-                throw new ServiceException("OCR识别内容不能为空");
-            }
+            JSONObject result = switch (inputType) {
+                case "IMAGE_BASE64" -> {
+                    requireNotBlank(request.getImageBase64(), inputType, "imageBase64");
+                    yield client.recognizeByImage(apiUrl, decodeBase64(request.getImageBase64(), "imageBase64"), options);
+                }
+                case "IMAGE_URL", "OSS_FILE" -> {
+                    requireNotBlank(request.getFileUrl(), inputType, "fileUrl");
+                    yield client.recognizeByImageUrl(apiUrl, request.getFileUrl(), options);
+                }
+                case "PDF_FILE" -> {
+                    requireNotBlank(request.getPdfBase64(), inputType, "pdfBase64");
+                    yield client.recognizeByPdf(apiUrl, request.getPdfBase64(), options);
+                }
+                default -> throw new ServiceException(
+                    "不支持的OCR输入类型 inputType=" + inputType + INPUT_TYPE_HINT);
+            };
             return parseResponse(result);
         } catch (ServiceException e) {
             throw e;
@@ -59,6 +70,23 @@ public class BaiduOcrClient {
     }
 
     // ---------- private ----------
+
+    /**
+     * 载荷字段校验：错误信息必须明确指向 inputType，方便调用方判断是入参搭配错了还是内容缺失。
+     */
+    private void requireNotBlank(String payload, String inputType, String fieldName) {
+        if (StringUtils.isBlank(payload)) {
+            throw new ServiceException("inputType=" + inputType + " 时 " + fieldName + " 不能为空");
+        }
+    }
+
+    private byte[] decodeBase64(String base64, String fieldName) {
+        try {
+            return Base64.getDecoder().decode(base64);
+        } catch (IllegalArgumentException e) {
+            throw new ServiceException(fieldName + " 不是合法的 Base64 内容");
+        }
+    }
 
     private MedicalAipOcr getClient() {
         if (aipOcr == null) {

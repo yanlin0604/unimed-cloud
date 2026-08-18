@@ -72,6 +72,10 @@ public class HealthMetricManager {
     public Long reportDeviceMetric(ChDeviceRawRecordBo rawBo, ChHealthMetricRecordBo metricBo) {
         ChDeviceRawRecordVo rawVo = deviceBindService.saveRawRecord(rawBo);
         metricBo.setDataSource("DEVICE");
+        // 指标记录未显式携带患者时，沿用原始记录的患者（同一次上报必属同一患者）
+        if (metricBo.getPatientId() == null && rawVo != null) {
+            metricBo.setPatientId(rawVo.getPatientId());
+        }
         return reportAndCheck(metricBo);
     }
 

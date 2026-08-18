@@ -29,6 +29,8 @@ public class ChDeviceBindVo implements Serializable {
     private Long bindId;
     @Schema(description = "患者ID")
     private Long patientId;
+    @Schema(description = "患者姓名")
+    private String patientName;
     @Schema(description = "设备ID")
     private String deviceId;
     @Schema(description = "设备类型")

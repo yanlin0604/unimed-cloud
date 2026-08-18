@@ -29,11 +29,14 @@ import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.json.utils.JsonUtils;
+import org.dromara.chronic.service.IChPatientTimelineService;
+import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,6 +55,7 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
     private final ChContractFulfillmentMapper fulfillmentMapper;
     private final ChPatientProfileMapper profileMapper;
     private final ChConsentRecordMapper consentRecordMapper;
+    private final IChPatientTimelineService timelineService;
 
     @Override
     public TableDataInfo<ChPatientContractVo> queryContractPageList(ChPatientContractBo bo, PageQuery pageQuery) {
@@ -116,6 +120,11 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
         entity.setExpiryRemindStatus(isExpiring(bo.getContractPeriodEnd()));
         contractMapper.insert(entity);
         createFulfillmentPlan(entity.getContractId(), servicePackage.getServiceItems(), bo.getContractPeriodStart(), bo.getContractPeriodEnd());
+        // 写入签约时间线事件，供三端"签约历史"查询
+        timelineService.recordEvent(entity.getPatientId(), "SIGN", "签约服务包：" + servicePackage.getPackageName(),
+            "签约周期 " + DateUtils.formatDate(bo.getContractPeriodStart())
+                + " 至 " + DateUtils.formatDate(bo.getContractPeriodEnd()),
+            LocalDateTime.now());
         return entity.getContractId();
     }
 

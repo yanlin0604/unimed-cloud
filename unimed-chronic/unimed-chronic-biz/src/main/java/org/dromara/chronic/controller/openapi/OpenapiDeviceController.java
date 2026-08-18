@@ -5,8 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChDeviceBindBo;
-import org.dromara.chronic.domain.bo.ChDeviceRawRecordBo;
-import org.dromara.chronic.domain.bo.ChHealthMetricRecordBo;
+import org.dromara.chronic.domain.dto.DeviceDataUploadDto;
 import org.dromara.chronic.domain.vo.ChDeviceBindVo;
 import org.dromara.chronic.manager.HealthMetricManager;
 import org.dromara.chronic.service.IChDeviceBindService;
@@ -55,9 +54,9 @@ public class OpenapiDeviceController {
     @Operation(summary = "上传设备数据")
     @RepeatSubmit
     @PostMapping("/chronic/openapi/device/data")
-    public R<Long> uploadDeviceData(@Validated @RequestBody ChDeviceRawRecordBo rawBo,
-                                    @Validated @RequestBody ChHealthMetricRecordBo metricBo) {
-        return R.ok(healthMetricManager.reportDeviceMetric(rawBo, metricBo));
+    public R<Long> uploadDeviceData(@Validated @RequestBody DeviceDataUploadDto dto) {
+        // 既落库设备原始记录，又落库健康指标记录（语义与原实现一致）
+        return R.ok(healthMetricManager.reportDeviceMetric(dto.getRawRecord(), dto.getMetricRecord()));
     }
 
     @Operation(summary = "查询患者绑定设备")

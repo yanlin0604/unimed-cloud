@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.chronic.domain.entity.ChFollowupTask;
 import org.dromara.chronic.mapper.ChFollowupTaskMapper;
+import org.dromara.chronic.service.IChNotificationTemplateService;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.resource.api.RemoteMessageService;
 import org.dromara.resource.api.RemoteSmsService;
 import org.dromara.system.api.RemoteUserService;
@@ -17,7 +19,9 @@ import org.dromara.system.api.domain.vo.RemoteUserVo;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 随访到期前提醒定时任务
@@ -36,6 +40,7 @@ import java.util.List;
 public class FollowupRemindJob {
 
     private final ChFollowupTaskMapper followupTaskMapper;
+    private final IChNotificationTemplateService notificationTemplateService;
     @DubboReference(mock = "org.dromara.resource.api.RemoteMessageServiceStub")
     private RemoteMessageService remoteMessageService;
     @DubboReference(mock = "true")
@@ -45,6 +50,9 @@ public class FollowupRemindJob {
 
     /** 到期前 N 天开始提醒 */
     private static final long REMIND_DAYS = 3;
+
+    /** 随访提醒文案模板编码（ch_notification_template.template_code） */
+    private static final String TPL_FOLLOWUP_REMIND = "FOLLOWUP_REMIND";
 
     public ExecuteResult jobExecute(JobArgs jobArgs) {
         SnailJobLog.LOCAL.info("随访提醒开始");
@@ -95,8 +103,7 @@ public class FollowupRemindJob {
         if (task.getAssigneeUserId() == null) {
             return;
         }
-        String message = "您有一条随访任务即将到期，患者ID: " + task.getPatientId()
-            + "，到期日: " + task.getPlanDueDate();
+        String message = buildRemindMessage(task);
         try {
             // 站内消息推送（SSE/WebSocket）
             remoteMessageService.publishMessage(List.of(task.getAssigneeUserId()), message);
@@ -114,6 +121,30 @@ public class FollowupRemindJob {
             log.warn("随访提醒短信推送失败 assigneeUserId={} taskId={} msg={}",
                 task.getAssigneeUserId(), task.getTaskId(), e.getMessage());
         }
+    }
+
+    /**
+     * 构造随访提醒文案：优先取 ch_notification_template 中 FOLLOWUP_REMIND 模板渲染，
+     * 模板不存在 / 已停用 / 渲染失败时退回原硬编码文案（行为不退化）。
+     * <p>
+     * 支持占位符：{patientId} {dueDate} {taskId}
+     */
+    private String buildRemindMessage(ChFollowupTask task) {
+        String fallback = "您有一条随访任务即将到期，患者ID: " + task.getPatientId()
+            + "，到期日: " + task.getPlanDueDate();
+        try {
+            Map<String, String> params = new HashMap<>(4);
+            params.put("patientId", String.valueOf(task.getPatientId()));
+            params.put("dueDate", String.valueOf(task.getPlanDueDate()));
+            params.put("taskId", String.valueOf(task.getTaskId()));
+            String rendered = notificationTemplateService.render(TPL_FOLLOWUP_REMIND, null, params);
+            if (StringUtils.isNotBlank(rendered)) {
+                return rendered;
+            }
+        } catch (Exception e) {
+            log.warn("随访提醒文案模板渲染失败 taskId={} msg={}", task.getTaskId(), e.getMessage());
+        }
+        return fallback;
     }
 
     /**
