@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.dromara.common.tenant.core.TenantEntity;
 
+import java.util.Date;
+
 /**
  * 随访计划项对象 ch_followup_plan_item
  *
@@ -25,6 +27,10 @@ public class ChFollowupPlanItem extends TenantEntity {
     private Long planId;
 
     private String itemType;
+
+    private String visitType;
+
+    private Date dueDate;
 
     /**
      * 计划项配置 JSON

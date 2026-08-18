@@ -10,6 +10,7 @@ import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 随访计划项视图对象
@@ -30,6 +31,10 @@ public class ChFollowupPlanItemVo implements Serializable {
     private Long planId;
     @Schema(description = "项类型")
     private String itemType;
+    @Schema(description = "随访方式")
+    private String visitType;
+    @Schema(description = "首次到期日期")
+    private Date dueDate;
     @Schema(description = "项配置")
     private String itemConfig;
 

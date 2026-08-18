@@ -36,6 +36,8 @@ public class ChFollowupPlanVo implements Serializable {
     private Integer cycleDays;
     @Schema(description = "总轮次")
     private Integer totalRounds;
+    @Schema(description = "当前轮次")
+    private Integer currentRound;
     @Schema(description = "方案状态")
     private String planStatus;
     @Schema(description = "创建时间")
@@ -49,4 +51,7 @@ public class ChFollowupPlanVo implements Serializable {
 
     @Schema(description = "病种名称")
     private String diseaseName;
+
+    @Schema(description = "患者姓名")
+    private String patientName;
 }

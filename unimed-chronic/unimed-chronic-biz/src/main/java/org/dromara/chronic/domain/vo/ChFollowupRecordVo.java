@@ -11,6 +11,8 @@ import org.dromara.common.translation.constant.TransConstant;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 随访记录视图对象
@@ -39,6 +41,15 @@ public class ChFollowupRecordVo implements Serializable {
     private Long visitorUserId;
     @Schema(description = "随访日期")
     private Date visitDate;
+
+    @Schema(description = "患者姓名")
+    private String patientName;
+
+    @Schema(description = "结构化随访内容")
+    private Map<String, Object> content;
+
+    @Schema(description = "问卷答案")
+    private List<ChFollowupAnswerVo> answers;
 
     @Schema(description = "随访方式名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "visitType", other = ChronicDictTypeConstant.CHRONIC_VISIT_TYPE)

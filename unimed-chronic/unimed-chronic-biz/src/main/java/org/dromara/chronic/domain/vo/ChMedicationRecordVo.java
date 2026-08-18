@@ -63,6 +63,9 @@ public class ChMedicationRecordVo implements Serializable {
     @Schema(description = "用药备注")
     private String remark;
 
+    @Schema(description = "患者姓名")
+    private String patientName;
+
     @Schema(description = "用药状态名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "status", other = ChronicDictTypeConstant.CHRONIC_MEDICATION_STATUS)
     private String statusName;

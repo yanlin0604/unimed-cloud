@@ -33,8 +33,8 @@ public class ChFollowupTaskVo implements Serializable {
     private Long planId;
     @Schema(description = "任务轮次")
     private Integer taskRound;
-    @Schema(description = "计划日期")
-    private Date planDate;
+    @Schema(description = "计划到期日期")
+    private Date planDueDate;
     @Schema(description = "任务状态")
     private String taskStatus;
     @Schema(description = "指派用户ID")
@@ -42,6 +42,12 @@ public class ChFollowupTaskVo implements Serializable {
 
     @Schema(description = "随访方式")
     private String visitType;
+
+    @Schema(description = "患者姓名")
+    private String patientName;
+
+    @Schema(description = "问卷ID")
+    private Long questionnaireId;
 
     @Schema(description = "任务状态名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "taskStatus", other = ChronicDictTypeConstant.CHRONIC_FOLLOWUP_TASK_STATUS)

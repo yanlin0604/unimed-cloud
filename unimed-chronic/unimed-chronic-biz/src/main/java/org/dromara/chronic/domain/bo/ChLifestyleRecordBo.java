@@ -2,7 +2,6 @@ package org.dromara.chronic.domain.bo;
 
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -24,8 +23,10 @@ public class ChLifestyleRecordBo extends BaseEntity {
     @Schema(description = "主键ID")
     private Long id;
 
-    @Schema(description = "患者ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "患者ID不能为空")
+    /**
+     * 患者端提交时由服务端从登录上下文注入，管理端提交时由控制器显式赋值，故不做 NotNull 校验
+     */
+    @Schema(description = "患者ID")
     private Long patientId;
 
     @Schema(description = "吸烟状态")

@@ -44,6 +44,9 @@ public class ChMedicationAdjustVo implements Serializable {
     @Schema(description = "调整人用户ID")
     private Long adjusterUserId;
 
+    @Schema(description = "患者姓名")
+    private String patientName;
+
     @Schema(description = "调整类型名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "adjustType", other = ChronicDictTypeConstant.CHRONIC_ADJUST_TYPE)
     private String adjustTypeName;

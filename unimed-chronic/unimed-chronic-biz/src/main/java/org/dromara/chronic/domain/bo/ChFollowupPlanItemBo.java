@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import org.dromara.chronic.domain.entity.ChFollowupPlanItem;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 
+import java.util.Date;
+
 /**
  * 随访计划项业务对象
  *
@@ -31,7 +33,12 @@ public class ChFollowupPlanItemBo extends BaseEntity {
     @NotBlank(message = "随访计划项类型不能为空")
     private String itemType;
 
+    @Schema(description = "随访方式")
+    private String visitType;
+
+    @Schema(description = "首次到期日期")
+    private Date dueDate;
+
     @Schema(description = "随访计划项配置", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "随访计划项配置不能为空")
     private String itemConfig;
 }
