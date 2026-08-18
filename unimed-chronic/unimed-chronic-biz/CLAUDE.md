@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-08-17** - 慢病闭环 spec（chronic-management-closed-loop）任务 1~10 完成：随访三端统一契约（ChFollowupSubmitBo/ChFollowupTaskDetailVo，身份一律服务端解析）；管理端随访计划/任务/记录 REST 补齐（分页/状态/指派/取消/详情）；医生端预警 todo 端点与处理人缺陷修复；管理端用药/调整全局分页；患者端 9 个控制器统一 PatientContextHelper（修复 accountId≠patientId 及 lifestyle 越权）；医生端宣教内容库分页+患者推送记录端点；ch_followup_questionnaire 补 is_active 列（增量脚本 chronic-followup-questionnaire-is-active.sql）；新增 ChFollowupServiceImplTest（16 用例，@Tag("chronic-dev")）；sys_menu 种子随访权限码对齐 chronic:*；三端前端随访/指标/用药/生活方式/预警/宣教/报告/档案全部接通真实 API 并清除 mock
 - **2026-05-15** - 新增 PatientTagController/PatientTagDictController（患者标签管理）；LabTestController/MedicalExamController（检验/检查记录）；OcrController/DoctorOcrController/PatientOcrController（医疗文档OCR）；DoctorCustomGroupController（医生自定义分组）；PatientManagePlanController（患者端管理方案）；PatientContractController（患者端签约）；PatientConsentController（患者端知情同意）；PatientSosController（患者端SOS一键求助）；新增百度OCR SDK和微信小程序SDK依赖
 - **2026-04-22** - 初始化慢病模块文档；双数据源架构；62个控制器覆盖4层管控（admin/doctor/patient/openapi）；55张业务表
 - **2026-04-17** - 添加 unimed-chronic 慢病管理模块初始代码
