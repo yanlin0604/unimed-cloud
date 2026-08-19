@@ -118,6 +118,19 @@ public class ArchiveShareManager {
         return null;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public Void approve(Long applyId, String approvalStatus, String approvalOpinion) {
+        ChArchiveShareApply apply = applyMapper.selectById(applyId);
+        if (apply == null) {
+            throw new RuntimeException("调档申请不存在");
+        }
+        apply.setApprovalStatus(approvalStatus);
+        apply.setApprovalOpinion(approvalOpinion);
+        applyMapper.updateById(apply);
+        logAudit("ARCHIVE_SHARE_APPROVE", "APPROVE", "审批调档申请: applyId=" + applyId + ", status=" + approvalStatus + ", opinion=" + approvalOpinion);
+        return null;
+    }
+
     public Long findByWorkflowInstanceId(Long workflowInstanceId) {
         LambdaQueryWrapper<ChArchiveShareApply> lqw = Wrappers.lambdaQuery();
         lqw.eq(ChArchiveShareApply::getWorkflowInstanceId, workflowInstanceId);

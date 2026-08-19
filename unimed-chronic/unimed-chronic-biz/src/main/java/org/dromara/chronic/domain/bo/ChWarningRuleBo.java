@@ -59,4 +59,10 @@ public class ChWarningRuleBo extends BaseEntity {
 
     @Schema(description = "恢复规则")
     private String recoveryRule;
+
+    @Schema(description = "临床处置建议（命中规则后给医生的具体处置指引）")
+    private String clinicalAdvice;
+
+    @Schema(description = "要求响应时限(小时)，危急值通常为 2，一般高值为 24")
+    private Integer responseSlaHours;
 }

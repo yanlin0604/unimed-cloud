@@ -64,6 +64,12 @@ public class ChPatientAccountVo implements Serializable {
     @Schema(description = "是否已绑定微信")
     private Boolean isBoundWechat;
 
+    @Schema(description = "绑定二维码Token")
+    private String bindQrToken;
+
+    @Schema(description = "二维码Token过期时间")
+    private Date qrTokenExpireTime;
+
     @Schema(description = "租户ID")
     private String tenantId;
 

@@ -10,13 +10,15 @@
 | 1 | `sys_dept.sql` / `sys_user.sql` | 基础组织与账号（RuoYi 标准示例数据） | ✅ 环境已有 |
 | 2 | `chronic-menu-import.sql` | 慢病菜单 183 行（7 根目录 / 34 页面 / 124 按钮），权限码与后端 `@SaCheckPermission` 逐一对齐 | ✅ 已执行 |
 | 3 | `chronic-doctor-role-users.sql` | 医生端权限载体菜单（隐藏，36 权限码）+ `慢病医生` 角色（role_id=100）+ 医生账号 2001~2008（密码 666666） | ✅ 已执行 |
+| 4 | `chronic-menu-increment-device-notification.sql` | 增量 12 行：设备管理页（200306）+ 通知模板页（200805）+ 筛查批次 list/edit 按钮（20060404/20060405） | ✅ 已执行 |
 
 **注意事项**
 
 - `chronic-menu-import.sql` 按精确 `menu_id` 列表先删后插，**不使用 `BETWEEN`**（区间会误伤 workflow 菜单 11616~11806）。
 - 慢病看板根目录 path 为 `chronic-dashboard`，不能改回 `dashboard`——会与前端静态路由 `/dashboard` 冲突。
-- 已剔除后端无端点的 4 个菜单：设备管理、管理路径进度、自定义分组（仅 doctor 层）、通知模板。
-- 未被菜单承载的后端权限码（11 个）：`chronic:attachment:*`、`chronic:audit:*`、`chronic:ops:*`、`chronic:archive-share:callback`——均为无前端页面的后端专用 API，超管可直接调用，非超管如需使用要另建载体菜单。
+- 剩余无菜单承载的菜单只有 2 个：**管理路径进度**（后端无 `ch_clinical_pathway` 相关表与接口）、**自定义分组**（仅 doctor 层有接口）。对应前端 `views/assessment/pathway/`、`views/team/custom-group/` 是诚实空态页，因无菜单实际不可达，属预期。
+- 未被菜单承载的后端权限码（11 个）：`chronic:attachment:*`（5）、`chronic:audit:*`（2）、`chronic:ops:*`（3）、`chronic:archive-share:callback`（1）——均为无前端页面的后端专用 API，超管可直接调用，非超管如需使用要另建载体菜单。
+- **设备管理 / 通知模板原先被剔除的理由（"后端无 admin 端点"）已失效**：`DeviceController`、`NotificationTemplateController` 已补齐，菜单与前端页面同步于 2026-08-18 接通。
 
 ## 二、慢病业务库 `unimed-chronic`
 
@@ -48,9 +50,26 @@ python script/sql/update/_check_api_contract.py
 
 # 后端各层权限码 vs 线上菜单承载（doctor 应 36/36，patient/openapi 为 0）
 python script/sql/update/_check_perm_coverage.py
+
+# 菜单一致性三查：component 死链 / 死权限码 / 按钮码前端承载率
+python script/sql/update/_check_menu_frontend.py
+
+# 生成「页面目录 -> 应挂载的按钮权限码」映射（补按钮鉴权时用）
+python script/sql/update/_gen_perm_map.py
+
+# 库表活跃度盘点（识别废表 / 只读不写表），结论见 CHRONIC-DEAD-TABLES.md
+python script/sql/update/_check_dead_tables.py
 ```
 
-## 五、账号速查
+**按钮级鉴权约定**：管理端页面的操作按钮必须挂 `v-access:code="['<权限码>']"`，权限码取自本页面菜单（`menu_type='F'`）声明、且等于后端 `@SaCheckPermission` 原文。开关类（Switch）用 `:disabled="!hasAccessByCodes([...])"` 而不是隐藏——隐藏会让状态列变空，看不出当前状态。超管 `*:*:*` 自动全放行（`packages/effects/access/src/use-access.ts:38`）。
+
+## 五、待清理的废表（未执行）
+
+盘点结论见 `CHRONIC-DEAD-TABLES.md`，清理脚本见 `chronic-drop-dead-tables.sql`（**分阶段、默认未执行**）。
+
+摘要：77 张表中 8 张代码零引用（`ch_sos_record`、`ch_webhook_subscription`、`ch_ops_health_check`、`ch_ops_rerun_ticket`、4 张 `ch_stat_*_day`），另有 `ch_clinical_pathway_status` 属"有接口零写入"的未完成功能，需产品决策。统计日表族的去留取决于看板走预聚合还是实时查询，**清理前必须先定这个技术方案**。
+
+## 六、账号速查
 
 | 端 | 账号 | 密码 | 说明 |
 |----|------|------|------|

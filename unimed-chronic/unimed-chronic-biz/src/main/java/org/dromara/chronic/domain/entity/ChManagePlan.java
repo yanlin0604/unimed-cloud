@@ -28,6 +28,9 @@ public class ChManagePlan extends TenantEntity {
 
     private String planStatus;
 
+    /** 机构ID */
+    private Long orgId;
+
     @TableLogic
     private String delFlag;
 }

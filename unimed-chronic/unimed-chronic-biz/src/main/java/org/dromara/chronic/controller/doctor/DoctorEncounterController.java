@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChEncounterRecordBo;
 import org.dromara.chronic.domain.vo.ChEncounterRecordVo;
 import org.dromara.chronic.manager.EncounterManager;
+import org.dromara.chronic.support.DoctorScopeGuard;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
@@ -32,6 +33,18 @@ import org.springframework.web.bind.annotation.*;
 public class DoctorEncounterController extends BaseController {
 
     private final EncounterManager encounterManager;
+    private final DoctorScopeGuard doctorScopeGuard;
+
+    /**
+     * 解析诊疗记录归属患者并校验
+     * <p>
+     * edit/submit/detail 的路径参数是 encounterId，原实现零校验。
+     * submit 传入的 operatorId 只是署名（写时间线与审计），不构成鉴权。
+     */
+    private void assertEncounterOwned(Long encounterId) {
+        ChEncounterRecordVo record = encounterManager.queryById(encounterId);
+        doctorScopeGuard.assertRecordOwned(record == null ? null : record.getPatientId());
+    }
 
     @Operation(summary = "新增诊疗记录")
     @SaCheckPermission("chronic:doctor:encounter:add")
@@ -39,6 +52,7 @@ public class DoctorEncounterController extends BaseController {
     @RepeatSubmit
     @PostMapping("/patient/{patientId}/encounter")
     public R<Long> add(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated @RequestBody ChEncounterRecordBo bo) {
+        doctorScopeGuard.assertPatientOwned(patientId);
         bo.setPatientId(patientId);
         bo.setSourceType("DOCTOR");
         return R.ok(encounterManager.saveDraft(bo, bo.getDiagnosisList()));
@@ -49,6 +63,7 @@ public class DoctorEncounterController extends BaseController {
     @Log(title = "诊疗记录", businessType = BusinessType.UPDATE)
     @PutMapping("/encounter/{encounterId}")
     public R<Long> edit(@PathVariable Long encounterId, @Validated @RequestBody ChEncounterRecordBo bo) {
+        assertEncounterOwned(encounterId);
         bo.setId(encounterId);
         return R.ok(encounterManager.updateDraft(bo, bo.getDiagnosisList()));
     }
@@ -58,6 +73,7 @@ public class DoctorEncounterController extends BaseController {
     @Log(title = "诊疗记录", businessType = BusinessType.UPDATE)
     @PostMapping("/encounter/{encounterId}/submit")
     public R<Long> submit(@PathVariable Long encounterId) {
+        assertEncounterOwned(encounterId);
         return R.ok(encounterManager.submit(encounterId, LoginHelper.getUserId()));
     }
 
@@ -65,6 +81,7 @@ public class DoctorEncounterController extends BaseController {
     @SaCheckPermission("chronic:doctor:encounter:list")
     @GetMapping("/patient/{patientId}/encounter/page")
     public TableDataInfo<ChEncounterRecordVo> page(@PathVariable Long patientId, ChEncounterRecordBo bo, PageQuery pageQuery) {
+        doctorScopeGuard.assertPatientOwned(patientId);
         bo.setPatientId(patientId);
         return encounterManager.queryPageList(bo, pageQuery);
     }
@@ -73,6 +90,7 @@ public class DoctorEncounterController extends BaseController {
     @SaCheckPermission("chronic:doctor:encounter:query")
     @GetMapping("/encounter/{encounterId}")
     public R<ChEncounterRecordVo> detail(@PathVariable Long encounterId) {
+        assertEncounterOwned(encounterId);
         return R.ok(encounterManager.queryById(encounterId));
     }
 }

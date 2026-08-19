@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.openapi;
 
+import org.dromara.common.web.core.BaseController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +26,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class OpenapiLisController {
+public class OpenapiLisController extends BaseController {
 
     private final HealthExamManager healthExamManager;
 

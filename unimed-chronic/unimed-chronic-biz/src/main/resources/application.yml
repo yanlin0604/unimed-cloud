@@ -32,6 +32,32 @@ chronic:
       read-timeout: 10000
       max-file-size: 10485760
 
+  # openapi 层（/chronic/openapi/**，对接 HIS/LIS/PACS/公卫/设备厂商）鉴权
+  #
+  # 修复前这 8 个控制器零鉴权注解、零凭证校验，网关又只做「登录了就行」的校验，
+  # 导致任意登录身份（含患者 token）都能给任意患者注入伪造指标、触发预警、注入伪造临床数据。
+  #
+  # auth-mode 三档：
+  #   off     完全跳过（等同修复前，仅排障用）
+  #   observe 只告警不拦截，无有效凭证时打 WARN 日志并放行（默认）
+  #   enforce 无有效 API Token 一律拒绝（401）
+  #
+  # 已确认目前【没有任何 HIS/LIS/设备厂商在对接】，因此切 enforce 的实际风险为零。
+  # 观察日志确认无真实调用方被打断后，把下面这一行的 observe 改成 enforce 即收紧。
+  openapi:
+    auth-mode: observe
+    path-patterns:
+      - /chronic/openapi/**
+    # API Token 专用请求头。不能复用 Authorization：Sa-Token 的 token-name 就是它，
+    # 且 openapi 未加入网关白名单，网关要用该头做登录校验，两者会互相抢占。
+    token-header-name: X-Chronic-Api-Token
+    # 兼容 Authorization: Bearer xxx —— 仅在将来把 openapi 加入网关白名单后才有意义
+    allow-authorization-header: true
+    # 校验 API Key 配置的 allowedEndpoints，实现「一把钥匙只开一扇门」
+    check-allowed-endpoints: true
+    # 每分钟最大请求数，0 表示不限流（auth 的校验结果不回传该 Key 的阈值，故由本侧配置）
+    rate-limit: 0
+
 --- # nacos 配置
 spring:
   cloud:

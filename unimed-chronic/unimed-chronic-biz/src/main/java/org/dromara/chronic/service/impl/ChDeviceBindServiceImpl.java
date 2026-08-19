@@ -47,6 +47,33 @@ public class ChDeviceBindServiceImpl implements IChDeviceBindService {
     private final ChPatientProfileMapper patientProfileMapper;
 
     /**
+     * 在线状态取值：ch_device_bind.online_status 是 tinyint(1)，
+     * 字典 chronic_online_status 为 1在线 / 0离线，不能写 ONLINE/OFFLINE 字面量。
+     */
+    private static final String ONLINE = "1";
+    private static final String OFFLINE = "0";
+
+    /**
+     * 归一化设备上报的在线状态。
+     * <p>
+     * 心跳接口的 onlineStatus 由设备厂商侧传入，各家取值不统一（ONLINE/online/true/1 等），
+     * 而 online_status 是 tinyint(1) 列且字典按 1/0 翻译，因此统一收敛为 "1"/"0"。
+     *
+     * @param raw 厂商上报的原始值
+     * @return "1" 在线；"0" 离线
+     */
+    private String normalizeOnlineStatus(String raw) {
+        if (StringUtils.isBlank(raw)) {
+            return OFFLINE;
+        }
+        String v = raw.trim();
+        if ("1".equals(v) || "ONLINE".equalsIgnoreCase(v) || "TRUE".equalsIgnoreCase(v) || "Y".equalsIgnoreCase(v)) {
+            return ONLINE;
+        }
+        return OFFLINE;
+    }
+
+    /**
      * 批量回填患者姓名
      */
     private void fillPatientName(Collection<ChDeviceBindVo> vos) {
@@ -79,7 +106,7 @@ public class ChDeviceBindServiceImpl implements IChDeviceBindService {
             throw new ServiceException("设备已绑定该患者");
         }
         ChDeviceBind entity = MapstructUtils.convert(bo, ChDeviceBind.class);
-        entity.setOnlineStatus("ONLINE");
+        entity.setOnlineStatus(ONLINE);
         entity.setLastCommTime(new Date());
         deviceBindMapper.insert(entity);
         return entity.getBindId();
@@ -173,7 +200,7 @@ public class ChDeviceBindServiceImpl implements IChDeviceBindService {
             bind.setBatteryLevel(batteryLevel);
         }
         if (onlineStatus != null) {
-            bind.setOnlineStatus(onlineStatus);
+            bind.setOnlineStatus(normalizeOnlineStatus(onlineStatus));
         }
         bind.setLastCommTime(new Date());
         deviceBindMapper.updateById(bind);

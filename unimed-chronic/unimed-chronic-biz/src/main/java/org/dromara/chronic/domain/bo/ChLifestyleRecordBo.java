@@ -46,4 +46,22 @@ public class ChLifestyleRecordBo extends BaseEntity {
 
     @Schema(description = "依从性等级")
     private String complianceLevel;
+
+    @Schema(description = "记录日期")
+    private java.util.Date recordDate;
+
+    @Schema(description = "饮食评分(0-100)")
+    private Integer dietScore;
+
+    @Schema(description = "睡眠时长(小时)")
+    private java.math.BigDecimal sleepHours;
+
+    @Schema(description = "情绪评分(0-100)")
+    private Integer moodScore;
+
+    @Schema(description = "运动时长(分钟)")
+    private Integer exerciseMinutes;
+
+    @Schema(description = "生活方式明细JSON")
+    private String lifestyleDetail;
 }

@@ -50,6 +50,10 @@ public class ChWarningRuleVo implements Serializable {
     private String recoveryRule;
     @Schema(description = "规则描述")
     private String description;
+    @Schema(description = "临床处置建议（命中规则后给医生的具体处置指引）")
+    private String clinicalAdvice;
+    @Schema(description = "要求响应时限(小时)，危急值通常为 2，一般高值为 24")
+    private Integer responseSlaHours;
     @Schema(description = "机构ID（对应系统库 sys_dept.dept_id）")
     private Long orgId;
     @Schema(description = "创建时间")

@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.doctor;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,6 +11,7 @@ import org.dromara.chronic.domain.vo.ChHealthEducationContentVo;
 import org.dromara.chronic.domain.vo.ChHealthEducationDeliveryVo;
 import org.dromara.chronic.manager.EducationPushManager;
 import org.dromara.chronic.service.IChHealthEducationService;
+import org.dromara.chronic.support.DoctorScopeGuard;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -29,10 +31,11 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class DoctorEducationController {
+public class DoctorEducationController extends BaseController {
 
     private final IChHealthEducationService healthEducationService;
     private final EducationPushManager educationPushManager;
+    private final DoctorScopeGuard doctorScopeGuard;
 
     @Operation(summary = "分页查询宣教内容库")
     @GetMapping("/chronic/doctor/education-content/page")
@@ -51,6 +54,8 @@ public class DoctorEducationController {
     @GetMapping("/chronic/doctor/patient/{patientId}/education-deliveries")
     public R<List<ChHealthEducationDeliveryVo>> patientDeliveries(
             @Parameter(description = "患者ID") @PathVariable Long patientId) {
+        // 推送记录属患者数据（能看出患者被推送过哪些病种宣教，可反推病情）
+        doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(healthEducationService.queryDeliveriesByPatientId(patientId));
     }
 
@@ -62,6 +67,8 @@ public class DoctorEducationController {
             @Parameter(description = "患者ID") @RequestParam Long patientId,
             @Parameter(description = "触发类型") @RequestParam(defaultValue = "MANUAL") String triggerType,
             @Parameter(description = "推送渠道") @RequestParam(defaultValue = "WECHAT") String pushChannel) {
+        // 向患者推送内容属写操作，且会触发微信/短信外发，必须限定自己名下患者
+        doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(educationPushManager.pushToPatient(contentId, patientId, triggerType, pushChannel));
     }
 }

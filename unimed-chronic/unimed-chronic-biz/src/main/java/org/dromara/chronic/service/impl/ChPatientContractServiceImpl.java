@@ -84,6 +84,11 @@ public class ChPatientContractServiceImpl implements IChPatientContractService {
     }
 
     @Override
+    public ChContractServicePackageVo queryPackageById(Long packageId) {
+        return packageMapper.selectVoById(packageId);
+    }
+
+    @Override
     public Boolean createPackage(ChContractServicePackageBo bo) {
         ChContractServicePackage entity = MapstructUtils.convert(bo, ChContractServicePackage.class);
         if (entity.getIsActive() == null) {

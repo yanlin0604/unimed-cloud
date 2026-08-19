@@ -71,6 +71,9 @@ public class ChPatientDiseaseVo implements Serializable {
     @Schema(description = "确诊机构ID")
     private Long diagnosisOrgId;
 
+    @Schema(description = "机构ID")
+    private Long orgId;
+
     @Schema(description = "病种名称")
     private String diseaseName;
 

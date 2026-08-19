@@ -114,19 +114,35 @@ public class ChDoctorWechatBindServiceImpl implements IChDoctorWechatBindService
 
     @Override
     public Long bind(ChDoctorWechatBindBo bo) {
-        // 检查 openid 是否已绑定
+        // 绑定对象只能是当前登录医生本人，userId 一律从登录态取，忽略请求体传入值。
+        //
+        // 原实现直接使用 bo.getUserId()，且 openid 已被占用时走「更新绑定」覆盖 existing.userId，
+        // 构成账号完全接管：任一持有合法 token 的医生
+        //   ① POST /chronic/doctor/auth/wechat/bind  {userId: 目标医生, openid: 自己的openid}
+        //   ② POST /chronic/doctor/auth/wechat/code  {code: 自己的微信code}   ← 该端点无 @SaCheckLogin
+        // 即可拿到目标医生的 access_token。因为 ① 是覆盖语义，目标是否已绑微信都不影响。
+        Long loginUserId = LoginHelper.getUserId();
+        if (loginUserId == null) {
+            throw new ServiceException("未登录");
+        }
+
         ChDoctorWechatBind existing = wechatBindMapper.selectOne(
             Wrappers.<ChDoctorWechatBind>lambdaQuery()
                 .eq(ChDoctorWechatBind::getOpenid, bo.getOpenid())
         );
         if (ObjectUtil.isNotNull(existing)) {
-            // openid 已绑定其他用户，更新绑定
-            existing.setUserId(bo.getUserId());
+            // openid 已绑定他人时必须拒绝，不能覆盖——覆盖等于把他人账号的微信登录入口交给当前用户
+            if (!loginUserId.equals(existing.getUserId())) {
+                throw new ServiceException("该微信已绑定其他医生账号");
+            }
+            // 已绑定本人：仅刷新 unionid，幂等返回
             existing.setUnionid(bo.getUnionid());
             wechatBindMapper.updateById(existing);
             return existing.getId();
         }
+
         ChDoctorWechatBind entity = MapstructUtils.convert(bo, ChDoctorWechatBind.class);
+        entity.setUserId(loginUserId);
         entity.setBindTime(new Date());
         wechatBindMapper.insert(entity);
         return entity.getId();
@@ -154,6 +170,11 @@ public class ChDoctorWechatBindServiceImpl implements IChDoctorWechatBindService
         ChDoctorWechatBind entity = wechatBindMapper.selectById(id);
         if (ObjectUtil.isNull(entity)) {
             throw new ServiceException("绑定记录不存在");
+        }
+        // 归属校验：绑定ID是自增整数，不校验则任意医生可枚举 id 解绑他人微信
+        Long loginUserId = LoginHelper.getUserId();
+        if (loginUserId == null || !loginUserId.equals(entity.getUserId())) {
+            throw new ServiceException("无权解绑该微信");
         }
         wechatBindMapper.deleteById(id);
         return true;

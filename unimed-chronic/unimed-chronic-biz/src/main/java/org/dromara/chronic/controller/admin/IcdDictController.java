@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,7 +25,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/admin/icd-dict")
-public class IcdDictController {
+public class IcdDictController extends BaseController {
 
     private final IChDiseaseConfigService diseaseConfigService;
 

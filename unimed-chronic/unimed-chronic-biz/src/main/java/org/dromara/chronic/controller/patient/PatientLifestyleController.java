@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.patient;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +27,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class PatientLifestyleController {
+public class PatientLifestyleController extends BaseController {
 
     private final IChLifestyleRecordService lifestyleRecordService;
     private final PatientContextHelper patientContextHelper;

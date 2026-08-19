@@ -58,6 +58,16 @@ public class PatientProfileController extends BaseController {
     }
 
     /**
+     * 校验身份证唯一性
+     */
+    @Operation(summary = "校验身份证号唯一性")
+    @SaCheckPermission("chronic:patient:query")
+    @GetMapping("/check-idcard")
+    public R<Boolean> checkIdCard(@RequestParam String idCard, @RequestParam(required = false) Long excludeId) {
+        return R.ok(patientProfileService.checkIdCardUnique(idCard, excludeId));
+    }
+
+    /**
      * 导出患者档案
      */
     @Log(title = "患者档案", businessType = BusinessType.EXPORT)

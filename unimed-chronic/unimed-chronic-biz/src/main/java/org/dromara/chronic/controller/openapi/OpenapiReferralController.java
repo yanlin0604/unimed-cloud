@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.openapi;
 
+import org.dromara.common.web.core.BaseController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class OpenapiReferralController {
+public class OpenapiReferralController extends BaseController {
 
     private final IChReferralService referralService;
 

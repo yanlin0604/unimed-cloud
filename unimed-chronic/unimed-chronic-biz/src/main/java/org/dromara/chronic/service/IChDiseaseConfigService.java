@@ -25,5 +25,7 @@ public interface IChDiseaseConfigService {
 
     Boolean disableById(Long configId);
 
+    Boolean deleteByIds(java.util.Collection<Long> ids);
+
     List<ChIcdDictVo> queryIcdList(String keyword);
 }

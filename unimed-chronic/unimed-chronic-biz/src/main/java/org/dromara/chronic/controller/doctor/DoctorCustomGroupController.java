@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.doctor;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,7 +25,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/doctor/custom-group")
-public class DoctorCustomGroupController {
+public class DoctorCustomGroupController extends BaseController {
 
     private final ICustomGroupService customGroupService;
 

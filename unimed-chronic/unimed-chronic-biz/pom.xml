@@ -113,6 +113,12 @@
             <artifactId>unimed-api-system</artifactId>
         </dependency>
 
+        <!-- openapi 层 API Token 校验：RemoteAuthService.validateToken / checkRateLimit -->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>unimed-api-auth</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>unimed-api-resource</artifactId>

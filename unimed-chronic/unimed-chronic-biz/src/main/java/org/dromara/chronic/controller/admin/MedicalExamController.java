@@ -8,13 +8,17 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChMedicalExamBo;
 import org.dromara.chronic.domain.vo.ChMedicalExamVo;
 import org.dromara.chronic.service.IChMedicalExamService;
+import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.web.core.BaseController;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
 
 /**
  * 检查记录管理后台
@@ -26,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/admin/medical-exam")
-public class MedicalExamController {
+public class MedicalExamController extends BaseController {
 
     private final IChMedicalExamService medicalExamService;
 
@@ -40,8 +44,8 @@ public class MedicalExamController {
     @Operation(summary = "查询检查详情")
     @SaCheckPermission("chronic:medical-exam:query")
     @GetMapping("/{examId}")
-    public ChMedicalExamVo detail(@Parameter(description = "检查ID") @PathVariable Long examId) {
-        return medicalExamService.queryById(examId);
+    public R<ChMedicalExamVo> detail(@Parameter(description = "检查ID") @PathVariable Long examId) {
+        return R.ok(medicalExamService.queryById(examId));
     }
 
     @Operation(summary = "新增检查记录")
@@ -49,24 +53,30 @@ public class MedicalExamController {
     @Log(title = "检查记录", businessType = BusinessType.INSERT)
     @RepeatSubmit
     @PostMapping
-    public Long add(@Validated @RequestBody ChMedicalExamBo bo) {
-        return medicalExamService.create(bo);
+    public R<Long> add(@Validated @RequestBody ChMedicalExamBo bo) {
+        return R.ok(medicalExamService.create(bo));
     }
 
     @Operation(summary = "更新检查记录")
     @SaCheckPermission("chronic:medical-exam:edit")
     @Log(title = "检查记录", businessType = BusinessType.UPDATE)
     @RepeatSubmit
-    @PutMapping
-    public Boolean edit(@Validated @RequestBody ChMedicalExamBo bo) {
-        return medicalExamService.update(bo);
+    @PutMapping("/{examId}")
+    public R<Void> edit(@Parameter(description = "检查ID") @PathVariable Long examId, @Validated @RequestBody ChMedicalExamBo bo) {
+        bo.setExamId(examId);
+        return toAjax(medicalExamService.update(bo));
     }
 
     @Operation(summary = "删除检查记录")
     @SaCheckPermission("chronic:medical-exam:remove")
     @Log(title = "检查记录", businessType = BusinessType.DELETE)
-    @DeleteMapping("/{examIds}")
-    public Boolean remove(@Parameter(description = "检查ID数组") @PathVariable java.util.Collection<Long> examIds) {
-        return medicalExamService.deleteByIds(examIds);
+    @DeleteMapping(value = {"/{examIds}", ""})
+    public R<Void> remove(@Parameter(description = "检查ID数组") @PathVariable(value = "examIds", required = false) Collection<Long> examIds,
+                          @RequestBody(required = false) Collection<Long> bodyIds) {
+        Collection<Long> ids = examIds != null ? examIds : bodyIds;
+        if (ids == null || ids.isEmpty()) {
+            return R.fail("缺少待删除ID");
+        }
+        return toAjax(medicalExamService.deleteByIds(ids));
     }
 }

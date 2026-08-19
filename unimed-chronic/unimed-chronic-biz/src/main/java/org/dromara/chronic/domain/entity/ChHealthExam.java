@@ -45,6 +45,9 @@ public class ChHealthExam extends TenantEntity {
      */
     private String specialCategory;
 
+    /** 体检结论/小结 */
+    private String conclusion;
+
     @TableLogic
     private String delFlag;
 }

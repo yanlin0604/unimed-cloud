@@ -40,4 +40,7 @@ public class ChArchiveShareApplyBo extends BaseEntity {
 
     @Schema(description = "审批状态")
     private String approvalStatus;
+
+    @Schema(description = "审批意见")
+    private String approvalOpinion;
 }

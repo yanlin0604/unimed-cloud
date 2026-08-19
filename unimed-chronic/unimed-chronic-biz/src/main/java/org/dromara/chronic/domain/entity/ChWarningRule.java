@@ -63,6 +63,23 @@ public class ChWarningRule extends TenantEntity {
     private String description;
 
     /**
+     * 临床处置建议
+     * <p>
+     * 命中该规则后给医生的具体处置指引，例如危急值规则会写明
+     * 「立即复测确认并安排急诊评估、24 小时内完成靶器官损害评估」等。
+     * 线上 8 条规则该列全部有值，此前实体未映射导致这些建议医生完全看不到。
+     */
+    private String clinicalAdvice;
+
+    /**
+     * 要求响应时限（小时）
+     * <p>
+     * 预警需在多少小时内被处置，危急值通常为 2 小时、一般高值为 24 小时。
+     * 是 SLA 违约判定的依据，此前实体未映射导致 SLA 监控无从实现。
+     */
+    private Integer responseSlaHours;
+
+    /**
      * 机构ID
      */
     private Long orgId;

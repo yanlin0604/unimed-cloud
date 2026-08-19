@@ -34,4 +34,7 @@ public class ChPatientTagBo extends BaseEntity {
     @Schema(description = "标签字典编码 ch_patient_tag_dict.tag_code", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "标签编码不能为空")
     private String tagCode;
+
+    @Schema(description = "标签值/显示名称")
+    private String tagValue;
 }

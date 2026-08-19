@@ -72,4 +72,13 @@ public interface IChPatientProfileService {
      * @return 是否成功
      */
     Boolean deleteByIds(java.util.Collection<Long> patientIds);
+
+    /**
+     * 校验身份证号是否重复
+     *
+     * @param idCard 身份证号
+     * @param excludeId 排除的患者ID
+     * @return true 表示已存在重复记录，false 表示可用
+     */
+    Boolean checkIdCardUnique(String idCard, Long excludeId);
 }

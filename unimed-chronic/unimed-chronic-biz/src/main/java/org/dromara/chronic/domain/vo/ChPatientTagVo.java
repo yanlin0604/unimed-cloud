@@ -41,6 +41,9 @@ public class ChPatientTagVo implements Serializable {
     @Schema(description = "标签字典编码")
     private String tagCode;
 
+    @Schema(description = "标签值/显示名称")
+    private String tagValue;
+
     @Schema(description = "标签名称（按 tagCode 查 ch_patient_tag_dict 回填）")
     private String tagName;
 

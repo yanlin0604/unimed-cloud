@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.doctor;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,6 +11,7 @@ import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
 import org.dromara.chronic.domain.vo.DrugInteractionCheckVo;
 import org.dromara.chronic.manager.MedicationManager;
 import org.dromara.chronic.service.IChMedicationService;
+import org.dromara.chronic.support.DoctorScopeGuard;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
@@ -31,15 +33,17 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/doctor/patient")
-public class DoctorMedicationController {
+public class DoctorMedicationController extends BaseController {
 
     private final IChMedicationService medicationService;
     private final MedicationManager medicationManager;
+    private final DoctorScopeGuard doctorScopeGuard;
 
     @Operation(summary = "查询患者用药列表")
     @SaCheckPermission("chronic:doctor:medication:list")
     @GetMapping("/{patientId}/medication")
     public R<List<ChMedicationRecordVo>> medication(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId) {
+        doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(medicationService.queryMedicationList(patientId));
     }
 
@@ -50,6 +54,7 @@ public class DoctorMedicationController {
     @SaCheckPermission("chronic:doctor:medication-adjust:add")
     @PostMapping("/{patientId}/medication-adjust/preview")
     public R<DrugInteractionCheckVo> previewAdjust(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @Validated @RequestBody ChMedicationAdjustBo bo) {
+        doctorScopeGuard.assertPatientOwned(patientId);
         bo.setPatientId(patientId);
         return R.ok(medicationManager.previewAdjust(bo));
     }
@@ -63,6 +68,8 @@ public class DoctorMedicationController {
     @RepeatSubmit
     @PostMapping("/{patientId}/medication-adjust")
     public R<Long> adjust(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @Validated @RequestBody ChMedicationAdjustBo bo) {
+        // setAdjusterUserId 仅为署名（记录谁调的药），不构成鉴权，仍需校验患者归属
+        doctorScopeGuard.assertPatientOwned(patientId);
         bo.setPatientId(patientId);
         bo.setAdjusterUserId(LoginHelper.getUserId());
         return R.ok(medicationManager.adjustMedication(bo));
@@ -74,6 +81,7 @@ public class DoctorMedicationController {
     @RepeatSubmit
     @PostMapping("/{patientId}/medication-adverse")
     public R<Long> adverse(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @RequestBody Map<String, Object> body) {
+        doctorScopeGuard.assertPatientOwned(patientId);
         ChMedicationAdjustBo bo = new ChMedicationAdjustBo();
         bo.setPatientId(patientId);
         bo.setMedId(body.get("medId") == null ? null : Long.valueOf(String.valueOf(body.get("medId"))));

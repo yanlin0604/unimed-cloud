@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +37,7 @@ import java.util.stream.Stream;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/admin/disease-relation")
-public class DiseaseRelationController {
+public class DiseaseRelationController extends BaseController {
 
     private final ChDiseaseRelationMapper diseaseRelationMapper;
     private final DiseaseNameHelper diseaseNameHelper;
@@ -48,6 +49,17 @@ public class DiseaseRelationController {
         List<ChDiseaseRelationVo> list = diseaseRelationMapper.selectVoList(Wrappers.lambdaQuery());
         fillDiseaseNames(list);
         return R.ok(list);
+    }
+
+    @Operation(summary = "病种关系详情")
+    @SaCheckPermission("chronic:disease-relation:query")
+    @GetMapping("/{id}")
+    public R<ChDiseaseRelationVo> getInfo(@Parameter(description = "关系ID") @PathVariable Long id) {
+        ChDiseaseRelationVo vo = diseaseRelationMapper.selectVoById(id);
+        if (vo != null) {
+            fillDiseaseNames(List.of(vo));
+        }
+        return R.ok(vo);
     }
 
     private void fillDiseaseNames(List<ChDiseaseRelationVo> list) {

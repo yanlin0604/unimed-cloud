@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +32,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class RiskAssessmentController {
+public class RiskAssessmentController extends BaseController {
 
     private final RiskAssessmentManager riskAssessmentManager;
     private final IChRiskAssessmentService riskAssessmentService;
@@ -43,6 +44,18 @@ public class RiskAssessmentController {
     @PostMapping("/chronic/admin/patient/{patientId}/risk-assessment")
     public R<ChRiskAssessmentVo> assess(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated @RequestBody ChRiskAssessmentBo bo) {
         bo.setPatientId(patientId);
+        return R.ok(riskAssessmentManager.assess(bo));
+    }
+
+    @Operation(summary = "发起风险评估(请求体传参)")
+    @SaCheckPermission("chronic:risk-assessment:add")
+    @Log(title = "风险评估", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping("/chronic/admin/risk-assessment")
+    public R<ChRiskAssessmentVo> assessDirect(@Validated @RequestBody ChRiskAssessmentBo bo) {
+        if (bo.getPatientId() == null) {
+            return R.fail("患者ID不能为空");
+        }
         return R.ok(riskAssessmentManager.assess(bo));
     }
 

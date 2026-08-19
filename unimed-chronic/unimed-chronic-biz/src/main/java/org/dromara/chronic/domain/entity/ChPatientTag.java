@@ -41,6 +41,11 @@ public class ChPatientTag extends TenantEntity {
     private String tagCode;
 
     /**
+     * 标签值/显示名称
+     */
+    private String tagValue;
+
+    /**
      * 删除标志
      */
     @TableLogic

@@ -35,6 +35,8 @@ public class ChContractServicePackageVo implements Serializable {
     private String serviceItems;
     @Schema(description = "价格")
     private BigDecimal price;
+    @Schema(description = "服务周期(月)")
+    private Integer servicePeriod;
     @Schema(description = "是否启用")
     private Boolean isActive;
 

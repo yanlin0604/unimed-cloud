@@ -62,6 +62,21 @@ public class ChPatientAccount extends TenantEntity {
      */
     private String avatarOssId;
 
+    /**
+     * 头像URL
+     */
+    private String avatarUrl;
+
+    /**
+     * 绑定二维码Token
+     */
+    private String bindQrToken;
+
+    /**
+     * 二维码Token过期时间
+     */
+    private Date qrTokenExpireTime;
+
     @TableLogic
     private String delFlag;
 }

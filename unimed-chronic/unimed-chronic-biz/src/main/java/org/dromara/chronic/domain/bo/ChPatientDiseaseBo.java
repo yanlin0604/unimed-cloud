@@ -62,6 +62,9 @@ public class ChPatientDiseaseBo extends BaseEntity {
     @Schema(description = "确诊机构ID")
     private Long diagnosisOrgId;
 
+    @Schema(description = "机构ID")
+    private Long orgId;
+
     @Schema(description = "病种范围（查询用）")
     private List<String> diseaseScope;
 }

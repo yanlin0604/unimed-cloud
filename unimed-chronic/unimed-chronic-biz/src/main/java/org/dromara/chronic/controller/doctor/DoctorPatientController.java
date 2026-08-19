@@ -16,6 +16,7 @@ import org.dromara.chronic.service.IChDoctorTeamService;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChPatientProfileService;
 import org.dromara.chronic.service.IClinicalPathwayService;
+import org.dromara.chronic.support.DoctorScopeGuard;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
@@ -48,6 +49,7 @@ public class DoctorPatientController extends BaseController {
     private final IChDoctorTeamService doctorTeamService;
     private final ContractHistoryManager contractHistoryManager;
     private final IClinicalPathwayService clinicalPathwayService;
+    private final DoctorScopeGuard doctorScopeGuard;
 
     /**
      * 我的患者列表
@@ -68,6 +70,9 @@ public class DoctorPatientController extends BaseController {
     @SaCheckPermission("chronic:doctor:patient:query")
     @GetMapping("/{patientId}")
     public R<ChPatientDetailVo> detail(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId) {
+        // /page 按 doctorUserId 过滤了，本详情端点却直接吃 patientId 且
+        // queryDetailById 是裸 selectById 零条件 —— 不校验则可枚举 patientId 拿到全部患者完整档案。
+        doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(patientProfileService.queryDetailById(patientId));
     }
 
@@ -80,6 +85,10 @@ public class DoctorPatientController extends BaseController {
     @RepeatSubmit
     @PostMapping("/{patientId}/sign")
     public R<Long> sign(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @Validated @RequestBody ChPatientContractBo bo) {
+        // 只能给自己名下的患者签约。归属由建档/入组阶段确立
+        // （ScreeningManager.enroll 用批次医生填 doctor_user_id），signContract 本身不改归属，
+        // 因此这里断言归属不会阻断正常签约流程。
+        doctorScopeGuard.assertPatientOwned(patientId);
         bo.setPatientId(patientId);
         return R.ok(patientContractService.signContract(bo));
     }
@@ -92,6 +101,8 @@ public class DoctorPatientController extends BaseController {
     @SaCheckPermission("chronic:doctor:patient:bind-team")
     @PostMapping("/{patientId}/bind-team")
     public R<Void> bindTeam(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @RequestBody(required = false) Map<String, Object> body) {
+        // 绑定团队会改变患者的服务归属，必须限定为自己名下的患者
+        doctorScopeGuard.assertPatientOwned(patientId);
         Long teamId = body == null || body.get("teamId") == null ? null : Long.valueOf(String.valueOf(body.get("teamId")));
         if (teamId == null) {
             return R.fail("teamId不能为空");
@@ -106,6 +117,8 @@ public class DoctorPatientController extends BaseController {
             @Parameter(description = "患者ID", required = true) @PathVariable Long patientId,
             @RequestParam(required = false) String eventType,
             @RequestParam(required = false, defaultValue = "50") Integer limit) {
+        // 签约历史含患者时间线内容，属患者隐私数据
+        doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(contractHistoryManager.queryContractHistory(patientId, eventType, limit));
     }
 
@@ -118,6 +131,7 @@ public class DoctorPatientController extends BaseController {
     public R<PathwayProgressVo> getPathwayProgress(
             @Parameter(description = "患者ID", required = true) @PathVariable Long patientId,
             @Parameter(description = "病种编码") @RequestParam(required = false) String diseaseCode) {
+        doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(clinicalPathwayService.getPathwayProgress(patientId, diseaseCode));
     }
 }

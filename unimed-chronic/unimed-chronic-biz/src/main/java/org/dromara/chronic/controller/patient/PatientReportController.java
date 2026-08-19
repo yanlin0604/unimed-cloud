@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.patient;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,7 +31,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class PatientReportController {
+public class PatientReportController extends BaseController {
 
     private final IChReportService reportService;
     private final PatientContextHelper patientContextHelper;
@@ -45,7 +46,13 @@ public class PatientReportController {
     @Operation(summary = "报告详情")
     @GetMapping("/chronic/patient/report/{reportId}")
     public R<ChReportInstanceVo> detail(@Parameter(description = "报告ID") @PathVariable Long reportId) {
-        return R.ok(reportService.queryReportById(reportId));
+        // 归属校验与下方 download 保持一致：原实现直接按 reportId 返回，可枚举读取他人健康报告
+        Long patientId = patientContextHelper.getCurrentPatientId();
+        ChReportInstanceVo report = reportService.queryReportById(reportId);
+        if (report == null || !patientId.equals(report.getPatientId())) {
+            throw new ServiceException("报告不存在或无权访问");
+        }
+        return R.ok(report);
     }
 
     @Operation(summary = "下载报告PDF")

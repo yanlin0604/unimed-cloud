@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +32,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class FollowupTaskController {
+public class FollowupTaskController extends BaseController {
 
     private final IChFollowupService followupService;
     private final FollowupManager followupManager;

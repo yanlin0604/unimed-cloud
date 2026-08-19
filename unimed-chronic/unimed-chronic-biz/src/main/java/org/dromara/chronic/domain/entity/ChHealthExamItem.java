@@ -32,6 +32,8 @@ public class ChHealthExamItem extends TenantEntity {
 
     private String resultValue;
 
+    private String itemUnit;
+
     private String referenceRange;
 
     private Boolean isAbnormal;

@@ -38,6 +38,14 @@ public class ContractSlaCheckJob {
     /** 到期前 N 天开始预警 */
     private static final long SLA_WARN_DAYS = 30;
 
+    /**
+     * SLA 违约事件的标记值，写入 ch_warning_event.warning_value。
+     * <p>
+     * 不能写进 warning_level —— 那是严重程度字段，值域受字典 chronic_warning_level
+     * （LOW/MEDIUM/HIGH/CRITICAL）约束，写非法值会导致前端等级列翻译为空白。
+     */
+    private static final String SLA_VIOLATION_FLAG = "SLA_VIOLATION";
+
     private final ChPatientContractMapper contractMapper;
     private final ChWarningEventMapper warningEventMapper;
     private final ChContractServicePackageMapper packageMapper;
@@ -56,12 +64,13 @@ public class ContractSlaCheckJob {
         for (ChPatientContract contract : activeContracts) {
             // —— SLA 违约检测 ——
             if (isSlaViolated(contract)) {
-                // R6 AC3: 同一签约不重复生成，用 ruleId 存 contractId 做关联
+                // R6 AC3: 同一签约不重复生成，用 ruleId 存 contractId 做关联。
+                // 去重条件按 warningValue 而非 warningLevel —— 见下方对 warningLevel 的说明。
                 Long slaAlertsForContract = warningEventMapper.selectCount(
                     Wrappers.<ChWarningEvent>lambdaQuery()
                         .eq(ChWarningEvent::getPatientId, contract.getPatientId())
                         .eq(ChWarningEvent::getRuleId, contract.getContractId())
-                        .eq(ChWarningEvent::getWarningLevel, "SLA_VIOLATION")
+                        .eq(ChWarningEvent::getWarningValue, SLA_VIOLATION_FLAG)
                         .eq(ChWarningEvent::getEventStatus, "NEW")
                 );
                 if (slaAlertsForContract == 0) {
@@ -69,7 +78,13 @@ public class ContractSlaCheckJob {
                     event.setPatientId(contract.getPatientId());
                     // ruleId 复用为 contractId，SLA 事件无预警规则来源
                     event.setRuleId(contract.getContractId());
-                    event.setWarningLevel("SLA_VIOLATION");
+                    // warningLevel 是**严重程度**字段，值域由字典 chronic_warning_level 约束
+                    // （LOW/MEDIUM/HIGH/CRITICAL）。原实现往这里写事件类型 "SLA_VIOLATION"，
+                    // 该值不在字典内，会导致前端预警列表的「等级」列因 @Translation 翻译不出而空白。
+                    // 现改为：等级取 MEDIUM（签约履约不达标属管理问题，非临床危急），
+                    // 事件类型改存 warningValue（该字段本就用于承载触发值/原因）。
+                    event.setWarningLevel("MEDIUM");
+                    event.setWarningValue(SLA_VIOLATION_FLAG);
                     event.setEventStatus("NEW");
                     event.setWarningTime(new Date());
                     warningEventMapper.insert(event);

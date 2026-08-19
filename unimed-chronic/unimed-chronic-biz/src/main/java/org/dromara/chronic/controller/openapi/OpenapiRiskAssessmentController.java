@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.openapi;
 
+import org.dromara.common.web.core.BaseController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,7 @@ import java.util.Map;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class OpenapiRiskAssessmentController {
+public class OpenapiRiskAssessmentController extends BaseController {
 
     private final RiskAssessmentManager riskAssessmentManager;
 

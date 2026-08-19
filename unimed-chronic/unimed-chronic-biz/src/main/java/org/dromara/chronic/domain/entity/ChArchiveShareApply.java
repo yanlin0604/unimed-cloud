@@ -36,6 +36,11 @@ public class ChArchiveShareApply extends TenantEntity {
     private String approvalStatus;
 
     /**
+     * 审批意见
+     */
+    private String approvalOpinion;
+
+    /**
      * 工作流实例ID（启动审批流程后回填）
      */
     private Long workflowInstanceId;

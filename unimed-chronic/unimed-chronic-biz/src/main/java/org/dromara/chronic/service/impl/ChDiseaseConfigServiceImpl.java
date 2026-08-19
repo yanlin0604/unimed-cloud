@@ -77,6 +77,11 @@ public class ChDiseaseConfigServiceImpl implements IChDiseaseConfigService {
     }
 
     @Override
+    public Boolean deleteByIds(java.util.Collection<Long> ids) {
+        return baseMapper.deleteByIds(ids) > 0;
+    }
+
+    @Override
     public List<ChIcdDictVo> queryIcdList(String keyword) {
         LambdaQueryWrapper<ChIcdDict> lqw = Wrappers.lambdaQuery();
         lqw.and(StringUtils.isNotBlank(keyword), wrapper -> wrapper

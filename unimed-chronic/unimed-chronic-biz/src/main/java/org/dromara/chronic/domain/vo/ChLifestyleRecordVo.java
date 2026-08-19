@@ -41,6 +41,18 @@ public class ChLifestyleRecordVo implements Serializable {
     private String psychologicalStatus;
     @Schema(description = "依从性等级")
     private String complianceLevel;
+    @Schema(description = "记录日期")
+    private Date recordDate;
+    @Schema(description = "饮食评分(0-100)")
+    private Integer dietScore;
+    @Schema(description = "睡眠时长(小时)")
+    private java.math.BigDecimal sleepHours;
+    @Schema(description = "情绪评分(0-100)")
+    private Integer moodScore;
+    @Schema(description = "运动时长(分钟)")
+    private Integer exerciseMinutes;
+    @Schema(description = "生活方式明细JSON")
+    private String lifestyleDetail;
     @Schema(description = "创建时间")
     private Date createTime;
 

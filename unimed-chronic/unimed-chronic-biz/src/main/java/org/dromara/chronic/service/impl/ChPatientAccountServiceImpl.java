@@ -69,14 +69,22 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
             // 已注册，直接登录
             return doLogin(existing);
         }
-        ChPatientAccount entity = MapstructUtils.convert(bo, ChPatientAccount.class);
-        if (entity.getIsFamilyProxy() == null) {
-            entity.setIsFamilyProxy(false);
-        }
-        // 如果BO中没有设置tenantId，使用默认租户ID
-        if (StringUtils.isBlank(entity.getTenantId())) {
-            entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
-        }
+        // 注册只信任「手机号」这一个入参，其余字段一律由服务端决定。
+        //
+        // 不能用 MapstructUtils.convert(bo, ...) 整体复制：ChPatientAccountBo 上的
+        // patientId / isFamilyProxy / masterAccountId / authScope / authExpireTime / tenantId
+        // 全部是客户端可传字段，而本接口在网关白名单内（unimed-gateway.yml 的
+        // /chronic/chronic/patient/auth/**）且无 @SaCheckLogin，属未认证入口。
+        // 若原样复制，攻击者传 patientId 即可注册出绑定任意患者档案的账号，
+        // 再通过 doLogin 拿到合法 token，从而绕过全部患者端身份隔离读取他人完整病历。
+        //
+        // 账号与档案的关联不在注册阶段建立：新账号 patientId 为空，
+        // PatientContextHelper.getCurrentPatientId() 会提示「请联系医院机构建立档案」，
+        // 与 createNewAccountWithWechat 的行为保持一致。
+        ChPatientAccount entity = new ChPatientAccount();
+        entity.setPhone(bo.getPhone());
+        entity.setIsFamilyProxy(false);
+        entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
         patientAccountMapper.insert(entity);
         ChPatientAccountVo newAccount = patientAccountMapper.selectVoOne(
             Wrappers.<ChPatientAccount>lambdaQuery()
@@ -122,7 +130,6 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
 
     @Override
     public Boolean bindFamilyProxy(ChPatientAccountBo bo) {
-        bo.setIsFamilyProxy(true);
         if (bo.getMasterAccountId() == null) {
             throw new ServiceException("家属代管必须指定主账号");
         }
@@ -133,11 +140,27 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         if (bo.getAuthExpireTime() != null && bo.getAuthExpireTime().before(new Date())) {
             throw new ServiceException("授权过期时间不能早于当前时间");
         }
-        ChPatientAccount entity = MapstructUtils.convert(bo, ChPatientAccount.class);
-        // 如果BO中没有设置tenantId，使用默认租户ID
-        if (StringUtils.isBlank(entity.getTenantId())) {
-            entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        if (StringUtils.isBlank(bo.getPhone())) {
+            throw new ServiceException("家属手机号不能为空");
         }
+
+        // 与 register() 同理：不能用 MapstructUtils.convert(bo, ...) 整体复制。
+        // ChPatientAccountBo 的 patientId / isFamilyProxy / tenantId / accountId 均为客户端可传字段，
+        // 若原样复制，调用方可指定任意 patientId，直接造出一个能访问他人档案的代管账号。
+        //
+        // 代管账号的档案归属必须**继承主账号**：家属代管的语义是「代为管理主账号本人的档案」，
+        // 而不是由请求方自行指定要管理谁。masterAccountId 由控制器强制取登录态。
+        ChPatientAccount entity = new ChPatientAccount();
+        entity.setPhone(bo.getPhone());
+        entity.setIsFamilyProxy(true);
+        entity.setMasterAccountId(master.getAccountId());
+        entity.setPatientId(master.getPatientId());
+        // 授权范围与过期时间是主账号授予代管人的权限，属合法入参
+        entity.setAuthScope(bo.getAuthScope());
+        entity.setAuthExpireTime(bo.getAuthExpireTime());
+        // 租户跟随主账号，避免跨租户造号
+        entity.setTenantId(StringUtils.isBlank(master.getTenantId())
+            ? TenantConstants.DEFAULT_TENANT_ID : master.getTenantId());
         patientAccountMapper.insert(entity);
         return true;
     }
@@ -223,8 +246,15 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
             return vo;
         }
 
-        // 短信验证码校验（微信授权手机号时跳过）
-        if (StringUtils.isBlank(bo.getPhoneCode()) && StringUtils.isNotBlank(bo.getSmsCode())) {
+        // 手机号归属校验：
+        //   - phoneCode 非空：手机号由微信侧授权取号（getPhoneNoInfo）返回，归属可信，跳过短信校验
+        //   - phoneCode 为空：手机号完全来自请求体、不可信，必须校验短信验证码
+        // 原实现条件为 isBlank(phoneCode) && isNotBlank(smsCode)，导致不传 smsCode 就整段跳过校验：
+        // 攻击者传入他人手机号即可把自己 openid 绑到该账号并直接登录（账号接管），故改为强制校验。
+        if (StringUtils.isBlank(bo.getPhoneCode())) {
+            if (StringUtils.isBlank(bo.getSmsCode())) {
+                throw new ServiceException("请先获取短信验证码");
+            }
             String cachedCode = RedisUtils.getCacheObject(SMS_CODE_KEY + phone);
             if (cachedCode == null) {
                 throw new ServiceException("验证码已过期，请重新获取");

@@ -42,6 +42,8 @@ public class ChHealthExamVo implements Serializable {
     private Long examOrgId;
     @Schema(description = "特殊分类")
     private String specialCategory;
+    @Schema(description = "体检结论")
+    private String conclusion;
     @Schema(description = "创建时间")
     private Date createTime;
 

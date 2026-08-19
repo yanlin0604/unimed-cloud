@@ -43,6 +43,8 @@ public class ChReferralRecordVo implements Serializable {
     private String referralStatus;
     @Schema(description = "转诊类型")
     private String referralType;
+    @Schema(description = "转诊时间")
+    private Date referralTime;
     @Schema(description = "创建时间")
     private Date createTime;
 

@@ -40,6 +40,21 @@ public class ChConsentRecordVo implements Serializable {
     @Schema(description = "签名时间")
     private Date signTime;
 
+    @Schema(description = "签署方式: ELECTRONIC/PAPER")
+    private String signMethod;
+
+    @Schema(description = "操作人IP")
+    private String operatorIp;
+
+    @Schema(description = "设备信息")
+    private String deviceInfo;
+
+    @Schema(description = "关联业务类型")
+    private String relatedBizType;
+
+    @Schema(description = "关联业务ID")
+    private Long relatedBizId;
+
     @Schema(description = "租户ID")
     private String tenantId;
 

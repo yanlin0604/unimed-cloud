@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.doctor;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -9,6 +10,8 @@ import org.dromara.chronic.domain.bo.ChDoctorWechatBindBo;
 import org.dromara.chronic.domain.vo.ChDoctorWechatBindVo;
 import org.dromara.chronic.domain.vo.DoctorLoginVo;
 import org.dromara.chronic.service.IChDoctorWechatBindService;
+import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.core.domain.R;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class DoctorAuthController {
+public class DoctorAuthController extends BaseController {
 
     private final IChDoctorWechatBindService wechatBindService;
 
@@ -52,7 +55,12 @@ public class DoctorAuthController {
     @SaCheckLogin
     @GetMapping("/chronic/doctor/auth/wechat")
     public R<ChDoctorWechatBindVo> wechatLogin(@Parameter(description = "微信OpenID") @RequestParam String openid) {
-        return R.ok(wechatBindService.queryByOpenid(openid));
+        // 该端点按 openid 反查绑定的 userId，属账号映射信息，只允许查本人已绑定的 openid
+        ChDoctorWechatBindVo bind = wechatBindService.queryByOpenid(openid);
+        if (bind != null && !LoginHelper.getUserId().equals(bind.getUserId())) {
+            throw new ServiceException("无权查询该微信绑定信息");
+        }
+        return R.ok(bind);
     }
 
     /**
@@ -82,6 +90,11 @@ public class DoctorAuthController {
     @SaCheckLogin
     @GetMapping("/chronic/doctor/auth/wechat/user/{userId}")
     public R<ChDoctorWechatBindVo> queryByUserId(@Parameter(description = "用户ID") @PathVariable Long userId) {
+        // 只能查自己的绑定信息。userId 是 2001~2008 连续整数，
+        // 不校验则可枚举出他人 openid（配合微信登录端点即为账号探测面）。
+        if (!LoginHelper.getUserId().equals(userId)) {
+            throw new ServiceException("只能查询本人的微信绑定信息");
+        }
         return R.ok(wechatBindService.queryByUserId(userId));
     }
 }

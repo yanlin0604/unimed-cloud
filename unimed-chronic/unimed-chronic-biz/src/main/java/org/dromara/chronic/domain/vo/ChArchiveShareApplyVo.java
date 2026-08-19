@@ -37,6 +37,8 @@ public class ChArchiveShareApplyVo implements Serializable {
     private String applyReason;
     @Schema(description = "审批状态")
     private String approvalStatus;
+    @Schema(description = "审批意见")
+    private String approvalOpinion;
     @Schema(description = "创建时间")
     private Date createTime;
 

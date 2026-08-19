@@ -43,6 +43,9 @@ public class ChDiseaseConfig extends TenantEntity {
 
     private Boolean isActive;
 
+    /** 机构ID */
+    private Long orgId;
+
     @TableLogic
     private String delFlag;
 }

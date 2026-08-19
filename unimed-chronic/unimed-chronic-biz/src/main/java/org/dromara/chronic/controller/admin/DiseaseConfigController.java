@@ -72,4 +72,12 @@ public class DiseaseConfigController extends BaseController {
     public R<Void> disable(@Parameter(description = "配置ID") @PathVariable Long configId) {
         return toAjax(diseaseConfigService.disableById(configId));
     }
+
+    @Operation(summary = "删除病种配置")
+    @SaCheckPermission("chronic:disease-config:remove")
+    @Log(title = "病种配置", businessType = BusinessType.DELETE)
+    @DeleteMapping("/{configIds}")
+    public R<Void> remove(@Parameter(description = "配置ID数组") @PathVariable java.util.Collection<Long> configIds) {
+        return toAjax(diseaseConfigService.deleteByIds(configIds));
+    }
 }

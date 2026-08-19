@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.patient;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class PatientContractController {
+public class PatientContractController extends BaseController {
 
     private final IChPatientContractService contractService;
     private final PatientContextHelper patientContextHelper;

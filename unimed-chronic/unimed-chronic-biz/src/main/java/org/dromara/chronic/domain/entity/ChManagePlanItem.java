@@ -46,6 +46,9 @@ public class ChManagePlanItem extends TenantEntity {
      */
     private java.math.BigDecimal targetMaxValue;
 
+    /** 机构ID */
+    private Long orgId;
+
     @TableLogic
     private String delFlag;
 }

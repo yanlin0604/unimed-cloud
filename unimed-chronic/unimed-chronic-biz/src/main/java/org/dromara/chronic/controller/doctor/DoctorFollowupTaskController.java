@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.doctor;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,7 +31,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/doctor/followup-task")
-public class DoctorFollowupTaskController {
+public class DoctorFollowupTaskController extends BaseController {
 
     private final IChFollowupService followupService;
     private final FollowupManager followupManager;

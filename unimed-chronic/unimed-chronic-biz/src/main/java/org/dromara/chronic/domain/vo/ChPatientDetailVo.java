@@ -132,6 +132,9 @@ public class ChPatientDetailVo implements Serializable {
     @Schema(description = "来源")
     private String source;
 
+    @Schema(description = "机构ID")
+    private Long orgId;
+
     @Schema(description = "创建时间")
     private Date createTime;
 

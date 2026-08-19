@@ -83,6 +83,11 @@ public class ChPatientDisease extends TenantEntity {
     private Long diagnosisOrgId;
 
     /**
+     * 机构ID
+     */
+    private Long orgId;
+
+    /**
      * 删除标志
      */
     @TableLogic

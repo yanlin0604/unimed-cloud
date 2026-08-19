@@ -31,6 +31,9 @@ public class ChReportTemplate extends TenantEntity {
 
     private String diseaseCode;
 
+    /** 模板类型(ANNUAL/FOLLOWUP/SPECIAL) */
+    private String templateType;
+
     private Boolean isActive;
 
     @TableLogic

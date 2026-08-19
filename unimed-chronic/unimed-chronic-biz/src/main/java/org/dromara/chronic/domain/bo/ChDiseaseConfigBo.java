@@ -58,4 +58,7 @@ public class ChDiseaseConfigBo extends BaseEntity {
 
     @Schema(description = "是否启用")
     private Boolean isActive;
+
+    @Schema(description = "机构ID")
+    private Long orgId;
 }

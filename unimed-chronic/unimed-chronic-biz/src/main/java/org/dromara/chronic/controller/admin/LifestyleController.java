@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChLifestyleRecordBo;
@@ -28,7 +29,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class LifestyleController {
+public class LifestyleController extends BaseController {
 
     private final IChLifestyleRecordService lifestyleRecordService;
 

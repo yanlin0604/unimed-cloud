@@ -194,6 +194,11 @@ public class ChPatientProfile extends TenantEntity {
     private String permanentAddress;
 
     /**
+     * 机构ID
+     */
+    private Long orgId;
+
+    /**
      * 删除标志
      */
     @TableLogic

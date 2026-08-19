@@ -153,6 +153,17 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         return baseMapper.deleteByIds(patientIds) > 0;
     }
 
+    @Override
+    public Boolean checkIdCardUnique(String idCard, Long excludeId) {
+        if (StringUtils.isBlank(idCard)) {
+            return Boolean.FALSE;
+        }
+        LambdaQueryWrapper<ChPatientProfile> lqw = Wrappers.lambdaQuery();
+        lqw.eq(ChPatientProfile::getIdCard, idCard);
+        lqw.ne(excludeId != null, ChPatientProfile::getPatientId, excludeId);
+        return baseMapper.exists(lqw);
+    }
+
     private LambdaQueryWrapper<ChPatientProfile> buildQueryWrapper(ChPatientProfileBo bo) {
         Map<String, Object> params = bo.getParams();
         List<Long> filteredPatientIds = resolvePatientIds(params);

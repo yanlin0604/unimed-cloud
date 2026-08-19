@@ -244,4 +244,7 @@ public class ChPatientProfileBo extends BaseEntity {
      */
     @Schema(description = "患者标签列表")
     private List<ChPatientTagBo> tags;
+
+    @Schema(description = "机构ID")
+    private Long orgId;
 }

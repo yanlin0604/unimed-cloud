@@ -54,6 +54,13 @@ public class ContractController extends BaseController {
         return patientContractService.queryPackagePageList(bo, pageQuery);
     }
 
+    @Operation(summary = "查询服务包详情")
+    @SaCheckPermission("chronic:contract-package:query")
+    @GetMapping("/package/{packageId}")
+    public R<ChContractServicePackageVo> packageDetail(@Parameter(description = "服务包ID", required = true) @PathVariable Long packageId) {
+        return R.ok(patientContractService.queryPackageById(packageId));
+    }
+
     @Operation(summary = "新增签约服务包")
     @SaCheckPermission("chronic:contract-package:add")
     @Log(title = "签约服务包", businessType = BusinessType.INSERT)
@@ -61,6 +68,15 @@ public class ContractController extends BaseController {
     @PostMapping("/package")
     public R<Void> addPackage(@Validated @RequestBody ChContractServicePackageBo bo) {
         return toAjax(patientContractService.createPackage(bo));
+    }
+
+    @Operation(summary = "发起患者签约")
+    @SaCheckPermission("chronic:contract:add")
+    @Log(title = "患者签约", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping
+    public R<Long> addContract(@Validated @RequestBody ChPatientContractBo bo) {
+        return R.ok(patientContractService.signContract(bo));
     }
 
     @Operation(summary = "查询履约记录")

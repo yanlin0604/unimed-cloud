@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.doctor;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,6 +13,7 @@ import org.dromara.chronic.domain.vo.ChScreeningBatchVo;
 import org.dromara.chronic.domain.vo.ChScreeningRecordVo;
 import org.dromara.chronic.manager.ScreeningManager;
 import org.dromara.chronic.service.IChScreeningBatchService;
+import org.dromara.chronic.service.IChScreeningRecordService;
 import cn.hutool.core.util.ObjectUtil;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.exception.ServiceException;
@@ -36,10 +38,11 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/chronic/doctor/screening")
-public class DoctorScreeningController {
+public class DoctorScreeningController extends BaseController {
 
     private final ScreeningManager screeningManager;
     private final IChScreeningBatchService screeningBatchService;
+    private final IChScreeningRecordService screeningRecordService;
 
     @Operation(summary = "分页查询本人筛查批次")
     @SaCheckPermission("chronic:doctor:screening:start")
@@ -97,6 +100,18 @@ public class DoctorScreeningController {
     @Log(title = "筛查确认入组", businessType = BusinessType.UPDATE)
     @PostMapping("/{recordId}/confirm-enroll")
     public R<Long> confirmEnroll(@Parameter(description = "记录ID", required = true) @PathVariable Long recordId) {
+        // 入组会按批次医生创建患者档案（ScreeningManager.enroll 用 batch.doctorUserId 填 doctor_user_id），
+        // 因此归属维度是「批次是否由本人发起」，与 /batches、/batches/{id} 口径一致。
+        // 筛查记录此时尚未建档，没有 patientId 可用，不能走 assertPatientOwned。
+        ChScreeningRecordVo record = screeningRecordService.queryById(recordId);
+        if (record == null) {
+            throw new ServiceException("筛查记录不存在");
+        }
+        ChScreeningBatchVo batch = record.getBatchId() == null ? null
+            : screeningBatchService.queryById(record.getBatchId());
+        if (batch == null || !ObjectUtil.equal(batch.getDoctorUserId(), LoginHelper.getUserId())) {
+            throw new ServiceException("无权操作该筛查记录");
+        }
         return R.ok(screeningManager.enroll(recordId));
     }
 }

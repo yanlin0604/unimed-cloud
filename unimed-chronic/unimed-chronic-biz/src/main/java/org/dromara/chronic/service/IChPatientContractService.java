@@ -21,6 +21,8 @@ public interface IChPatientContractService {
 
     TableDataInfo<ChContractServicePackageVo> queryPackagePageList(ChContractServicePackageBo bo, PageQuery pageQuery);
 
+    ChContractServicePackageVo queryPackageById(Long packageId);
+
     Boolean createPackage(ChContractServicePackageBo bo);
 
     Long signContract(ChPatientContractBo bo);

@@ -34,14 +34,34 @@ public class ChReportInstance extends TenantEntity {
     private String reportType;
 
     /**
+     * 报告状态(GENERATED/SIGNED/SENT)
+     */
+    private String reportStatus;
+
+    /**
+     * PDF 文件 ID
+     */
+    private Long pdfFileId;
+
+    /**
      * PDF 文件 OSS ID
      */
     private String pdfOssId;
 
     /**
+     * 电子签名状态(0:未签 1:已签)
+     */
+    private Boolean signStatus;
+
+    /**
      * 电子签章时间
      */
     private Date signTime;
+
+    /**
+     * 二维码
+     */
+    private String qrCode;
 
     /**
      * 防伪二维码内容

@@ -54,6 +54,15 @@ public class ChPatientAccountBo extends BaseEntity {
     @Schema(description = "授权过期时间")
     private Date authExpireTime;
 
+    @Schema(description = "头像URL")
+    private String avatarUrl;
+
+    @Schema(description = "绑定二维码Token")
+    private String bindQrToken;
+
+    @Schema(description = "二维码Token过期时间")
+    private Date qrTokenExpireTime;
+
     @Schema(description = "租户ID")
     private String tenantId;
 }

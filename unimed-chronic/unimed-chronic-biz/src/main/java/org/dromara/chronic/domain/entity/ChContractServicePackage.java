@@ -35,6 +35,9 @@ public class ChContractServicePackage extends TenantEntity {
 
     private BigDecimal price;
 
+    /** 服务周期(月) */
+    private Integer servicePeriod;
+
     private Boolean isActive;
 
     @TableLogic

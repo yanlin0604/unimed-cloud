@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +27,7 @@ import java.util.Map;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class DashboardController {
+public class DashboardController extends BaseController {
 
     private final DashboardManager dashboardManager;
 

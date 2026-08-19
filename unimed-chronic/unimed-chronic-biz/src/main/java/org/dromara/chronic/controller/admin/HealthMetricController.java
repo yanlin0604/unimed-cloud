@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,7 +30,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class HealthMetricController {
+public class HealthMetricController extends BaseController {
 
     private final HealthMetricManager healthMetricManager;
     private final IChHealthMetricRecordService metricRecordService;

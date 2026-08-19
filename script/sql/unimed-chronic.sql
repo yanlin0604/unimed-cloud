@@ -52,13 +52,15 @@ CREATE TABLE `ch_area_dict`  (
   `area_level` int NULL DEFAULT NULL COMMENT '区域层级(1省/2市/3县/4乡/5村)',
   `parent_area_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '父级区域编码',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
+  `tenant_id` bigint NULL DEFAULT NULL COMMENT '租户ID',
   `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `update_by` bigint NULL DEFAULT NULL COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`area_code`) USING BTREE,
-  INDEX `idx_ad_parent_area_code`(`parent_area_code` ASC) USING BTREE
+  INDEX `idx_ad_parent_area_code`(`parent_area_code` ASC) USING BTREE,
+  INDEX `idx_area_dict_tenant_id`(`tenant_id` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '区域字典表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -97,13 +99,15 @@ CREATE TABLE `ch_audit_log`  (
   `operator_ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '操作人IP',
   `operation_time` datetime NULL DEFAULT NULL COMMENT '操作时间',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
+  `tenant_id` bigint NULL DEFAULT NULL COMMENT '租户ID',
   `create_by` bigint NULL DEFAULT NULL COMMENT '创建者',
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   `update_by` bigint NULL DEFAULT NULL COMMENT '更新者',
   `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_al_operator_id`(`operator_id` ASC) USING BTREE,
-  INDEX `idx_al_operation_time`(`operation_time` ASC) USING BTREE
+  INDEX `idx_al_operation_time`(`operation_time` ASC) USING BTREE,
+  INDEX `idx_audit_log_tenant_id`(`tenant_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '审计日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -1963,6 +1967,8 @@ CREATE TABLE `ch_warning_rule`  (
   `time_window_end` time NULL DEFAULT NULL COMMENT '时间窗口结束',
   `recovery_rule` json NULL COMMENT '恢复规则',
   `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '规则描述',
+  `clinical_advice` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '临床处置建议',
+  `response_sla_hours` int NULL DEFAULT NULL COMMENT '要求响应时限(小时)',
   `create_dept` bigint NULL DEFAULT NULL COMMENT '创建部门',
   `org_id` bigint NULL DEFAULT NULL COMMENT '机构ID',
   `tenant_id` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户ID',

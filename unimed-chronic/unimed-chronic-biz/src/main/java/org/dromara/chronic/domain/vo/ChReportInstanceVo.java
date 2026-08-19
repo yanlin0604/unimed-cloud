@@ -33,6 +33,10 @@ public class ChReportInstanceVo implements Serializable {
     private Long templateId;
     @Schema(description = "报告类型")
     private String reportType;
+    @Schema(description = "报告状态")
+    private String reportStatus;
+    @Schema(description = "PDF文件ID")
+    private Long pdfFileId;
     @Schema(description = "PDF文件OSS ID")
     private String pdfOssId;
 
@@ -40,8 +44,12 @@ public class ChReportInstanceVo implements Serializable {
     @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "pdfOssId")
     private String pdfUrl;
 
+    @Schema(description = "电子签名状态")
+    private Boolean signStatus;
     @Schema(description = "签名时间")
     private Date signTime;
+    @Schema(description = "二维码")
+    private String qrCode;
     @Schema(description = "二维码内容")
     private String qrCodeContent;
     @Schema(description = "推送状态")

@@ -32,6 +32,8 @@ public class ChHealthExamItemVo implements Serializable {
     private String itemCode;
     @Schema(description = "结果值")
     private String resultValue;
+    @Schema(description = "单位")
+    private String itemUnit;
     @Schema(description = "参考范围")
     private String referenceRange;
     @Schema(description = "是否异常")

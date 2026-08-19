@@ -28,6 +28,9 @@ public class ChScreeningBatch extends TenantEntity {
 
     private Date activityDate;
 
+    /** 机构ID */
+    private Long orgId;
+
     private Long doctorUserId;
 
     private String location;

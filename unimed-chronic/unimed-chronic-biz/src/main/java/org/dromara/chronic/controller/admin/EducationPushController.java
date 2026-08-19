@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,7 +29,7 @@ import java.util.List;
 @Tag(name = "慢病管理-宣教推送")
 @RestController
 @RequiredArgsConstructor
-public class EducationPushController {
+public class EducationPushController extends BaseController {
 
     private final IChEducationRuleService educationRuleService;
 

@@ -38,6 +38,9 @@ public class ChManagePlanBo extends BaseEntity {
     @Schema(description = "方案状态")
     private String planStatus;
 
+    @Schema(description = "机构ID")
+    private Long orgId;
+
     @Schema(description = "方案名称", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "方案名称不能为空")
     private String planName;

@@ -46,4 +46,7 @@ public class ChHealthExamBo extends BaseEntity {
 
     @Schema(description = "特殊分类")
     private String specialCategory;
+
+    @Schema(description = "体检结论")
+    private String conclusion;
 }

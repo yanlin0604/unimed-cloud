@@ -36,6 +36,24 @@ public class ChLifestyleRecord extends TenantEntity {
 
     private String complianceLevel;
 
+    /** 记录日期 */
+    private java.util.Date recordDate;
+
+    /** 饮食评分(0-100) */
+    private Integer dietScore;
+
+    /** 睡眠时长(小时) */
+    private java.math.BigDecimal sleepHours;
+
+    /** 情绪评分(0-100) */
+    private Integer moodScore;
+
+    /** 运动时长(分钟) */
+    private Integer exerciseMinutes;
+
+    /** 生活方式明细JSON */
+    private String lifestyleDetail;
+
     @TableLogic
     private String delFlag;
 }

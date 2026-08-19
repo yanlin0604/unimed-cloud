@@ -39,6 +39,8 @@ public class ChManagePlanItemVo implements Serializable {
     private BigDecimal targetMinValue;
     @Schema(description = "目标上限值")
     private BigDecimal targetMaxValue;
+    @Schema(description = "机构ID")
+    private Long orgId;
     @Schema(description = "项类型名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "itemType", other = ChronicDictTypeConstant.CHRONIC_PLAN_ITEM_TYPE)
     private String itemTypeName;

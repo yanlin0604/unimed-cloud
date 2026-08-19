@@ -31,6 +31,8 @@ public class ChScreeningBatchVo implements Serializable {
     private String batchName;
     @Schema(description = "活动日期")
     private Date activityDate;
+    @Schema(description = "机构ID")
+    private Long orgId;
     @Schema(description = "医生用户ID")
     private Long doctorUserId;
     @Schema(description = "活动地点")

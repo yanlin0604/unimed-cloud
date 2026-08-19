@@ -1,5 +1,6 @@
 package org.dromara.chronic.controller.admin;
 
+import org.dromara.common.web.core.BaseController;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,7 +29,7 @@ import java.util.Map;
 @Validated
 @RestController
 @RequiredArgsConstructor
-public class ArchiveShareController {
+public class ArchiveShareController extends BaseController {
 
     private final ArchiveShareManager archiveShareManager;
 
@@ -61,6 +62,17 @@ public class ArchiveShareController {
     @PostMapping("/chronic/admin/archive-share/{applyId}/withdraw")
     public R<Void> withdraw(@Parameter(description = "申请ID") @PathVariable Long applyId) {
         return R.ok(archiveShareManager.withdraw(applyId));
+    }
+
+    @Operation(summary = "审批调档申请")
+    @SaCheckPermission("chronic:archive-share:approve")
+    @Log(title = "调档申请审批", businessType = BusinessType.UPDATE)
+    @PutMapping("/chronic/admin/archive-share/{applyId}/approve")
+    public R<Void> approve(
+            @Parameter(description = "申请ID", required = true) @PathVariable Long applyId,
+            @Parameter(description = "审批状态(APPROVED/REJECTED)", required = true) @RequestParam String approvalStatus,
+            @Parameter(description = "审批意见") @RequestParam(required = false) String approvalOpinion) {
+        return R.ok(archiveShareManager.approve(applyId, approvalStatus, approvalOpinion));
     }
 
     @Operation(summary = "工作流回调")

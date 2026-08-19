@@ -34,6 +34,8 @@ public class ChManagePlanVo implements Serializable {
     private String diseaseCode;
     @Schema(description = "方案状态")
     private String planStatus;
+    @Schema(description = "机构ID")
+    private Long orgId;
     @Schema(description = "方案名称")
     private String planName;
     @Schema(description = "方案备注")

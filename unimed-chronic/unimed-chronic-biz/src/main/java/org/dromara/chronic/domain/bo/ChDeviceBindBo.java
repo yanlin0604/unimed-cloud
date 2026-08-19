@@ -41,6 +41,6 @@ public class ChDeviceBindBo extends BaseEntity {
 
     // ==================== 以下为查询条件字段（不参与绑定写入） ====================
 
-    @Schema(description = "查询：在线状态 ONLINE/OFFLINE")
+    @Schema(description = "查询：在线状态 1在线 0离线（字典 chronic_online_status）")
     private String onlineStatus;
 }

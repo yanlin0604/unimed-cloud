@@ -27,3 +27,22 @@ chronic:
     patient:
       appid: xxxxxxx
       secret: xxxxxx
+
+  # openapi 层（/chronic/openapi/**）鉴权 —— 在此处可热更新，无需重启服务
+  #
+  # off     完全跳过校验（等同修复前，仅排障用）
+  # observe 只告警不拦截：无有效 API Token 时打 WARN 日志并放行（默认）
+  # enforce 无有效 API Token 一律拒绝（401）
+  #
+  # 上线步骤：
+  #   1. 保持 observe，观察日志里 "openapi-auth[observe]" 的 WARN 记录
+  #      （含 uri / userId / userType / clientId，可据此判断有没有真实外部调用方）
+  #   2. 已确认目前无任何 HIS/LIS/设备厂商在对接，确认日志无真实调用方后
+  #   3. 把 auth-mode 改成 enforce 即收紧（只改这一行）
+  #   4. 给对接方在 unimed-auth 的 api-token.auth.keys 下配 API Key，
+  #      对接方用 X-Chronic-Api-Token 请求头携带换取到的 Token
+  openapi:
+    auth-mode: observe
+    token-header-name: X-Chronic-Api-Token
+    check-allowed-endpoints: true
+    rate-limit: 0

@@ -34,4 +34,25 @@ public class ChReportInstanceBo extends BaseEntity {
 
     @Schema(description = "报告类型")
     private String reportType;
+
+    @Schema(description = "报告状态")
+    private String reportStatus;
+
+    @Schema(description = "PDF文件ID")
+    private Long pdfFileId;
+
+    @Schema(description = "PDF文件OSS ID")
+    private String pdfOssId;
+
+    @Schema(description = "电子签名状态")
+    private Boolean signStatus;
+
+    @Schema(description = "二维码")
+    private String qrCode;
+
+    @Schema(description = "防伪二维码内容")
+    private String qrCodeContent;
+
+    @Schema(description = "推送状态")
+    private String pushStatus;
 }

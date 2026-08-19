@@ -45,4 +45,7 @@ public class ChManagePlanItemBo extends BaseEntity {
 
     @Schema(description = "目标上限值")
     private BigDecimal targetMaxValue;
+
+    @Schema(description = "机构ID")
+    private Long orgId;
 }

@@ -47,6 +47,8 @@ public class ChDiseaseConfigVo implements Serializable {
     private String monitorItems;
     @Schema(description = "是否启用")
     private Boolean isActive;
+    @Schema(description = "机构ID")
+    private Long orgId;
     @Schema(description = "创建时间")
     private Date createTime;
     @Schema(description = "更新时间")

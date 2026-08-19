@@ -35,6 +35,21 @@ public class ChConsentRecord extends TenantEntity {
 
     private Date signTime;
 
+    /** 签署方式: ELECTRONIC/PAPER */
+    private String signMethod;
+
+    /** 操作人IP */
+    private String operatorIp;
+
+    /** 设备信息 */
+    private String deviceInfo;
+
+    /** 关联业务类型(CONTRACT/REFERRAL/SHARE) */
+    private String relatedBizType;
+
+    /** 关联业务ID */
+    private Long relatedBizId;
+
     @TableLogic
     private String delFlag;
 }

@@ -30,6 +30,8 @@ public class ChReportTemplateVo implements Serializable {
     private String templateContent;
     @Schema(description = "病种编码")
     private String diseaseCode;
+    @Schema(description = "模板类型(ANNUAL/FOLLOWUP/SPECIAL)")
+    private String templateType;
     @Schema(description = "是否启用")
     private Boolean isActive;
     @Schema(description = "创建时间")
