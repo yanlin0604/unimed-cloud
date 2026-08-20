@@ -109,6 +109,7 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         if (vo != null) {
             vo.setActions(queryActionsByWarningId(warningId));
             fillRuleName(List.of(vo));
+            fillPatientName(List.of(vo));
         }
         return vo;
     }
@@ -118,6 +119,7 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         LambdaQueryWrapper<ChWarningEvent> lqw = Wrappers.lambdaQuery();
         lqw.eq(ObjectUtil.isNotNull(bo.getPatientId()), ChWarningEvent::getPatientId, bo.getPatientId());
         lqw.eq(ObjectUtil.isNotNull(bo.getRuleId()), ChWarningEvent::getRuleId, bo.getRuleId());
+        lqw.eq(ObjectUtil.isNotNull(bo.getAssigneeUserId()), ChWarningEvent::getAssigneeUserId, bo.getAssigneeUserId());
         lqw.eq(StringUtils.isNotBlank(bo.getWarningLevel()), ChWarningEvent::getWarningLevel, bo.getWarningLevel());
         lqw.eq(StringUtils.isNotBlank(bo.getEventStatus()), ChWarningEvent::getEventStatus, bo.getEventStatus());
         lqw.orderByDesc(ChWarningEvent::getWarningTime);

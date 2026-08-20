@@ -23,7 +23,7 @@ import java.util.Set;
 public final class WarningStatusTransitionValidator {
 
     private static final Map<String, Set<String>> ALLOWED_TRANSITIONS = Map.of(
-        "NEW", Set.of("CONFIRMED"),
+        "NEW", Set.of("CONFIRMED", "PROCESSING", "ESCALATED", "RESOLVED"),
         "CONFIRMED", Set.of("PROCESSING", "ESCALATED", "RESOLVED"),
         "PROCESSING", Set.of("ESCALATED", "RESOLVED"),
         "ESCALATED", Set.of("PROCESSING", "RESOLVED"),

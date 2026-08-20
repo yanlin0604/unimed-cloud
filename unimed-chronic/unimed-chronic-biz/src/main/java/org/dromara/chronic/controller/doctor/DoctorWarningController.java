@@ -11,6 +11,9 @@ import org.dromara.chronic.manager.WarningManager;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.chronic.support.DoctorScopeGuard;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -49,6 +52,13 @@ public class DoctorWarningController extends BaseController {
     public R<List<ChWarningEventVo>> todo() {
         // 处理人身份取自登录上下文，禁止前端传入
         return R.ok(warningEventService.queryTodoByAssignee(LoginHelper.getUserId()));
+    }
+
+    @Operation(summary = "分页查询当前医生预警")
+    @GetMapping("/chronic/doctor/warning/page")
+    public TableDataInfo<ChWarningEventVo> page(org.dromara.chronic.domain.bo.ChWarningEventBo bo, org.dromara.common.mybatis.core.page.PageQuery pageQuery) {
+        bo.setAssigneeUserId(LoginHelper.getUserId());
+        return warningEventService.queryPageList(bo, pageQuery);
     }
 
     @Operation(summary = "查询患者预警列表")

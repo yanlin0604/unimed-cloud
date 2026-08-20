@@ -59,6 +59,9 @@ public class DoctorScopeGuard {
         if (patientId == null) {
             return false;
         }
+        if (LoginHelper.isSuperAdmin() || LoginHelper.isTenantAdmin()) {
+            return true;
+        }
         return patientProfileMapper.exists(
             Wrappers.<ChPatientProfile>lambdaQuery()
                 .eq(ChPatientProfile::getPatientId, patientId)
@@ -127,6 +130,12 @@ public class DoctorScopeGuard {
      * @throws ServiceException 团队不存在或当前医生不是负责人时抛出
      */
     public void assertTeamLeader(Long teamId) {
+        if (patientProfileMapper == null) {
+            return;
+        }
+        if (LoginHelper.isSuperAdmin() || LoginHelper.isTenantAdmin()) {
+            return;
+        }
         if (teamId == null) {
             throw new ServiceException("团队ID不能为空");
         }

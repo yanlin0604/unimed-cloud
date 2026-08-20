@@ -37,6 +37,10 @@ public class ChConsentRecordVo implements Serializable {
     @Schema(description = "签名图片文件ID")
     private Long signImageFileId;
 
+    @Schema(description = "签名图片URL")
+    @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "signImageFileId")
+    private String signImageUrl;
+
     @Schema(description = "签名时间")
     private Date signTime;
 
