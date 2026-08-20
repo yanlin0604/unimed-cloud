@@ -74,12 +74,11 @@ public class PatientProfileManager {
         timeline.setEventTime(new Date());
         patientTimelineMapper.insert(timeline);
 
-        // 如果该手机号已有先注册的患者账号（patientId 为空），自动绑定至新建的档案
+        // 如果该手机号已有注册的患者账号，自动同步绑定至新建的档案
         if (StringUtils.isNotBlank(bo.getPhone())) {
             patientAccountMapper.update(null,
                 Wrappers.<ChPatientAccount>lambdaUpdate()
                     .eq(ChPatientAccount::getPhone, bo.getPhone())
-                    .isNull(ChPatientAccount::getPatientId)
                     .set(ChPatientAccount::getPatientId, patientId)
             );
         }

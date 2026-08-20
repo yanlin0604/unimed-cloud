@@ -207,6 +207,10 @@ public class ChPatientProfileVo implements Serializable {
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "doctorUserId")
     private String doctorNickName;
 
+    @Schema(description = "管理医生账号")
+    @Translation(type = TransConstant.USER_ID_TO_NAME, mapper = "doctorUserId")
+    private String doctorUserName;
+
     // ============ 结案申请回显（列表批量填充，最新一条） ============
 
     @Schema(description = "最新结案申请ID")

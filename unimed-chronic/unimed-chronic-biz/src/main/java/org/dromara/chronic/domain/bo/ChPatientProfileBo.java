@@ -11,6 +11,8 @@ import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.common.core.xss.Xss;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -59,6 +61,8 @@ public class ChPatientProfileBo extends BaseEntity {
      * 出生日期
      */
     @Schema(description = "出生日期")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthday;
 
     /**

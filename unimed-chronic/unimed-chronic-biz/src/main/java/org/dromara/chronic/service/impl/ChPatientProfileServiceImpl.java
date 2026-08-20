@@ -18,11 +18,13 @@ import org.dromara.chronic.domain.entity.ChPatientTag;
 import org.dromara.chronic.domain.entity.ChPatientTagDict;
 import org.dromara.chronic.domain.entity.ChPatientTimeline;
 import org.dromara.chronic.domain.entity.ChRiskAssessment;
+import org.dromara.chronic.domain.entity.ChPatientAccount;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientDiseaseVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientTagVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
+import org.dromara.chronic.mapper.ChPatientAccountMapper;
 import org.dromara.chronic.mapper.ChConsentRecordMapper;
 import org.dromara.chronic.mapper.ChPatientCloseApplyMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
@@ -64,6 +66,7 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
     private final ChConsentRecordMapper consentRecordMapper;
     private final ChRiskAssessmentMapper riskAssessmentMapper;
     private final ChPatientCloseApplyMapper patientCloseApplyMapper;
+    private final ChPatientAccountMapper patientAccountMapper;
     private final DiseaseNameHelper diseaseNameHelper;
 
     @Override
@@ -151,6 +154,12 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         if (CollUtil.isEmpty(patientIds)) {
             return Boolean.FALSE;
         }
+        // 当患者档案被逻辑删除时，同步解除患者账号对该失效档案的绑定
+        patientAccountMapper.update(null,
+            Wrappers.<ChPatientAccount>lambdaUpdate()
+                .in(ChPatientAccount::getPatientId, patientIds)
+                .set(ChPatientAccount::getPatientId, null)
+        );
         // 主档案逻辑删除；关联表（病种 / 标签 / 时间线）保留为审计痕迹
         return baseMapper.deleteByIds(patientIds) > 0;
     }

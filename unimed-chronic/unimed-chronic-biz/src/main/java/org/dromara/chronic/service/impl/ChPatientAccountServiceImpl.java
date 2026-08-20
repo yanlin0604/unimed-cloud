@@ -69,6 +69,22 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
 
         ChPatientAccountVo existing = queryByPhone(bo.getPhone());
         if (ObjectUtil.isNotNull(existing)) {
+            if (existing.getPatientId() == null) {
+                ChPatientProfile profile = patientProfileMapper.selectOne(
+                    Wrappers.<ChPatientProfile>lambdaQuery()
+                        .eq(ChPatientProfile::getPhone, bo.getPhone())
+                        .orderByDesc(ChPatientProfile::getPatientId)
+                        .last("LIMIT 1")
+                );
+                if (profile != null) {
+                    existing.setPatientId(profile.getPatientId());
+                    ChPatientAccount updateEntity = new ChPatientAccount();
+                    updateEntity.setAccountId(existing.getAccountId());
+                    updateEntity.setPatientId(profile.getPatientId());
+                    patientAccountMapper.updateById(updateEntity);
+                    log.info("老账号登录自动绑定患者档案: accountId={}, patientId={}", existing.getAccountId(), profile.getPatientId());
+                }
+            }
             // 已注册，直接登录
             return doLogin(existing);
         }
@@ -328,7 +344,47 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         return entity.getAccountId();
     }
 
+    private void validateAndSyncAccountProfile(ChPatientAccountVo account) {
+        if (account == null || StringUtils.isBlank(account.getPhone())) {
+            return;
+        }
+        Long patientId = account.getPatientId();
+        if (patientId != null) {
+            ChPatientProfile boundProfile = patientProfileMapper.selectById(patientId);
+            if (boundProfile == null) {
+                log.warn("登录时检测到患者账号 {} 绑定的档案 {} 已失效/删除，尝试重连最新档案", account.getAccountId(), patientId);
+                patientId = null;
+            }
+        }
+        if (patientId == null) {
+            ChPatientProfile profile = patientProfileMapper.selectOne(
+                Wrappers.<ChPatientProfile>lambdaQuery()
+                    .eq(ChPatientProfile::getPhone, account.getPhone())
+                    .orderByDesc(ChPatientProfile::getPatientId)
+                    .last("LIMIT 1")
+            );
+            if (profile != null) {
+                account.setPatientId(profile.getPatientId());
+                ChPatientAccount updateEntity = new ChPatientAccount();
+                updateEntity.setAccountId(account.getAccountId());
+                updateEntity.setPatientId(profile.getPatientId());
+                patientAccountMapper.updateById(updateEntity);
+                log.info("登录时自动关联有效档案: accountId={}, patientId={}", account.getAccountId(), profile.getPatientId());
+            } else if (account.getPatientId() != null) {
+                account.setPatientId(null);
+                ChPatientAccount updateEntity = new ChPatientAccount();
+                updateEntity.setAccountId(account.getAccountId());
+                updateEntity.setPatientId(null);
+                patientAccountMapper.updateById(updateEntity);
+                log.info("登录时清空已删除失效档案关联: accountId={}", account.getAccountId());
+            }
+        }
+    }
+
     private WxLoginVo doLogin(ChPatientAccountVo account) {
+        // 校验并同步账号绑定的有效档案
+        validateAndSyncAccountProfile(account);
+
         // 构建 LoginUser
         LoginUser loginUser = new LoginUser();
         loginUser.setTenantId(account.getTenantId() != null ? account.getTenantId() : TenantConstants.DEFAULT_TENANT_ID);

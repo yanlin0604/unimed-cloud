@@ -218,4 +218,8 @@ public class ChPatientDetailVo implements Serializable {
     @Schema(description = "管理医生昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "doctorUserId")
     private String doctorNickName;
+
+    @Schema(description = "管理医生账号")
+    @Translation(type = TransConstant.USER_ID_TO_NAME, mapper = "doctorUserId")
+    private String doctorUserName;
 }

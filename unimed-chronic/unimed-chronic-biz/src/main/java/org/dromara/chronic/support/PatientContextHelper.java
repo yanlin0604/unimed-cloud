@@ -51,27 +51,10 @@ public class PatientContextHelper {
             throw new ServiceException("账号不存在");
         }
 
-        Long patientId = account.getPatientId();
-        if (patientId == null && StringUtils.isNotBlank(account.getPhone())) {
-            // 自动关联检测：支持“先注册账号、后由医生建立档案”的业务场景
-            ChPatientProfile profile = patientProfileMapper.selectOne(
-                Wrappers.<ChPatientProfile>lambdaQuery()
-                    .eq(ChPatientProfile::getPhone, account.getPhone())
-                    .orderByDesc(ChPatientProfile::getPatientId)
-                    .last("LIMIT 1")
-            );
-            if (profile != null) {
-                patientId = profile.getPatientId();
-                ChPatientAccount updateEntity = new ChPatientAccount();
-                updateEntity.setAccountId(accountId);
-                updateEntity.setPatientId(patientId);
-                patientAccountMapper.updateById(updateEntity);
-                log.info("患者账号 {} (手机号 {}) 自动关联绑定至患者档案 {}", accountId, account.getPhone(), patientId);
-            }
-        }
+        Long patientId = resolveAndSyncPatientId(accountId, account);
 
         if (patientId == null) {
-            log.warn("账号 {} 未关联患者档案", accountId);
+            log.warn("账号 {} 未关联有效患者档案", accountId);
             throw new ServiceException("您还没有健康档案，请联系医院机构建立档案后使用完整功能");
         }
 
@@ -96,7 +79,25 @@ public class PatientContextHelper {
             return null;
         }
 
+        return resolveAndSyncPatientId(accountId, account);
+    }
+
+    /**
+     * 校验并同步当前账号的 patientId：
+     * 1. 若当前绑定的档案已被逻辑删除，自动尝试寻找同手机号下最新的有效档案重新绑定
+     * 2. 若未绑定且存在同手机号档案，自动绑定
+     * 3. 若原绑定档案已删且无新档案，清空失效关联
+     */
+    private Long resolveAndSyncPatientId(Long accountId, ChPatientAccountVo account) {
         Long patientId = account.getPatientId();
+        if (patientId != null) {
+            ChPatientProfile boundProfile = patientProfileMapper.selectById(patientId);
+            if (boundProfile == null) {
+                log.warn("患者账号 {} 绑定的档案 {} 已失效/被删除，尝试重新关联最新有效档案", accountId, patientId);
+                patientId = null;
+            }
+        }
+
         if (patientId == null && StringUtils.isNotBlank(account.getPhone())) {
             ChPatientProfile profile = patientProfileMapper.selectOne(
                 Wrappers.<ChPatientProfile>lambdaQuery()
@@ -110,9 +111,15 @@ public class PatientContextHelper {
                 updateEntity.setAccountId(accountId);
                 updateEntity.setPatientId(patientId);
                 patientAccountMapper.updateById(updateEntity);
+                log.info("患者账号 {} (手机号 {}) 自动重新关联至有效档案 {}", accountId, account.getPhone(), patientId);
+            } else if (account.getPatientId() != null) {
+                ChPatientAccount updateEntity = new ChPatientAccount();
+                updateEntity.setAccountId(accountId);
+                updateEntity.setPatientId(null);
+                patientAccountMapper.updateById(updateEntity);
+                log.info("患者账号 {} 绑定的档案已删除且无新档案，已清空失效关联", accountId);
             }
         }
-
         return patientId;
     }
 
