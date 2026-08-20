@@ -6,11 +6,13 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChPatientDiseaseBo;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
 import org.dromara.chronic.domain.bo.ChPatientTagBo;
+import org.dromara.chronic.domain.entity.ChPatientAccount;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChPatientTag;
 import org.dromara.chronic.domain.entity.ChPatientTimeline;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
+import org.dromara.chronic.mapper.ChPatientAccountMapper;
 import org.dromara.chronic.mapper.ChPatientDiseaseMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.mapper.ChPatientTagMapper;
@@ -40,6 +42,7 @@ public class PatientProfileManager {
     private final ChPatientDiseaseMapper patientDiseaseMapper;
     private final ChPatientTagMapper patientTagMapper;
     private final ChPatientTimelineMapper patientTimelineMapper;
+    private final ChPatientAccountMapper patientAccountMapper;
 
     /**
      * 创建患者档案
@@ -70,6 +73,17 @@ public class PatientProfileManager {
         timeline.setEventDetail("完成患者主档、病种及标签初始化");
         timeline.setEventTime(new Date());
         patientTimelineMapper.insert(timeline);
+
+        // 如果该手机号已有先注册的患者账号（patientId 为空），自动绑定至新建的档案
+        if (StringUtils.isNotBlank(bo.getPhone())) {
+            patientAccountMapper.update(null,
+                Wrappers.<ChPatientAccount>lambdaUpdate()
+                    .eq(ChPatientAccount::getPhone, bo.getPhone())
+                    .isNull(ChPatientAccount::getPatientId)
+                    .set(ChPatientAccount::getPatientId, patientId)
+            );
+        }
+
         return patientId;
     }
 

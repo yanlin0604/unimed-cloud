@@ -123,6 +123,7 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
 
     @Override
     public Boolean insertByBo(ChPatientProfileBo bo) {
+        sanitizeDictValues(bo);
         ChPatientProfile profile = MapstructUtils.convert(bo, ChPatientProfile.class);
         boolean success = baseMapper.insert(profile) > 0;
         if (success) {
@@ -140,6 +141,7 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
         if (ObjectUtil.isNull(profile)) {
             throw new ServiceException("患者档案不存在");
         }
+        sanitizeDictValues(bo);
         ChPatientProfile updateEntity = MapstructUtils.convert(bo, ChPatientProfile.class);
         return baseMapper.updateById(updateEntity) > 0;
     }
@@ -369,6 +371,27 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
             });
         } catch (Exception e) {
             // 兜底：不让"结案"非关键字段拖垮整个列表查询
+        }
+    }
+
+    /**
+     * 保存前字典值统一清洗，避免前端传入中文标签导致字典翻译失效
+     */
+    private void sanitizeDictValues(ChPatientProfileBo bo) {
+        if (bo == null) return;
+        if ("男".equals(bo.getGender()) || "M".equalsIgnoreCase(bo.getGender())) {
+            bo.setGender("1");
+        } else if ("女".equals(bo.getGender()) || "F".equalsIgnoreCase(bo.getGender())) {
+            bo.setGender("0");
+        }
+        if ("未婚".equals(bo.getMaritalStatus())) {
+            bo.setMaritalStatus("UNMARRIED");
+        } else if ("已婚".equals(bo.getMaritalStatus())) {
+            bo.setMaritalStatus("MARRIED");
+        } else if ("离异".equals(bo.getMaritalStatus()) || "离婚".equals(bo.getMaritalStatus())) {
+            bo.setMaritalStatus("DIVORCED");
+        } else if ("丧偶".equals(bo.getMaritalStatus())) {
+            bo.setMaritalStatus("WIDOWED");
         }
     }
 }

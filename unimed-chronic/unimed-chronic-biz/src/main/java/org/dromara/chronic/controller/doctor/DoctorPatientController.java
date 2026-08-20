@@ -12,6 +12,7 @@ import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
 import org.dromara.chronic.domain.vo.PathwayProgressVo;
 import org.dromara.chronic.manager.ContractHistoryManager;
+import org.dromara.chronic.manager.PatientProfileManager;
 import org.dromara.chronic.service.IChDoctorTeamService;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChPatientProfileService;
@@ -48,6 +49,7 @@ public class DoctorPatientController extends BaseController {
     private final IChPatientContractService patientContractService;
     private final IChDoctorTeamService doctorTeamService;
     private final ContractHistoryManager contractHistoryManager;
+    private final PatientProfileManager patientProfileManager;
     private final IClinicalPathwayService clinicalPathwayService;
     private final DoctorScopeGuard doctorScopeGuard;
 
@@ -64,14 +66,40 @@ public class DoctorPatientController extends BaseController {
     }
 
     /**
+     * 医生端新建患者档案
+     */
+    @Operation(summary = "医生新建患者档案")
+    @SaCheckPermission("chronic:doctor:patient:list")
+    @Log(title = "医生患者建档", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping
+    public R<Long> create(@Validated @RequestBody ChPatientProfileBo bo) {
+        bo.setDoctorUserId(LoginHelper.getUserId());
+        Long patientId = patientProfileManager.createArchive(bo, null, null);
+        return R.ok(patientId);
+    }
+
+    /**
+     * 医生端修改/维护患者档案
+     */
+    @Operation(summary = "医生修改患者档案")
+    @SaCheckPermission("chronic:doctor:patient:query")
+    @Log(title = "医生修改患者档案", businessType = BusinessType.UPDATE)
+    @RepeatSubmit
+    @PutMapping("/{patientId}")
+    public R<Void> update(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId, @Validated @RequestBody ChPatientProfileBo bo) {
+        doctorScopeGuard.assertPatientOwned(patientId);
+        bo.setPatientId(patientId);
+        return toAjax(patientProfileService.updateByBo(bo));
+    }
+
+    /**
      * 患者详情
      */
     @Operation(summary = "患者详情")
     @SaCheckPermission("chronic:doctor:patient:query")
     @GetMapping("/{patientId}")
     public R<ChPatientDetailVo> detail(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId) {
-        // /page 按 doctorUserId 过滤了，本详情端点却直接吃 patientId 且
-        // queryDetailById 是裸 selectById 零条件 —— 不校验则可枚举 patientId 拿到全部患者完整档案。
         doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(patientProfileService.queryDetailById(patientId));
     }

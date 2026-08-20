@@ -12,9 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChPatientAccountBo;
 import org.dromara.chronic.domain.bo.WxLoginCodeBo;
 import org.dromara.chronic.domain.entity.ChPatientAccount;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.vo.ChPatientAccountVo;
 import org.dromara.chronic.domain.vo.WxLoginVo;
 import org.dromara.chronic.mapper.ChPatientAccountMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChPatientAccountService;
 import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.core.enums.UserType;
@@ -47,6 +49,7 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
     private static final String SMS_CODE_KEY = "chronic:sms:code:";
 
     private final ChPatientAccountMapper patientAccountMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
     private final WxMaService wxMaService;
 
     @Override
@@ -70,21 +73,20 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
             return doLogin(existing);
         }
         // 注册只信任「手机号」这一个入参，其余字段一律由服务端决定。
-        //
-        // 不能用 MapstructUtils.convert(bo, ...) 整体复制：ChPatientAccountBo 上的
-        // patientId / isFamilyProxy / masterAccountId / authScope / authExpireTime / tenantId
-        // 全部是客户端可传字段，而本接口在网关白名单内（unimed-gateway.yml 的
-        // /chronic/chronic/patient/auth/**）且无 @SaCheckLogin，属未认证入口。
-        // 若原样复制，攻击者传 patientId 即可注册出绑定任意患者档案的账号，
-        // 再通过 doLogin 拿到合法 token，从而绕过全部患者端身份隔离读取他人完整病历。
-        //
-        // 账号与档案的关联不在注册阶段建立：新账号 patientId 为空，
-        // PatientContextHelper.getCurrentPatientId() 会提示「请联系医院机构建立档案」，
-        // 与 createNewAccountWithWechat 的行为保持一致。
         ChPatientAccount entity = new ChPatientAccount();
         entity.setPhone(bo.getPhone());
         entity.setIsFamilyProxy(false);
         entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        // 如果该手机号在医院/慢病库已存在患者档案，自动绑定
+        ChPatientProfile profile = patientProfileMapper.selectOne(
+            Wrappers.<ChPatientProfile>lambdaQuery()
+                .eq(ChPatientProfile::getPhone, bo.getPhone())
+                .orderByDesc(ChPatientProfile::getPatientId)
+                .last("LIMIT 1")
+        );
+        if (profile != null) {
+            entity.setPatientId(profile.getPatientId());
+        }
         patientAccountMapper.insert(entity);
         ChPatientAccountVo newAccount = patientAccountMapper.selectVoOne(
             Wrappers.<ChPatientAccount>lambdaQuery()
@@ -311,6 +313,17 @@ public class ChPatientAccountServiceImpl implements IChPatientAccountService {
         entity.setIsFamilyProxy(false);
         // 设置默认租户ID
         entity.setTenantId(TenantConstants.DEFAULT_TENANT_ID);
+        if (StringUtils.isNotBlank(phone)) {
+            ChPatientProfile profile = patientProfileMapper.selectOne(
+                Wrappers.<ChPatientProfile>lambdaQuery()
+                    .eq(ChPatientProfile::getPhone, phone)
+                    .orderByDesc(ChPatientProfile::getPatientId)
+                    .last("LIMIT 1")
+            );
+            if (profile != null) {
+                entity.setPatientId(profile.getPatientId());
+            }
+        }
         patientAccountMapper.insert(entity);
         return entity.getAccountId();
     }
