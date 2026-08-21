@@ -46,6 +46,15 @@ public class FollowupPlanController extends BaseController {
         return R.ok(followupManager.createPlan(bo));
     }
 
+    @Operation(summary = "新建随访计划(通用)")
+    @SaCheckPermission("chronic:followup-plan:add")
+    @Log(title = "随访计划", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping("/chronic/admin/followup-plan")
+    public R<Long> createDirect(@Validated @RequestBody ChFollowupPlanBo bo) {
+        return R.ok(followupManager.createPlan(bo));
+    }
+
     @Operation(summary = "查询当前随访计划")
     @SaCheckPermission("chronic:followup-plan:list")
     @GetMapping("/chronic/admin/patient/{patientId}/followup-plans")
