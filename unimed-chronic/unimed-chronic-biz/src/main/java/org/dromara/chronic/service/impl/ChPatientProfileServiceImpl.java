@@ -126,6 +126,9 @@ public class ChPatientProfileServiceImpl implements IChPatientProfileService {
 
     @Override
     public Boolean insertByBo(ChPatientProfileBo bo) {
+        if (StringUtils.isBlank(bo.getManageStatus())) {
+            bo.setManageStatus("MANAGED");
+        }
         sanitizeDictValues(bo);
         ChPatientProfile profile = MapstructUtils.convert(bo, ChPatientProfile.class);
         boolean success = baseMapper.insert(profile) > 0;

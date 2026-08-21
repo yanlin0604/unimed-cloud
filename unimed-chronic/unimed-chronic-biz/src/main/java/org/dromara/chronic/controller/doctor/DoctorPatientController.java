@@ -5,8 +5,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.domain.bo.ChContractServicePackageBo;
+import org.dromara.chronic.domain.bo.ChDoctorTeamBo;
 import org.dromara.chronic.domain.bo.ChPatientContractBo;
 import org.dromara.chronic.domain.bo.ChPatientProfileBo;
+import org.dromara.chronic.domain.vo.ChContractServicePackageVo;
+import org.dromara.chronic.domain.vo.ChDoctorTeamVo;
+import org.dromara.chronic.domain.vo.ChManagePlanVo;
 import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.domain.vo.ChPatientProfileVo;
 import org.dromara.chronic.domain.vo.ChPatientTimelineVo;
@@ -14,6 +19,7 @@ import org.dromara.chronic.domain.vo.PathwayProgressVo;
 import org.dromara.chronic.manager.ContractHistoryManager;
 import org.dromara.chronic.manager.PatientProfileManager;
 import org.dromara.chronic.service.IChDoctorTeamService;
+import org.dromara.chronic.service.IChManagePlanService;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChPatientProfileService;
 import org.dromara.chronic.service.IClinicalPathwayService;
@@ -48,10 +54,32 @@ public class DoctorPatientController extends BaseController {
     private final IChPatientProfileService patientProfileService;
     private final IChPatientContractService patientContractService;
     private final IChDoctorTeamService doctorTeamService;
+    private final IChManagePlanService managePlanService;
     private final ContractHistoryManager contractHistoryManager;
     private final PatientProfileManager patientProfileManager;
     private final IClinicalPathwayService clinicalPathwayService;
     private final DoctorScopeGuard doctorScopeGuard;
+
+    /**
+     * 可用签约服务包列表
+     */
+    @Operation(summary = "可用签约服务包列表")
+    @SaCheckPermission("chronic:doctor:patient:list")
+    @GetMapping("/package/list")
+    public TableDataInfo<ChContractServicePackageVo> packageList(ChContractServicePackageBo bo, PageQuery pageQuery) {
+        bo.setIsActive(Boolean.TRUE);
+        return patientContractService.queryPackagePageList(bo, pageQuery);
+    }
+
+    /**
+     * 可选医生团队列表
+     */
+    @Operation(summary = "可选医生团队列表")
+    @SaCheckPermission("chronic:doctor:patient:list")
+    @GetMapping("/team/list")
+    public TableDataInfo<ChDoctorTeamVo> teamList(ChDoctorTeamBo bo, PageQuery pageQuery) {
+        return doctorTeamService.queryPageList(bo, pageQuery);
+    }
 
     /**
      * 我的患者列表
@@ -161,5 +189,13 @@ public class DoctorPatientController extends BaseController {
             @Parameter(description = "病种编码") @RequestParam(required = false) String diseaseCode) {
         doctorScopeGuard.assertPatientOwned(patientId);
         return R.ok(clinicalPathwayService.getPathwayProgress(patientId, diseaseCode));
+    }
+
+    @Operation(summary = "查询患者管理方案列表")
+    @SaCheckPermission("chronic:doctor:patient:query")
+    @GetMapping("/{patientId}/plans")
+    public R<List<ChManagePlanVo>> listPlans(@Parameter(description = "患者ID", required = true) @PathVariable Long patientId) {
+        doctorScopeGuard.assertPatientOwned(patientId);
+        return R.ok(managePlanService.queryByPatientId(patientId));
     }
 }

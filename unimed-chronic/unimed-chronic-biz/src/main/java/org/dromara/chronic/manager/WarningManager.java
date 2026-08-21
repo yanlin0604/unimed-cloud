@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.mapper.ChWarningRuleMapper;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.chronic.support.rule.WarningRuleEngine;
@@ -30,6 +32,7 @@ public class WarningManager {
     private final IChWarningEventService warningEventService;
     private final ChWarningRuleMapper warningRuleMapper;
     private final ChHealthMetricRecordMapper metricRecordMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
 
     /**
      * 指标上报后检查所有匹配规则，触发预警事件
@@ -37,8 +40,7 @@ public class WarningManager {
     @Transactional(rollbackFor = Exception.class)
     public void checkAndTrigger(ChHealthMetricRecord record) {
         List<ChWarningRule> rules = warningRuleMapper.selectList(
-            Wrappers.<ChWarningRule>lambdaQuery()
-                .eq(ChWarningRule::getMetricType, record.getMetricType())
+            Wrappers.<ChWarningRule>lambdaQuery().eq(ChWarningRule::getDelFlag, "0")
         );
         for (ChWarningRule rule : rules) {
             if (ruleEngine.evaluate(rule, record)) {
@@ -82,8 +84,14 @@ public class WarningManager {
         bo.setRuleId(ruleId);
         bo.setWarningLevel(rule.getWarningLevel());
         bo.setEventStatus("NEW");
+        if (patientId != null) {
+            ChPatientProfile profile = patientProfileMapper.selectById(patientId);
+            if (profile != null && profile.getDoctorUserId() != null) {
+                bo.setAssigneeUserId(profile.getDoctorUserId());
+            }
+        }
         warningEventService.createEvent(bo);
-        log.info("手动触发预警: patientId={}, ruleId={}, level={}", patientId, ruleId, rule.getWarningLevel());
+        log.info("手动触发预警: patientId={}, ruleId={}, level={}, assigneeUserId={}", patientId, ruleId, rule.getWarningLevel(), bo.getAssigneeUserId());
         return bo.getWarningId();
     }
 
@@ -98,7 +106,14 @@ public class WarningManager {
         bo.setWarningLevel(rule.getWarningLevel());
         bo.setWarningValue(record.getMetricValue());
         bo.setEventStatus("NEW");
+        if (record.getPatientId() != null) {
+            ChPatientProfile profile = patientProfileMapper.selectById(record.getPatientId());
+            if (profile != null && profile.getDoctorUserId() != null) {
+                bo.setAssigneeUserId(profile.getDoctorUserId());
+            }
+        }
         warningEventService.createEvent(bo);
-        log.info("预警触发: patientId={}, metricType={}, level={}", record.getPatientId(), record.getMetricType(), rule.getWarningLevel());
+        log.info("预警触发: patientId={}, metricType={}, level={}, assigneeUserId={}",
+            record.getPatientId(), record.getMetricType(), rule.getWarningLevel(), bo.getAssigneeUserId());
     }
 }

@@ -136,7 +136,10 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
             return;
         }
         List<ChManagePlanItem> items = MapstructUtils.convert(itemList, ChManagePlanItem.class);
-        items.forEach(item -> item.setPlanId(planId));
+        items.forEach(item -> {
+            item.setId(null);
+            item.setPlanId(planId);
+        });
         managePlanItemMapper.insertBatch(items);
     }
 

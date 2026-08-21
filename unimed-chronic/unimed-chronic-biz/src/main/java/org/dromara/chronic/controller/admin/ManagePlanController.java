@@ -10,6 +10,8 @@ import org.dromara.chronic.domain.bo.ChManagePlanBo;
 import org.dromara.chronic.domain.vo.ChManagePlanVo;
 import org.dromara.chronic.service.IChManagePlanService;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.core.validate.AddGroup;
+import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
@@ -36,7 +38,7 @@ public class ManagePlanController extends BaseController {
     @Log(title = "管理方案", businessType = BusinessType.INSERT)
     @RepeatSubmit
     @PostMapping("/chronic/admin/patient/{patientId}/plans")
-    public R<Long> create(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated @RequestBody ChManagePlanBo bo) {
+    public R<Long> create(@Parameter(description = "患者ID") @PathVariable Long patientId, @Validated(AddGroup.class) @RequestBody ChManagePlanBo bo) {
         bo.setPatientId(patientId);
         return R.ok(managePlanService.createPlan(bo));
     }
@@ -46,7 +48,7 @@ public class ManagePlanController extends BaseController {
     @Log(title = "管理方案", businessType = BusinessType.UPDATE)
     @RepeatSubmit
     @PutMapping("/chronic/admin/plans/{planId}")
-    public R<Void> update(@Parameter(description = "方案ID") @PathVariable Long planId, @Validated @RequestBody ChManagePlanBo bo) {
+    public R<Void> update(@Parameter(description = "方案ID") @PathVariable Long planId, @Validated(EditGroup.class) @RequestBody ChManagePlanBo bo) {
         bo.setPlanId(planId);
         return managePlanService.updatePlan(bo) ? R.ok() : R.fail();
     }
