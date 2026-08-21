@@ -28,6 +28,14 @@ public class FollowupManager {
         return followupService.createBatchPlans(bo);
     }
 
+    public void updatePlan(ChFollowupPlanBo bo) {
+        followupService.updatePlan(bo);
+    }
+
+    public void updateBatchPlans(List<ChFollowupPlanBo> planList) {
+        followupService.updateBatchPlans(planList);
+    }
+
     public void updateBatchPlanStatus(List<Long> planIds, String planStatus) {
         followupService.updateBatchPlanStatus(planIds, planStatus);
     }

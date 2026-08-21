@@ -595,6 +595,7 @@ CREATE TABLE `ch_followup_plan`  (
   `plan_id` bigint NOT NULL AUTO_INCREMENT COMMENT '计划ID',
   `patient_id` bigint NULL DEFAULT NULL COMMENT '患者ID',
   `disease_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '疾病编码',
+  `assignee_user_id` bigint NULL DEFAULT NULL COMMENT '执行医生用户ID',
   `cycle_days` int NULL DEFAULT NULL COMMENT '周期天数',
   `total_rounds` int NULL DEFAULT NULL COMMENT '总轮次',
   `current_round` int NULL DEFAULT 0 COMMENT '当前轮次',
@@ -608,6 +609,7 @@ CREATE TABLE `ch_followup_plan`  (
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`plan_id`) USING BTREE,
   INDEX `idx_fp_patient_id`(`patient_id` ASC) USING BTREE,
+  INDEX `idx_fp_assignee_user_id`(`assignee_user_id` ASC) USING BTREE,
   INDEX `idx_fp_tenant_id`(`tenant_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '随访计划表' ROW_FORMAT = Dynamic;
 

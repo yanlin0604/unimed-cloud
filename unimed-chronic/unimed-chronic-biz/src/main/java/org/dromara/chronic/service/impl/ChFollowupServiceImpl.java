@@ -87,7 +87,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         }
         followupPlanMapper.insert(plan);
         savePlanItems(plan.getPlanId(), bo.getItemList());
-        generateTasks(plan, bo.getItemList(), bo.getAssigneeUserId());
+        generateTasks(plan, bo.getItemList());
         return plan.getPlanId();
     }
 
@@ -113,13 +113,53 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePlan(ChFollowupPlanBo bo) {
+        if (bo.getPlanId() == null) {
+            throw new ServiceException("计划ID不能为空");
+        }
+        validatePlan(bo);
+        ChFollowupPlan current = followupPlanMapper.selectById(bo.getPlanId());
+        if (current == null) {
+            throw new ServiceException("随访计划不存在");
+        }
+        if (Set.of("COMPLETED", "HISTORY").contains(current.getPlanStatus())) {
+            throw new ServiceException("已完成或历史计划不能修改");
+        }
+        if (ObjectUtil.defaultIfNull(current.getCurrentRound(), 0) > bo.getTotalRounds()) {
+            throw new ServiceException("总轮次不能小于当前已完成轮次");
+        }
+        ChFollowupPlan plan = MapstructUtils.convert(bo, ChFollowupPlan.class);
+        if (plan.getPlanStatus() == null) {
+            plan.setPlanStatus(current.getPlanStatus());
+        }
+        plan.setCurrentRound(current.getCurrentRound());
+        followupPlanMapper.updateById(plan);
+        followupPlanItemMapper.delete(
+            Wrappers.<ChFollowupPlanItem>lambdaQuery().eq(ChFollowupPlanItem::getPlanId, bo.getPlanId()));
+        savePlanItems(bo.getPlanId(), bo.getItemList());
+        syncUnfinishedTasks(plan, bo.getItemList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateBatchPlans(List<ChFollowupPlanBo> planList) {
+        if (CollUtil.isEmpty(planList)) {
+            throw new ServiceException("随访计划列表不能为空");
+        }
+        planList.forEach(this::updatePlan);
+    }
+
+    @Override
     public TableDataInfo<ChFollowupPlanVo> queryPlanPage(Long patientId, String diseaseCode,
+                                                          Long assigneeUserId,
                                                           String planStatus, PageQuery pageQuery) {
         Page<ChFollowupPlanVo> page = followupPlanMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChFollowupPlan>lambdaQuery()
                 .eq(ObjectUtil.isNotNull(patientId), ChFollowupPlan::getPatientId, patientId)
                 .eq(StringUtils.isNotBlank(diseaseCode), ChFollowupPlan::getDiseaseCode, diseaseCode)
+                .eq(ObjectUtil.isNotNull(assigneeUserId), ChFollowupPlan::getAssigneeUserId, assigneeUserId)
                 .eq(StringUtils.isNotBlank(planStatus), ChFollowupPlan::getPlanStatus, planStatus)
                 .orderByDesc(ChFollowupPlan::getCreateTime));
         fillFollowupPlanNames(page.getRecords());
@@ -396,6 +436,19 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     }
 
     private void validatePlan(ChFollowupPlanBo bo) {
+        if (bo.getPatientId() == null) {
+            throw new ServiceException("患者ID不能为空");
+        }
+        if (StringUtils.isBlank(bo.getDiseaseCode())) {
+            throw new ServiceException("病种编码不能为空");
+        }
+        if (bo.getAssigneeUserId() == null) {
+            throw new ServiceException("执行医生用户ID不能为空");
+        }
+        if (StringUtils.isNotBlank(bo.getPlanStatus())
+            && !Set.of("ACTIVE", "DISABLED").contains(bo.getPlanStatus())) {
+            throw new ServiceException("计划状态仅支持启用或停用");
+        }
         if (bo.getCycleDays() == null || bo.getCycleDays() <= 0) {
             throw new ServiceException("随访周期必须大于0");
         }
@@ -413,11 +466,14 @@ public class ChFollowupServiceImpl implements IChFollowupService {
 
     private void savePlanItems(Long planId, List<ChFollowupPlanItemBo> itemList) {
         List<ChFollowupPlanItem> items = MapstructUtils.convert(itemList, ChFollowupPlanItem.class);
-        items.forEach(item -> item.setPlanId(planId));
+        items.forEach(item -> {
+            item.setId(null);
+            item.setPlanId(planId);
+        });
         followupPlanItemMapper.insertBatch(items);
     }
 
-    private void generateTasks(ChFollowupPlan plan, List<ChFollowupPlanItemBo> itemList, Long assigneeUserId) {
+    private void generateTasks(ChFollowupPlan plan, List<ChFollowupPlanItemBo> itemList) {
         ChFollowupPlanItemBo visitItem = itemList.stream()
             .filter(item -> StringUtils.isNotBlank(item.getVisitType()))
             .findFirst()
@@ -432,10 +488,60 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setPlanDueDate(calendar.getTime());
             task.setTaskStatus("PENDING");
             task.setVisitType(visitItem.getVisitType());
-            task.setAssigneeUserId(assigneeUserId);
+            task.setAssigneeUserId(plan.getAssigneeUserId());
             followupTaskMapper.insert(task);
             calendar.add(Calendar.DAY_OF_MONTH, plan.getCycleDays());
         }
+    }
+
+    private void syncUnfinishedTasks(ChFollowupPlan plan, List<ChFollowupPlanItemBo> itemList) {
+        ChFollowupPlanItemBo visitItem = itemList.stream()
+            .filter(item -> StringUtils.isNotBlank(item.getVisitType()))
+            .findFirst()
+            .orElseThrow(() -> new ServiceException("随访计划项缺少随访方式"));
+        Date firstDueDate = visitItem.getDueDate() == null ? new Date() : visitItem.getDueDate();
+        List<ChFollowupTask> tasks = followupTaskMapper.selectList(
+            Wrappers.<ChFollowupTask>lambdaQuery().eq(ChFollowupTask::getPlanId, plan.getPlanId()));
+        Set<Integer> taskRounds = tasks.stream().map(ChFollowupTask::getTaskRound)
+            .filter(ObjectUtil::isNotNull).collect(Collectors.toSet());
+        for (ChFollowupTask task : tasks) {
+            if (Set.of("DONE", "CANCELLED").contains(task.getTaskStatus())) {
+                continue;
+            }
+            if ("DISABLED".equals(plan.getPlanStatus()) || task.getTaskRound() > plan.getTotalRounds()) {
+                task.setTaskStatus("CANCELLED");
+            } else {
+                task.setPatientId(plan.getPatientId());
+                task.setAssigneeUserId(plan.getAssigneeUserId());
+                task.setVisitType(visitItem.getVisitType());
+                task.setPlanDueDate(calculateDueDate(firstDueDate, plan.getCycleDays(), task.getTaskRound()));
+            }
+            followupTaskMapper.updateById(task);
+        }
+        if ("DISABLED".equals(plan.getPlanStatus())) {
+            return;
+        }
+        for (int round = 1; round <= plan.getTotalRounds(); round++) {
+            if (taskRounds.contains(round)) {
+                continue;
+            }
+            ChFollowupTask task = new ChFollowupTask();
+            task.setPatientId(plan.getPatientId());
+            task.setPlanId(plan.getPlanId());
+            task.setTaskRound(round);
+            task.setPlanDueDate(calculateDueDate(firstDueDate, plan.getCycleDays(), round));
+            task.setTaskStatus("PENDING");
+            task.setVisitType(visitItem.getVisitType());
+            task.setAssigneeUserId(plan.getAssigneeUserId());
+            followupTaskMapper.insert(task);
+        }
+    }
+
+    private Date calculateDueDate(Date firstDueDate, int cycleDays, int round) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(firstDueDate);
+        calendar.add(Calendar.DAY_OF_MONTH, cycleDays * (round - 1));
+        return calendar.getTime();
     }
 
     private ChFollowupQuestionnaire resolveQuestionnaire(ChFollowupTask task) {

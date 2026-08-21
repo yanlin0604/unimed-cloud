@@ -1,11 +1,15 @@
 package org.dromara.chronic.service.impl;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.linpeilie.Converter;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChFollowupAnswerInputBo;
+import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
+import org.dromara.chronic.domain.bo.ChFollowupPlanItemBo;
 import org.dromara.chronic.domain.bo.ChFollowupSubmitBo;
 import org.dromara.chronic.domain.entity.ChFollowupPlan;
 import org.dromara.chronic.domain.entity.ChFollowupPlanItem;
@@ -22,11 +26,14 @@ import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.support.FollowupOverdueRefresher;
 import org.dromara.common.core.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +44,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,10 +71,19 @@ public class ChFollowupServiceImplTest {
 
     private ChFollowupServiceImpl service;
 
+    @BeforeAll
+    public static void setUpMapstructConverter() {
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+        beanFactory.registerSingleton("converter", new Converter());
+        new SpringUtil().postProcessBeanFactory(beanFactory);
+    }
+
     @BeforeEach
     public void setUp() {
         // 无 Spring 上下文时初始化 MyBatis-Plus lambda 缓存（LambdaUpdateWrapper 依赖）
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), ChFollowupTask.class);
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), ChFollowupPlan.class);
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), ChFollowupPlanItem.class);
         planMapper = mock(ChFollowupPlanMapper.class);
         planItemMapper = mock(ChFollowupPlanItemMapper.class);
         taskMapper = mock(ChFollowupTaskMapper.class);
@@ -96,6 +113,24 @@ public class ChFollowupServiceImplTest {
     private ChFollowupSubmitBo submitBo() {
         ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
         bo.setVisitContent("随访正常");
+        return bo;
+    }
+
+    private ChFollowupPlanBo followupPlanBo(Long planId, int totalRounds) {
+        ChFollowupPlanBo bo = new ChFollowupPlanBo();
+        bo.setPlanId(planId);
+        bo.setPatientId(101L);
+        bo.setDiseaseCode("HTN");
+        bo.setAssigneeUserId(301L);
+        bo.setCycleDays(30);
+        bo.setTotalRounds(totalRounds);
+        bo.setPlanStatus("ACTIVE");
+        ChFollowupPlanItemBo item = new ChFollowupPlanItemBo();
+        item.setItemType("FOLLOWUP");
+        item.setVisitType("PHONE");
+        item.setDueDate(new Date());
+        item.setItemConfig("{}");
+        bo.setItemList(List.of(item));
         return bo;
     }
 
@@ -284,6 +319,75 @@ public class ChFollowupServiceImplTest {
     @Test
     public void updatePlanStatusShouldRejectUnsupportedStatus() {
         assertThrows(ServiceException.class, () -> service.updatePlanStatus(10L, "HISTORY"));
+    }
+
+    @Test
+    public void createPlanShouldPersistAssigneeAndGenerateAssignedTasks() {
+        ChFollowupPlanBo bo = followupPlanBo(null, 2);
+
+        service.createPlan(bo);
+
+        ArgumentCaptor<ChFollowupPlan> planCaptor = ArgumentCaptor.forClass(ChFollowupPlan.class);
+        verify(planMapper).insert(planCaptor.capture());
+        assertEquals(301L, planCaptor.getValue().getAssigneeUserId());
+
+        ArgumentCaptor<ChFollowupTask> taskCaptor = ArgumentCaptor.forClass(ChFollowupTask.class);
+        verify(taskMapper, times(2)).insert(taskCaptor.capture());
+        assertTrue(taskCaptor.getAllValues().stream()
+            .allMatch(task -> Long.valueOf(301L).equals(task.getAssigneeUserId())));
+    }
+
+    @Test
+    public void updatePlanShouldSyncUnfinishedTasksWithoutDuplicatingCompletedRounds() {
+        ChFollowupPlan current = new ChFollowupPlan();
+        current.setPlanId(10L);
+        current.setPlanStatus("ACTIVE");
+        current.setCurrentRound(1);
+        when(planMapper.selectById(10L)).thenReturn(current);
+
+        ChFollowupTask doneTask = pendingTask();
+        doneTask.setTaskRound(1);
+        doneTask.setTaskStatus("DONE");
+        ChFollowupTask pendingTask = pendingTask();
+        pendingTask.setTaskId(2L);
+        pendingTask.setTaskRound(2);
+        when(taskMapper.selectList(any())).thenReturn(List.of(doneTask, pendingTask));
+
+        service.updatePlan(followupPlanBo(10L, 3));
+
+        assertEquals(101L, pendingTask.getPatientId());
+        assertEquals(301L, pendingTask.getAssigneeUserId());
+        verify(taskMapper).updateById(pendingTask);
+        verify(taskMapper, never()).updateById(doneTask);
+
+        ArgumentCaptor<ChFollowupTask> taskCaptor = ArgumentCaptor.forClass(ChFollowupTask.class);
+        verify(taskMapper).insert(taskCaptor.capture());
+        assertEquals(3, taskCaptor.getValue().getTaskRound());
+    }
+
+    @Test
+    public void updateBatchPlansShouldRejectEmptyList() {
+        assertThrows(ServiceException.class, () -> service.updateBatchPlans(Collections.emptyList()));
+    }
+
+    @Test
+    public void updateBatchPlansShouldUpdateEveryPlan() {
+        ChFollowupPlan first = new ChFollowupPlan();
+        first.setPlanId(10L);
+        first.setPlanStatus("ACTIVE");
+        first.setCurrentRound(0);
+        ChFollowupPlan second = new ChFollowupPlan();
+        second.setPlanId(11L);
+        second.setPlanStatus("ACTIVE");
+        second.setCurrentRound(0);
+        when(planMapper.selectById(10L)).thenReturn(first);
+        when(planMapper.selectById(11L)).thenReturn(second);
+        when(taskMapper.selectList(any())).thenReturn(Collections.emptyList());
+
+        service.updateBatchPlans(List.of(followupPlanBo(10L, 1), followupPlanBo(11L, 1)));
+
+        verify(planMapper, times(2)).updateById(any(ChFollowupPlan.class));
+        verify(taskMapper, times(2)).insert(any(ChFollowupTask.class));
     }
 
     @Test

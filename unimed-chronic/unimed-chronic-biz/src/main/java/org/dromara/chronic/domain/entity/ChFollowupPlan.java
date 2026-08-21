@@ -1,6 +1,7 @@
 package org.dromara.chronic.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -26,6 +27,9 @@ public class ChFollowupPlan extends TenantEntity {
     private Long patientId;
 
     private String diseaseCode;
+
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
+    private Long assigneeUserId;
 
     private Integer cycleDays;
 

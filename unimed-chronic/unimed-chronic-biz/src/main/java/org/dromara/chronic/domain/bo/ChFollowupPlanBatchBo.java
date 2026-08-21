@@ -1,6 +1,7 @@
 package org.dromara.chronic.domain.bo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -19,7 +20,7 @@ public class ChFollowupPlanBatchBo {
 
     @Schema(description = "患者ID列表", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "患者列表不能为空")
-    private List<Long> patientIds;
+    private List<@NotNull(message = "患者ID不能为空") Long> patientIds;
 
     @Schema(description = "病种编码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "病种编码不能为空")
@@ -36,9 +37,12 @@ public class ChFollowupPlanBatchBo {
     @Schema(description = "计划状态")
     private String planStatus;
 
-    @Schema(description = "执行医生用户ID")
+    @Schema(description = "执行医生用户ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "执行医生用户ID不能为空")
     private Long assigneeUserId;
 
-    @Schema(description = "随访计划项列表")
+    @Valid
+    @Schema(description = "随访计划项列表", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotEmpty(message = "随访计划项列表不能为空")
     private List<ChFollowupPlanItemBo> itemList;
 }

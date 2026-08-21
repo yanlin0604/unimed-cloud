@@ -2,7 +2,9 @@ package org.dromara.chronic.domain.bo;
 
 import io.github.linpeilie.annotations.AutoMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -46,9 +48,12 @@ public class ChFollowupPlanBo extends BaseEntity {
     @Schema(description = "计划状态")
     private String planStatus;
 
-    @Schema(description = "执行人ID")
+    @Schema(description = "执行医生用户ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "执行医生用户ID不能为空")
     private Long assigneeUserId;
 
-    @Schema(description = "随访计划项列表")
+    @Valid
+    @Schema(description = "随访计划项列表", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotEmpty(message = "随访计划项列表不能为空")
     private List<ChFollowupPlanItemBo> itemList;
 }

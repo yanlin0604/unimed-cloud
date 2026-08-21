@@ -32,6 +32,8 @@ public class ChFollowupPlanVo implements Serializable {
     private Long patientId;
     @Schema(description = "病种编码")
     private String diseaseCode;
+    @Schema(description = "执行医生用户ID")
+    private Long assigneeUserId;
     @Schema(description = "周期天数")
     private Integer cycleDays;
     @Schema(description = "总轮次")
@@ -54,4 +56,8 @@ public class ChFollowupPlanVo implements Serializable {
 
     @Schema(description = "患者姓名")
     private String patientName;
+
+    @Schema(description = "执行医生昵称")
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "assigneeUserId")
+    private String assigneeNickName;
 }

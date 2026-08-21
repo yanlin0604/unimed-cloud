@@ -1,6 +1,6 @@
 # 慢病模块部署清单（数据库脚本执行顺序）
 
-> 更新时间：2026-08-18
+> 更新时间：2026-08-21
 > 说明：标记 ✅ 的脚本已在 `47.113.122.118` 环境执行完毕；其余按需执行。
 
 ## 一、系统库 `unimed-cloud`
@@ -8,9 +8,10 @@
 | 顺序 | 脚本 | 作用 | 状态 |
 |------|------|------|------|
 | 1 | `sys_dept.sql` / `sys_user.sql` | 基础组织与账号（RuoYi 标准示例数据） | ✅ 环境已有 |
-| 2 | `chronic-menu-import.sql` | 慢病菜单 183 行（7 根目录 / 34 页面 / 124 按钮），权限码与后端 `@SaCheckPermission` 逐一对齐 | ✅ 已执行 |
+| 2 | `chronic-menu-import.sql` | 慢病菜单 184 行，权限码与后端 `@SaCheckPermission` 逐一对齐 | ✅ 已执行旧版本 |
 | 3 | `chronic-doctor-role-users.sql` | 医生端权限载体菜单（隐藏，36 权限码）+ `慢病医生` 角色（role_id=100）+ 医生账号 2001~2008（密码 666666） | ✅ 已执行 |
 | 4 | `chronic-menu-increment-device-notification.sql` | 增量 12 行：设备管理页（200306）+ 通知模板页（200805）+ 筛查批次 list/edit 按钮（20060404/20060405） | ✅ 已执行 |
+| 5 | `chronic-followup-plan-edit-menu.sql` | 增加随访计划完整修改权限 `chronic:followup-plan:edit` | ✅ 已执行 |
 
 **注意事项**
 
@@ -26,7 +27,8 @@
 |------|------|------|------|
 | 1 | `../unimed-chronic.sql` | 全量建表 | ✅ 环境已有 |
 | 2 | `chronic-followup-questionnaire-is-active.sql` | 补 `ch_followup_questionnaire.is_active` 列（问卷启停依赖） | ✅ 已执行 |
-| 3 | `../mock/chronic-mock-data.sql` | 演示数据（如需重建库时执行） | ✅ 环境已有 |
+| 3 | `chronic-followup-plan-assignee.sql` | 补 `ch_followup_plan.assignee_user_id` 并从现有任务回填 | ✅ 已执行 |
+| 4 | `../mock/chronic-mock-data.sql` | 演示数据（如需重建库时执行） | ✅ 环境已有 |
 
 **注意事项**
 

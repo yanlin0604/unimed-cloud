@@ -23,7 +23,12 @@ public interface IChFollowupService {
 
     List<Long> createBatchPlans(ChFollowupPlanBatchBo bo);
 
-    TableDataInfo<ChFollowupPlanVo> queryPlanPage(Long patientId, String diseaseCode, String planStatus,
+    void updatePlan(ChFollowupPlanBo bo);
+
+    void updateBatchPlans(List<ChFollowupPlanBo> planList);
+
+    TableDataInfo<ChFollowupPlanVo> queryPlanPage(Long patientId, String diseaseCode, Long assigneeUserId,
+                                                   String planStatus,
                                                    PageQuery pageQuery);
 
     void updatePlanStatus(Long planId, String planStatus);
