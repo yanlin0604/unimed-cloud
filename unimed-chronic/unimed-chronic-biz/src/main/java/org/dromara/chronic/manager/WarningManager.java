@@ -6,16 +6,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
+import org.dromara.chronic.domain.entity.ChSosRecord;
 import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
+import org.dromara.chronic.mapper.ChSosRecordMapper;
 import org.dromara.chronic.mapper.ChWarningRuleMapper;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.chronic.support.rule.WarningRuleEngine;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,6 +36,7 @@ public class WarningManager {
     private final ChWarningRuleMapper warningRuleMapper;
     private final ChHealthMetricRecordMapper metricRecordMapper;
     private final ChPatientProfileMapper patientProfileMapper;
+    private final ChSosRecordMapper sosRecordMapper;
 
     /**
      * 指标上报后检查所有匹配规则，触发预警事件
@@ -50,7 +54,7 @@ public class WarningManager {
     }
 
     /**
-     * 处置预警事件（状态流转+记录动作）
+     * 处置预警事件（状态流转+记录动作+SOS记录联动闭环）
      * <p>
      * C11: 状态更新与动作记录统一由 {@code updateStatus} 完成，
      * 此处仅负责映射 actionType→newStatus 并注入操作人上下文。
@@ -67,6 +71,38 @@ public class WarningManager {
         }
         // updateStatus 内部完成状态校验 + 变更 + 自动写入 action 记录
         warningEventService.updateStatus(warningId, newStatus, actionUserId, actionDetail);
+
+        // 如果是 SOS 紧急预警处置，联动同步更新 ch_sos_record
+        try {
+            ChWarningEventVo event = warningEventService.queryById(warningId);
+            if (event != null && event.getPatientId() != null &&
+                (event.getWarningValue() != null && event.getWarningValue().contains("SOS"))) {
+                String sosEventStatus = switch (newStatus) {
+                    case "RESOLVED" -> "RESOLVED";
+                    case "PROCESSING", "ESCALATED" -> "HANDLING";
+                    default -> null;
+                };
+                if (sosEventStatus != null) {
+                    List<ChSosRecord> activeSosList = sosRecordMapper.selectList(
+                        Wrappers.<ChSosRecord>lambdaQuery()
+                            .eq(ChSosRecord::getPatientId, event.getPatientId())
+                            .in(ChSosRecord::getEventStatus, List.of("NEW", "HANDLING"))
+                    );
+                    for (ChSosRecord sos : activeSosList) {
+                        sos.setEventStatus(sosEventStatus);
+                        sos.setHandlerUserId(actionUserId);
+                        sos.setHandleTime(new Date());
+                        if (actionDetail != null) {
+                            sos.setHandleRemark(actionDetail);
+                        }
+                        sosRecordMapper.updateById(sos);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("同步更新SOS记录状态失败: warningId={}, error={}", warningId, e.getMessage());
+        }
+
         return null;
     }
 

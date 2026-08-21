@@ -7,7 +7,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChSosRecordBo;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
+import org.dromara.chronic.domain.vo.ChPatientContractVo;
 import org.dromara.chronic.manager.SosNotificationManager;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
+import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChSosRecordService;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.chronic.support.PatientContextHelper;
@@ -36,6 +40,8 @@ public class PatientSosController extends BaseController {
     private final IChSosRecordService sosRecordService;
     private final PatientContextHelper patientContextHelper;
     private final SosNotificationManager sosNotificationManager;
+    private final ChPatientProfileMapper patientProfileMapper;
+    private final IChPatientContractService patientContractService;
 
     /**
      * SOS一键求助
@@ -64,12 +70,29 @@ public class PatientSosController extends BaseController {
         sosBo.setHandleRemark(description);
         Long sosId = sosRecordService.insertByBo(sosBo);
 
-        // 2. 创建 CRITICAL 紧急预警事件
+        // 2. 创建 CRITICAL 紧急预警事件并指派责任医生
         ChWarningEventBo eventBo = new ChWarningEventBo();
         eventBo.setPatientId(patientId);
         eventBo.setWarningLevel("CRITICAL");
         eventBo.setEventStatus("NEW");
-        eventBo.setWarningValue("SOS一键紧急求助" + (description != null ? ": " + description : ""));
+        eventBo.setWarningValue("SOS一键紧急求助" + (description != null && !description.isBlank() ? ": " + description : ""));
+
+        // 优先指派责任医生/签约医生
+        Long assigneeDoctorUserId = null;
+        ChPatientProfile profile = patientProfileMapper.selectById(patientId);
+        if (profile != null && profile.getDoctorUserId() != null) {
+            assigneeDoctorUserId = profile.getDoctorUserId();
+        }
+        if (assigneeDoctorUserId == null) {
+            try {
+                ChPatientContractVo contract = patientContractService.queryCurrentContract(patientId);
+                if (contract != null && contract.getTeamDoctorUserId() != null) {
+                    assigneeDoctorUserId = contract.getTeamDoctorUserId();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        eventBo.setAssigneeUserId(assigneeDoctorUserId);
         warningEventService.createEvent(eventBo);
 
         // 3. 异步通知签约医生和紧急联系人，并回写 SOS 记录状态
@@ -78,3 +101,4 @@ public class PatientSosController extends BaseController {
         return R.ok(sosId);
     }
 }
+
