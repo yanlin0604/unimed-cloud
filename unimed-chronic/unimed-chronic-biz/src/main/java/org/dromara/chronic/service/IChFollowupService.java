@@ -1,5 +1,6 @@
 package org.dromara.chronic.service;
 
+import org.dromara.chronic.domain.bo.ChFollowupPlanBatchBo;
 import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
 import org.dromara.chronic.domain.bo.ChFollowupSubmitBo;
 import org.dromara.chronic.domain.vo.ChFollowupPlanVo;
@@ -20,10 +21,14 @@ public interface IChFollowupService {
 
     Long createPlan(ChFollowupPlanBo bo);
 
+    List<Long> createBatchPlans(ChFollowupPlanBatchBo bo);
+
     TableDataInfo<ChFollowupPlanVo> queryPlanPage(Long patientId, String diseaseCode, String planStatus,
                                                    PageQuery pageQuery);
 
     void updatePlanStatus(Long planId, String planStatus);
+
+    void updateBatchPlanStatus(List<Long> planIds, String planStatus);
 
     TableDataInfo<ChFollowupTaskVo> queryTaskPage(Long patientId, Long assigneeUserId, String taskStatus,
                                                   String visitType, PageQuery pageQuery);

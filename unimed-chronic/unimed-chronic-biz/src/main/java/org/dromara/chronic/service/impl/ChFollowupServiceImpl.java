@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
 import org.dromara.chronic.domain.bo.ChFollowupAnswerBo;
 import org.dromara.chronic.domain.bo.ChFollowupAnswerInputBo;
+import org.dromara.chronic.domain.bo.ChFollowupPlanBatchBo;
 import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
 import org.dromara.chronic.domain.bo.ChFollowupPlanItemBo;
 import org.dromara.chronic.domain.bo.ChFollowupSubmitBo;
@@ -91,6 +92,27 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public List<Long> createBatchPlans(ChFollowupPlanBatchBo batchBo) {
+        if (CollUtil.isEmpty(batchBo.getPatientIds())) {
+            throw new ServiceException("患者列表不能为空");
+        }
+        List<Long> planIds = new java.util.ArrayList<>();
+        for (Long patientId : batchBo.getPatientIds()) {
+            ChFollowupPlanBo bo = new ChFollowupPlanBo();
+            bo.setPatientId(patientId);
+            bo.setDiseaseCode(batchBo.getDiseaseCode());
+            bo.setCycleDays(batchBo.getCycleDays());
+            bo.setTotalRounds(batchBo.getTotalRounds());
+            bo.setPlanStatus(batchBo.getPlanStatus());
+            bo.setAssigneeUserId(batchBo.getAssigneeUserId());
+            bo.setItemList(batchBo.getItemList());
+            planIds.add(createPlan(bo));
+        }
+        return planIds;
+    }
+
+    @Override
     public TableDataInfo<ChFollowupPlanVo> queryPlanPage(Long patientId, String diseaseCode,
                                                           String planStatus, PageQuery pageQuery) {
         Page<ChFollowupPlanVo> page = followupPlanMapper.selectVoPage(
@@ -127,6 +149,17 @@ public class ChFollowupServiceImpl implements IChFollowupService {
                     .set(ChFollowupTask::getTaskStatus, "CANCELLED")
                     .eq(ChFollowupTask::getPlanId, planId)
                     .notIn(ChFollowupTask::getTaskStatus, List.of("DONE", "CANCELLED")));
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateBatchPlanStatus(List<Long> planIds, String planStatus) {
+        if (CollUtil.isEmpty(planIds)) {
+            throw new ServiceException("随访计划ID列表不能为空");
+        }
+        for (Long planId : planIds) {
+            updatePlanStatus(planId, planStatus);
         }
     }
 

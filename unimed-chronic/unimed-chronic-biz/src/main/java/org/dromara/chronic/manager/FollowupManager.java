@@ -1,10 +1,13 @@
 package org.dromara.chronic.manager;
 
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.domain.bo.ChFollowupPlanBatchBo;
 import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
 import org.dromara.chronic.domain.bo.ChFollowupSubmitBo;
 import org.dromara.chronic.service.IChFollowupService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 随访编排层
@@ -19,6 +22,14 @@ public class FollowupManager {
 
     public Long createPlan(ChFollowupPlanBo bo) {
         return followupService.createPlan(bo);
+    }
+
+    public List<Long> createBatchPlans(ChFollowupPlanBatchBo bo) {
+        return followupService.createBatchPlans(bo);
+    }
+
+    public void updateBatchPlanStatus(List<Long> planIds, String planStatus) {
+        followupService.updateBatchPlanStatus(planIds, planStatus);
     }
 
     public Long completeTask(Long taskId, ChFollowupSubmitBo bo, Long expectedPatientId,

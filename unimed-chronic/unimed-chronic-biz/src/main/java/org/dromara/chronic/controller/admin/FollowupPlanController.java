@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.domain.bo.ChFollowupPlanBatchBo;
 import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
 import org.dromara.chronic.domain.vo.ChFollowupPlanVo;
 import org.dromara.chronic.domain.vo.ChFollowupRecordVo;
@@ -55,6 +56,15 @@ public class FollowupPlanController extends BaseController {
         return R.ok(followupManager.createPlan(bo));
     }
 
+    @Operation(summary = "批量新建随访计划")
+    @SaCheckPermission("chronic:followup-plan:add")
+    @Log(title = "批量随访计划", businessType = BusinessType.INSERT)
+    @RepeatSubmit
+    @PostMapping("/chronic/admin/followup-plan/batch")
+    public R<List<Long>> createBatch(@Validated @RequestBody ChFollowupPlanBatchBo bo) {
+        return R.ok(followupManager.createBatchPlans(bo));
+    }
+
     @Operation(summary = "查询当前随访计划")
     @SaCheckPermission("chronic:followup-plan:list")
     @GetMapping("/chronic/admin/patient/{patientId}/followup-plans")
@@ -79,6 +89,16 @@ public class FollowupPlanController extends BaseController {
     public R<Void> status(@Parameter(description = "计划ID") @PathVariable Long planId,
                           @Parameter(description = "计划状态") @RequestParam String planStatus) {
         followupService.updatePlanStatus(planId, planStatus);
+        return R.ok();
+    }
+
+    @Operation(summary = "批量更新随访计划状态")
+    @SaCheckPermission("chronic:followup-plan:status")
+    @Log(title = "批量随访计划状态", businessType = BusinessType.UPDATE)
+    @PutMapping("/chronic/admin/followup-plan/batch/status")
+    public R<Void> batchStatus(@Parameter(description = "计划ID列表") @RequestParam List<Long> planIds,
+                               @Parameter(description = "计划状态") @RequestParam String planStatus) {
+        followupManager.updateBatchPlanStatus(planIds, planStatus);
         return R.ok();
     }
 
