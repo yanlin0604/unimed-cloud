@@ -1,5 +1,7 @@
 package org.dromara.chronic.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -36,6 +38,8 @@ public class ChFollowupTask extends TenantEntity {
 
     private String visitType;
 
+    /** 执行人用户ID（为 NULL 时处于随访任务池待认领/待分发） */
+    @TableField(updateStrategy = FieldStrategy.ALWAYS)
     private Long assigneeUserId;
 
     @TableLogic

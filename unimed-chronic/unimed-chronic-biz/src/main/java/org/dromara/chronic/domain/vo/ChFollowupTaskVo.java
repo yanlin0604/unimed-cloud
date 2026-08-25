@@ -60,4 +60,10 @@ public class ChFollowupTaskVo implements Serializable {
     @Schema(description = "执行人昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "assigneeUserId")
     private String assigneeNickName;
+
+    @Schema(description = "专病编码")
+    private String diseaseCode;
+
+    @Schema(description = "专病名称")
+    private String diseaseName;
 }

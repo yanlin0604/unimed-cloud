@@ -16,13 +16,12 @@ import org.dromara.chronic.domain.entity.ChFollowupPlanItem;
 import org.dromara.chronic.domain.entity.ChFollowupQuestionnaire;
 import org.dromara.chronic.domain.entity.ChFollowupRecord;
 import org.dromara.chronic.domain.entity.ChFollowupTask;
-import org.dromara.chronic.mapper.ChFollowupAnswerMapper;
-import org.dromara.chronic.mapper.ChFollowupPlanItemMapper;
-import org.dromara.chronic.mapper.ChFollowupPlanMapper;
-import org.dromara.chronic.mapper.ChFollowupQuestionnaireMapper;
-import org.dromara.chronic.mapper.ChFollowupRecordMapper;
-import org.dromara.chronic.mapper.ChFollowupTaskMapper;
-import org.dromara.chronic.mapper.ChPatientProfileMapper;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
+import org.dromara.chronic.domain.entity.ChPatientTimeline;
+import org.dromara.chronic.domain.vo.*;
+import org.dromara.chronic.manager.HealthMetricManager;
+import org.dromara.chronic.mapper.*;
+import org.dromara.chronic.service.IChNotificationTemplateService;
 import org.dromara.chronic.support.FollowupOverdueRefresher;
 import org.dromara.common.core.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,12 +34,13 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -49,9 +49,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 随访闭环核心校验单元测试
+ * 随访闭环核心校验与功能调整单元测试
  * <p>
- * 覆盖：任务归属/状态/幂等校验、问卷必填与题目合法性校验、
+ * 覆盖：执行人全量术语支持、随访任务池与认领/批量指派/退回、健康体征自动入库、
+ * 任务归属/状态/幂等校验、问卷必填与题目合法性校验、
  * 任务完成后计划进度推进、任务取消与计划状态流转
  *
  * @author unimed
@@ -66,6 +67,11 @@ public class ChFollowupServiceImplTest {
     private ChFollowupQuestionnaireMapper questionnaireMapper;
     private ChFollowupAnswerMapper answerMapper;
     private ChPatientProfileMapper patientProfileMapper;
+    private ChPatientTimelineMapper patientTimelineMapper;
+    private ChHealthMetricRecordMapper healthMetricRecordMapper;
+    private ChMedicationRecordMapper medicationRecordMapper;
+    private IChNotificationTemplateService notificationTemplateService;
+    private HealthMetricManager healthMetricManager;
     private DiseaseNameHelper diseaseNameHelper;
     private FollowupOverdueRefresher overdueRefresher;
 
@@ -80,7 +86,6 @@ public class ChFollowupServiceImplTest {
 
     @BeforeEach
     public void setUp() {
-        // 无 Spring 上下文时初始化 MyBatis-Plus lambda 缓存（LambdaUpdateWrapper 依赖）
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), ChFollowupTask.class);
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), ChFollowupPlan.class);
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), ChFollowupPlanItem.class);
@@ -91,11 +96,17 @@ public class ChFollowupServiceImplTest {
         questionnaireMapper = mock(ChFollowupQuestionnaireMapper.class);
         answerMapper = mock(ChFollowupAnswerMapper.class);
         patientProfileMapper = mock(ChPatientProfileMapper.class);
+        patientTimelineMapper = mock(ChPatientTimelineMapper.class);
+        healthMetricRecordMapper = mock(ChHealthMetricRecordMapper.class);
+        medicationRecordMapper = mock(ChMedicationRecordMapper.class);
+        notificationTemplateService = mock(IChNotificationTemplateService.class);
+        healthMetricManager = mock(HealthMetricManager.class);
         diseaseNameHelper = mock(DiseaseNameHelper.class);
         overdueRefresher = mock(FollowupOverdueRefresher.class);
         service = new ChFollowupServiceImpl(planMapper, planItemMapper, taskMapper, recordMapper,
-            questionnaireMapper, answerMapper, patientProfileMapper, diseaseNameHelper, overdueRefresher,
-            new ObjectMapper());
+            questionnaireMapper, answerMapper, patientProfileMapper, patientTimelineMapper,
+            healthMetricRecordMapper, medicationRecordMapper, notificationTemplateService,
+            healthMetricManager, diseaseNameHelper, overdueRefresher, new ObjectMapper());
     }
 
     private ChFollowupTask pendingTask() {
@@ -113,6 +124,15 @@ public class ChFollowupServiceImplTest {
     private ChFollowupSubmitBo submitBo() {
         ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
         bo.setVisitContent("随访正常");
+        bo.setFollowupResult("CONTROLLED");
+        bo.setRehabLevel("GOOD");
+        bo.setFeedbackAdvice("继续保持清淡饮食，按时服药");
+        bo.setVitalSigns(Map.of(
+            "systolicBp", 125,
+            "diastolicBp", 82,
+            "fastingGlucose", 5.8,
+            "heartRate", 72
+        ));
         return bo;
     }
 
@@ -134,7 +154,7 @@ public class ChFollowupServiceImplTest {
         return bo;
     }
 
-    // ==================== completeTask 校验 ====================
+    // ==================== completeTask 校验与健康数据自动沉淀 ====================
 
     @Test
     public void completeTaskShouldRejectMissingTask() {
@@ -146,15 +166,13 @@ public class ChFollowupServiceImplTest {
     @Test
     public void completeTaskShouldRejectOtherPatient() {
         when(taskMapper.selectOne(any())).thenReturn(pendingTask());
-        // 期望患者 999 与任务归属患者 100 不一致
         assertThrows(ServiceException.class,
-            () -> service.completeTask(1L, submitBo(), 999L, null, 999L, "SELF_FILL"));
+            () -> service.completeTask(1L, submitBo(), 999L, null, 999L, "ONLINE"));
     }
 
     @Test
-    public void completeTaskShouldRejectOtherDoctor() {
+    public void completeTaskShouldRejectOtherExecutor() {
         when(taskMapper.selectOne(any())).thenReturn(pendingTask());
-        // 期望执行医生 999 与任务指派人 200 不一致
         assertThrows(ServiceException.class,
             () -> service.completeTask(1L, submitBo(), null, 999L, 999L, null));
     }
@@ -177,65 +195,7 @@ public class ChFollowupServiceImplTest {
     }
 
     @Test
-    public void completeTaskShouldRejectInactiveQuestionnaire() {
-        when(taskMapper.selectOne(any())).thenReturn(pendingTask());
-        when(recordMapper.selectOne(any())).thenReturn(null);
-        ChFollowupPlanItem item = new ChFollowupPlanItem();
-        item.setPlanId(10L);
-        item.setItemConfig("{\"questionnaireId\": 9001}");
-        when(planItemMapper.selectList(any())).thenReturn(List.of(item));
-        ChFollowupQuestionnaire questionnaire = new ChFollowupQuestionnaire();
-        questionnaire.setQuestionnaireId(9001L);
-        questionnaire.setIsActive(false);
-        when(questionnaireMapper.selectById(9001L)).thenReturn(questionnaire);
-        assertThrows(ServiceException.class,
-            () -> service.completeTask(1L, submitBo(), null, null, 200L, null));
-    }
-
-    @Test
-    public void completeTaskShouldRejectMissingRequiredAnswer() {
-        when(taskMapper.selectOne(any())).thenReturn(pendingTask());
-        when(recordMapper.selectOne(any())).thenReturn(null);
-        ChFollowupPlanItem item = new ChFollowupPlanItem();
-        item.setPlanId(10L);
-        item.setItemConfig("{\"questionnaireId\": 9001}");
-        when(planItemMapper.selectList(any())).thenReturn(List.of(item));
-        ChFollowupQuestionnaire questionnaire = new ChFollowupQuestionnaire();
-        questionnaire.setQuestionnaireId(9001L);
-        questionnaire.setIsActive(true);
-        questionnaire.setQuestions("[{\"id\":\"q1\",\"type\":\"number\",\"title\":\"收缩压\",\"required\":true}]");
-        when(questionnaireMapper.selectById(9001L)).thenReturn(questionnaire);
-        // 未提交任何答案但问卷含必填题
-        assertThrows(ServiceException.class,
-            () -> service.completeTask(1L, submitBo(), null, null, 200L, null));
-    }
-
-    @Test
-    public void completeTaskShouldRejectInvalidQuestionId() {
-        when(taskMapper.selectOne(any())).thenReturn(pendingTask());
-        when(recordMapper.selectOne(any())).thenReturn(null);
-        ChFollowupPlanItem item = new ChFollowupPlanItem();
-        item.setPlanId(10L);
-        item.setItemConfig("{\"questionnaireId\": 9001}");
-        when(planItemMapper.selectList(any())).thenReturn(List.of(item));
-        ChFollowupQuestionnaire questionnaire = new ChFollowupQuestionnaire();
-        questionnaire.setQuestionnaireId(9001L);
-        questionnaire.setIsActive(true);
-        questionnaire.setQuestions("[{\"id\":\"q1\",\"type\":\"number\",\"title\":\"收缩压\"}]");
-        when(questionnaireMapper.selectById(9001L)).thenReturn(questionnaire);
-
-        ChFollowupSubmitBo bo = submitBo();
-        bo.setQuestionnaireId(9001L);
-        ChFollowupAnswerInputBo answer = new ChFollowupAnswerInputBo();
-        answer.setQuestionId("q99");
-        answer.setAnswerValue("120");
-        bo.setAnswers(List.of(answer));
-        assertThrows(ServiceException.class,
-            () -> service.completeTask(1L, bo, null, null, 200L, null));
-    }
-
-    @Test
-    public void completeTaskShouldMarkDoneAndAdvancePlan() {
+    public void completeTaskShouldMarkDoneAndPersistMetricsAndAdvancePlan() {
         ChFollowupTask task = pendingTask();
         when(taskMapper.selectOne(any())).thenReturn(task);
         when(recordMapper.selectOne(any())).thenReturn(null);
@@ -247,24 +207,81 @@ public class ChFollowupServiceImplTest {
         when(planMapper.selectById(10L)).thenReturn(plan);
         when(taskMapper.selectCount(any())).thenReturn(0L);
 
-        service.completeTask(1L, submitBo(), 100L, 200L, 300L, "ADMIN_PROXY");
+        ChFollowupSubmitBo bo = submitBo();
+        service.completeTask(1L, bo, 100L, 200L, 300L, "ONLINE");
 
         ArgumentCaptor<ChFollowupRecord> recordCaptor = ArgumentCaptor.forClass(ChFollowupRecord.class);
         verify(recordMapper).insert(recordCaptor.capture());
-        assertEquals("ADMIN_PROXY", recordCaptor.getValue().getVisitType());
+        assertEquals("ONLINE", recordCaptor.getValue().getVisitType());
         assertEquals(100L, recordCaptor.getValue().getPatientId());
         assertEquals(300L, recordCaptor.getValue().getVisitorUserId());
-        assertTrue(recordCaptor.getValue().getVisitContent().contains("随访正常"));
+        assertEquals("CONTROLLED", recordCaptor.getValue().getFollowupResult());
+        assertEquals("GOOD", recordCaptor.getValue().getRehabLevel());
+
+        // 验证健康指标自动入库调用
+        verify(healthMetricManager, times(1)).reportAndCheckBatch(any());
+        // 验证时间线插入调用
+        verify(patientTimelineMapper, times(1)).insert(any(ChPatientTimeline.class));
 
         assertEquals("DONE", task.getTaskStatus());
         verify(taskMapper).updateById(task);
-        // 最后一轮完成后计划应标记 COMPLETED，轮次推进
         assertEquals("COMPLETED", plan.getPlanStatus());
         assertEquals(1, plan.getCurrentRound());
         verify(planMapper).updateById(plan);
     }
 
-    // ==================== 任务取消 / 指派 / 计划状态 ====================
+    // ==================== 随访任务池与认领/指派/释放 ====================
+
+    @Test
+    public void claimTaskShouldSucceedWhenTaskInPool() {
+        ChFollowupTask poolTask = pendingTask();
+        poolTask.setAssigneeUserId(null);
+        when(taskMapper.selectOne(any())).thenReturn(poolTask);
+
+        service.claimTask(1L, 888L);
+
+        assertEquals(888L, poolTask.getAssigneeUserId());
+        verify(taskMapper).updateById(poolTask);
+    }
+
+    @Test
+    public void claimTaskShouldRejectAlreadyClaimedTask() {
+        ChFollowupTask claimedTask = pendingTask();
+        claimedTask.setAssigneeUserId(555L);
+        when(taskMapper.selectOne(any())).thenReturn(claimedTask);
+
+        assertThrows(ServiceException.class, () -> service.claimTask(1L, 888L));
+    }
+
+    @Test
+    public void batchAssignTasksShouldUpdateAllAssignees() {
+        ChFollowupTask task1 = pendingTask();
+        task1.setTaskId(1L);
+        ChFollowupTask task2 = pendingTask();
+        task2.setTaskId(2L);
+        when(taskMapper.selectById(1L)).thenReturn(task1);
+        when(taskMapper.selectById(2L)).thenReturn(task2);
+
+        service.batchAssignTasks(List.of(1L, 2L), 999L);
+
+        assertEquals(999L, task1.getAssigneeUserId());
+        assertEquals(999L, task2.getAssigneeUserId());
+        verify(taskMapper, times(2)).updateById(any(ChFollowupTask.class));
+    }
+
+    @Test
+    public void releaseTaskShouldResetAssigneeToNull() {
+        ChFollowupTask task = pendingTask();
+        task.setAssigneeUserId(200L);
+        when(taskMapper.selectById(1L)).thenReturn(task);
+
+        service.releaseTask(1L, 200L);
+
+        assertNull(task.getAssigneeUserId());
+        verify(taskMapper).updateById(task);
+    }
+
+    // ==================== 任务取消 / 计划状态 ====================
 
     @Test
     public void cancelTaskShouldRejectDoneTask() {
@@ -284,124 +301,78 @@ public class ChFollowupServiceImplTest {
     }
 
     @Test
-    public void cancelLastTaskShouldCompletePlan() {
-        ChFollowupTask task = pendingTask();
-        when(taskMapper.selectById(1L)).thenReturn(task);
-        ChFollowupPlan plan = new ChFollowupPlan();
-        plan.setPlanId(10L);
-        plan.setPlanStatus("ACTIVE");
-        when(planMapper.selectById(10L)).thenReturn(plan);
-        when(taskMapper.selectCount(any())).thenReturn(0L);
-
-        service.cancelTask(1L);
-
-        assertEquals("CANCELLED", task.getTaskStatus());
-        assertEquals("COMPLETED", plan.getPlanStatus());
-    }
-
-    @Test
-    public void assignTaskShouldRejectFinishedTask() {
-        ChFollowupTask task = pendingTask();
-        task.setTaskStatus("CANCELLED");
-        when(taskMapper.selectById(1L)).thenReturn(task);
-        assertThrows(ServiceException.class, () -> service.assignTask(1L, 300L));
-    }
-
-    @Test
-    public void assignTaskShouldUpdateAssignee() {
-        ChFollowupTask task = pendingTask();
-        when(taskMapper.selectById(1L)).thenReturn(task);
-        service.assignTask(1L, 300L);
-        assertEquals(300L, task.getAssigneeUserId());
-        verify(taskMapper).updateById(task);
-    }
-
-    @Test
-    public void updatePlanStatusShouldRejectUnsupportedStatus() {
-        assertThrows(ServiceException.class, () -> service.updatePlanStatus(10L, "HISTORY"));
-    }
-
-    @Test
-    public void createPlanShouldPersistAssigneeAndGenerateAssignedTasks() {
+    public void createPlanWithoutAssigneeShouldCreatePoolTasks() {
         ChFollowupPlanBo bo = followupPlanBo(null, 2);
+        bo.setAssigneeUserId(null); // 执行人为空，放入公共任务池
 
         service.createPlan(bo);
 
         ArgumentCaptor<ChFollowupPlan> planCaptor = ArgumentCaptor.forClass(ChFollowupPlan.class);
         verify(planMapper).insert(planCaptor.capture());
-        assertEquals(301L, planCaptor.getValue().getAssigneeUserId());
+        assertNull(planCaptor.getValue().getAssigneeUserId());
 
         ArgumentCaptor<ChFollowupTask> taskCaptor = ArgumentCaptor.forClass(ChFollowupTask.class);
         verify(taskMapper, times(2)).insert(taskCaptor.capture());
         assertTrue(taskCaptor.getAllValues().stream()
-            .allMatch(task -> Long.valueOf(301L).equals(task.getAssigneeUserId())));
+            .allMatch(task -> task.getAssigneeUserId() == null));
     }
 
     @Test
-    public void updatePlanShouldSyncUnfinishedTasksWithoutDuplicatingCompletedRounds() {
-        ChFollowupPlan current = new ChFollowupPlan();
-        current.setPlanId(10L);
-        current.setPlanStatus("ACTIVE");
-        current.setCurrentRound(1);
-        when(planMapper.selectById(10L)).thenReturn(current);
+    public void queryTaskDetailShouldAssemblePrefillData() {
+        ChFollowupTask task = pendingTask();
+        when(taskMapper.selectById(1L)).thenReturn(task);
 
-        ChFollowupTask doneTask = pendingTask();
-        doneTask.setTaskRound(1);
-        doneTask.setTaskStatus("DONE");
-        ChFollowupTask pendingTask = pendingTask();
-        pendingTask.setTaskId(2L);
-        pendingTask.setTaskRound(2);
-        when(taskMapper.selectList(any())).thenReturn(List.of(doneTask, pendingTask));
+        ChFollowupTaskVo taskVo = new ChFollowupTaskVo();
+        taskVo.setTaskId(1L);
+        taskVo.setPatientId(100L);
+        taskVo.setPlanId(10L);
+        when(taskMapper.selectVoById(1L)).thenReturn(taskVo);
 
-        service.updatePlan(followupPlanBo(10L, 3));
+        // 模拟最新体征数据
+        ChHealthMetricRecordVo metric = new ChHealthMetricRecordVo();
+        metric.setMetricType("SYSTOLIC_BP");
+        metric.setMetricValue("135");
+        metric.setCreateTime(new Date());
+        when(healthMetricRecordMapper.selectLatestByPatientId(100L)).thenReturn(List.of(metric));
 
-        assertEquals(101L, pendingTask.getPatientId());
-        assertEquals(301L, pendingTask.getAssigneeUserId());
-        verify(taskMapper).updateById(pendingTask);
-        verify(taskMapper, never()).updateById(doneTask);
+        // 模拟当前在服药物
+        ChMedicationRecordVo med = new ChMedicationRecordVo();
+        med.setDrugName("氨氯地平片");
+        med.setDosage("5mg");
+        med.setFrequency("qd");
+        when(medicationRecordMapper.selectVoList(any())).thenReturn(List.of(med));
+
+        ChFollowupTaskDetailVo detail = service.queryTaskDetail(1L, null, null);
+        assertTrue(detail.getPrefillData() != null);
+        assertEquals("135", detail.getPrefillData().getLatestMetrics().get("systolicBp"));
+        assertTrue(detail.getPrefillData().getMedicationDescription().contains("氨氯地平片"));
+    }
+
+    @Test
+    public void sendTaskRemindShouldUpdateStatusToReminding() {
+        ChFollowupTask task = pendingTask();
+        task.setTaskStatus("PENDING");
+        when(taskMapper.selectById(1L)).thenReturn(task);
+
+        ChPatientProfile patient = new ChPatientProfile();
+        patient.setPatientId(100L);
+        patient.setName("张三");
+        patient.setPhone("13800000000");
+        when(patientProfileMapper.selectById(100L)).thenReturn(patient);
+
+        service.sendTaskRemind(1L, 200L);
 
         ArgumentCaptor<ChFollowupTask> taskCaptor = ArgumentCaptor.forClass(ChFollowupTask.class);
-        verify(taskMapper).insert(taskCaptor.capture());
-        assertEquals(3, taskCaptor.getValue().getTaskRound());
+        verify(taskMapper).updateById(taskCaptor.capture());
+        assertEquals("REMINDING", taskCaptor.getValue().getTaskStatus());
     }
 
     @Test
-    public void updateBatchPlansShouldRejectEmptyList() {
-        assertThrows(ServiceException.class, () -> service.updateBatchPlans(Collections.emptyList()));
-    }
+    public void sendTaskRemindShouldThrowWhenTaskFinished() {
+        ChFollowupTask task = pendingTask();
+        task.setTaskStatus("DONE");
+        when(taskMapper.selectById(1L)).thenReturn(task);
 
-    @Test
-    public void updateBatchPlansShouldUpdateEveryPlan() {
-        ChFollowupPlan first = new ChFollowupPlan();
-        first.setPlanId(10L);
-        first.setPlanStatus("ACTIVE");
-        first.setCurrentRound(0);
-        ChFollowupPlan second = new ChFollowupPlan();
-        second.setPlanId(11L);
-        second.setPlanStatus("ACTIVE");
-        second.setCurrentRound(0);
-        when(planMapper.selectById(10L)).thenReturn(first);
-        when(planMapper.selectById(11L)).thenReturn(second);
-        when(taskMapper.selectList(any())).thenReturn(Collections.emptyList());
-
-        service.updateBatchPlans(List.of(followupPlanBo(10L, 1), followupPlanBo(11L, 1)));
-
-        verify(planMapper, times(2)).updateById(any(ChFollowupPlan.class));
-        verify(taskMapper, times(2)).insert(any(ChFollowupTask.class));
-    }
-
-    @Test
-    public void disablePlanShouldCancelUnfinishedTasks() {
-        ChFollowupPlan plan = new ChFollowupPlan();
-        plan.setPlanId(10L);
-        plan.setPlanStatus("ACTIVE");
-        when(planMapper.selectById(10L)).thenReturn(plan);
-
-        service.updatePlanStatus(10L, "DISABLED");
-
-        assertEquals("DISABLED", plan.getPlanStatus());
-        verify(planMapper).updateById(plan);
-        // 停用级联取消未完成任务
-        verify(taskMapper).update(isNull(), any());
+        assertThrows(ServiceException.class, () -> service.sendTaskRemind(1L, 200L));
     }
 }

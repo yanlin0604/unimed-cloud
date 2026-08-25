@@ -37,8 +37,7 @@ public class ChFollowupPlanBatchBo {
     @Schema(description = "计划状态")
     private String planStatus;
 
-    @Schema(description = "执行医生用户ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "执行医生用户ID不能为空")
+    @Schema(description = "执行人用户ID（为空时自动进入随访任务池）")
     private Long assigneeUserId;
 
     @Valid

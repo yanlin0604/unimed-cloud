@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.chronic.domain.entity.ChFollowupTask;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.mapper.ChFollowupTaskMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChNotificationTemplateService;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.resource.api.RemoteMessageService;
@@ -28,7 +30,7 @@ import java.util.Map;
  * <p>
  * R2: 扫描 PENDING 任务——
  * 1. planDueDate < now → 置 OVERDUE
- * 2. planDueDate < now + 3d → 置 REMINDING 并推送通知给 assigneeUserId
+ * 2. planDueDate < now + 3d → 置 REMINDING 并推送通知给 assigneeUserId 及患者
  * 3. 已 REMINDING 且 planDueDate < now → 置 OVERDUE
  *
  * @author unimed
@@ -40,6 +42,7 @@ import java.util.Map;
 public class FollowupRemindJob {
 
     private final ChFollowupTaskMapper followupTaskMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
     private final IChNotificationTemplateService notificationTemplateService;
     @DubboReference(mock = "org.dromara.resource.api.RemoteMessageServiceStub")
     private RemoteMessageService remoteMessageService;
@@ -94,32 +97,51 @@ public class FollowupRemindJob {
     }
 
     /**
-     * R2: 向随访执行人推送提醒通知
+     * R2: 向随访执行人及患者推送提醒通知
      * <p>
      * 消息推送失败不影响任务状态更新，仅记录 warn 日志。
      * 同一任务不重复发提醒（状态已变为 REMINDING，不会再次命中 PENDING 查询）。
      */
     private void sendRemindNotification(ChFollowupTask task) {
-        if (task.getAssigneeUserId() == null) {
-            return;
-        }
         String message = buildRemindMessage(task);
-        try {
-            // 站内消息推送（SSE/WebSocket）
-            remoteMessageService.publishMessage(List.of(task.getAssigneeUserId()), message);
-        } catch (Exception e) {
-            log.warn("随访提醒站内消息推送失败 assigneeUserId={} taskId={} msg={}",
-                task.getAssigneeUserId(), task.getTaskId(), e.getMessage());
-        }
-        try {
-            // 短信推送（异步，不阻塞）—— 需先查询操作人手机号
-            String phone = lookupPhone(task.getAssigneeUserId());
-            if (phone != null) {
-                remoteSmsService.sendMessageAsync(phone, message);
+
+        // 1. 向执行人推送站内信与短信
+        if (task.getAssigneeUserId() != null) {
+            try {
+                // 站内消息推送（SSE/WebSocket）
+                if (remoteMessageService != null) {
+                    remoteMessageService.publishMessage(List.of(task.getAssigneeUserId()), message);
+                }
+            } catch (Exception e) {
+                log.warn("随访提醒站内消息推送失败 assigneeUserId={} taskId={} msg={}",
+                    task.getAssigneeUserId(), task.getTaskId(), e.getMessage());
             }
-        } catch (Exception e) {
-            log.warn("随访提醒短信推送失败 assigneeUserId={} taskId={} msg={}",
-                task.getAssigneeUserId(), task.getTaskId(), e.getMessage());
+            try {
+                // 短信推送（异步，不阻塞）—— 需先查询操作人手机号
+                String phone = lookupPhone(task.getAssigneeUserId());
+                if (phone != null && remoteSmsService != null) {
+                    remoteSmsService.sendMessageAsync(phone, message);
+                }
+            } catch (Exception e) {
+                log.warn("随访提醒短信推送失败 assigneeUserId={} taskId={} msg={}",
+                    task.getAssigneeUserId(), task.getTaskId(), e.getMessage());
+            }
+        }
+
+        // 2. 向患者推送随访短信提醒
+        if (task.getPatientId() != null && patientProfileMapper != null && remoteSmsService != null) {
+            try {
+                ChPatientProfile patient = patientProfileMapper.selectById(task.getPatientId());
+                if (patient != null && StringUtils.isNotBlank(patient.getPhone())) {
+                    String patientMsg = String.format("【慢病管理】尊敬的%s，您有一条随访任务即将于%s到期，请做好准备或通过小程序线上完成自填。",
+                        patient.getName() != null ? patient.getName() : "患者",
+                        task.getPlanDueDate() != null ? task.getPlanDueDate() : "近期");
+                    remoteSmsService.sendMessageAsync(patient.getPhone(), patientMsg);
+                }
+            } catch (Exception e) {
+                log.warn("随访提醒向患者推送短信失败 patientId={} taskId={} msg={}",
+                    task.getPatientId(), task.getTaskId(), e.getMessage());
+            }
         }
     }
 

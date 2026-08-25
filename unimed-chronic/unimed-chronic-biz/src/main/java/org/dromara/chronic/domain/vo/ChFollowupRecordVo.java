@@ -37,10 +37,27 @@ public class ChFollowupRecordVo implements Serializable {
     private String visitType;
     @Schema(description = "随访内容")
     private String visitContent;
-    @Schema(description = "随访人用户ID")
+    @Schema(description = "执行人用户ID")
     private Long visitorUserId;
     @Schema(description = "随访日期")
     private Date visitDate;
+
+    @Schema(description = "随访结论(CONTROLLED/IMPROVING/UNCONTROLLED/DETERIORATING/REFERRAL)")
+    private String followupResult;
+
+    @Schema(description = "随访结论名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "followupResult", other = ChronicDictTypeConstant.CHRONIC_FOLLOWUP_RESULT)
+    private String followupResultName;
+
+    @Schema(description = "康复评级(EXCELLENT/GOOD/FAIR/POOR)")
+    private String rehabLevel;
+
+    @Schema(description = "康复评级名称")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "rehabLevel", other = ChronicDictTypeConstant.CHRONIC_REHAB_LEVEL)
+    private String rehabLevelName;
+
+    @Schema(description = "随访回报与健康指导建议")
+    private String feedbackAdvice;
 
     @Schema(description = "患者姓名")
     private String patientName;
@@ -55,7 +72,7 @@ public class ChFollowupRecordVo implements Serializable {
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "visitType", other = ChronicDictTypeConstant.CHRONIC_VISIT_TYPE)
     private String visitTypeName;
 
-    @Schema(description = "随访人昵称")
+    @Schema(description = "执行人昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "visitorUserId")
     private String visitorNickName;
 }

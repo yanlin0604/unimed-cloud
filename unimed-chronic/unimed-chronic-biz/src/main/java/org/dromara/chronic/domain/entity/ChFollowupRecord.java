@@ -36,6 +36,15 @@ public class ChFollowupRecord extends TenantEntity {
 
     private Date visitDate;
 
+    /** 随访结论(CONTROLLED/IMPROVING/UNCONTROLLED/DETERIORATING/REFERRAL) */
+    private String followupResult;
+
+    /** 康复评级(EXCELLENT/GOOD/FAIR/POOR) */
+    private String rehabLevel;
+
+    /** 随访回报与健康指导建议 */
+    private String feedbackAdvice;
+
     @TableLogic
     private String delFlag;
 }

@@ -87,10 +87,16 @@ public final class ChronicDictTypeConstant {
     public static final String CHRONIC_FOLLOWUP_PLAN_TYPE = "chronic_followup_plan_type";
     /** 随访计划项类型 */
     public static final String CHRONIC_FOLLOWUP_ITEM_TYPE = "chronic_followup_item_type";
-    /** 随访方式 (PHONE/VIDEO/OFFLINE/SELF_FILL/ADMIN_PROXY) */
+    /** 随访方式 (ONLINE/OFFLINE/PHONE) */
     public static final String CHRONIC_VISIT_TYPE = "chronic_visit_type";
-    /** 随访任务状态 (PENDING/PROCESSING/COMPLETED/CANCELED/OVERDUE) */
+    /** 随访任务状态 (PENDING/REMINDING/DONE/OVERDUE/CANCELLED) */
     public static final String CHRONIC_FOLLOWUP_TASK_STATUS = "chronic_followup_task_status";
+    /** 随访结论 (CONTROLLED/IMPROVING/UNCONTROLLED/DETERIORATING/REFERRAL) */
+    public static final String CHRONIC_FOLLOWUP_RESULT = "chronic_followup_result";
+    /** 康复评级 (EXCELLENT/GOOD/FAIR/POOR) */
+    public static final String CHRONIC_REHAB_LEVEL = "chronic_rehab_level";
+    /** 随访任务自动分发策略 (LEAST_LOADED/ROUND_ROBIN/RANDOM/DISEASE_MATCH) */
+    public static final String CHRONIC_DISPATCH_STRATEGY = "chronic_dispatch_strategy";
 
 
     // ==================== 健康指标 ====================

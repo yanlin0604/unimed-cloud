@@ -68,8 +68,8 @@ public class PatientFollowupController extends BaseController {
     public R<Long> submit(@Parameter(description = "任务ID") @PathVariable Long taskId,
                           @Validated @RequestBody ChFollowupSubmitBo bo) {
         Long patientId = patientContextHelper.getCurrentPatientId();
-        // 患者身份取自登录上下文，禁止前端传入 patientId；随访方式固定为患者自填
+        // 患者身份取自登录上下文，禁止前端传入 patientId；随访方式规范为 ONLINE (线上随访)
         return R.ok(followupManager.completeTask(taskId, bo, patientId, null,
-            patientContextHelper.getCurrentAccountId(), "SELF_FILL"));
+            patientContextHelper.getCurrentAccountId(), "ONLINE"));
     }
 }

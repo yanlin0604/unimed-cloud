@@ -26,4 +26,7 @@ public class ChFollowupTaskDetailVo implements Serializable {
     private ChFollowupRecordVo record;
 
     private List<ChFollowupAnswerVo> answers;
+
+    @Schema(description = "随访智能预填与参考数据 (最新体征、当前用药、历史随访)")
+    private ChFollowupPrefillVo prefillData;
 }

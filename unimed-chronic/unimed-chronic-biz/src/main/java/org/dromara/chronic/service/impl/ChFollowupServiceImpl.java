@@ -1,59 +1,36 @@
 package org.dromara.chronic.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.chronic.common.helper.DiseaseNameHelper;
-import org.dromara.chronic.domain.bo.ChFollowupAnswerBo;
-import org.dromara.chronic.domain.bo.ChFollowupAnswerInputBo;
-import org.dromara.chronic.domain.bo.ChFollowupPlanBatchBo;
-import org.dromara.chronic.domain.bo.ChFollowupPlanBo;
-import org.dromara.chronic.domain.bo.ChFollowupPlanItemBo;
-import org.dromara.chronic.domain.bo.ChFollowupSubmitBo;
+import org.dromara.chronic.domain.bo.*;
 import org.dromara.chronic.domain.dto.FollowupContentJson;
-import org.dromara.chronic.domain.entity.ChFollowupAnswer;
-import org.dromara.chronic.domain.entity.ChFollowupPlan;
-import org.dromara.chronic.domain.entity.ChFollowupPlanItem;
-import org.dromara.chronic.domain.entity.ChFollowupQuestionnaire;
-import org.dromara.chronic.domain.entity.ChFollowupRecord;
-import org.dromara.chronic.domain.entity.ChFollowupTask;
-import org.dromara.chronic.domain.entity.ChPatientProfile;
-import org.dromara.chronic.domain.vo.ChFollowupAnswerVo;
-import org.dromara.chronic.domain.vo.ChFollowupPlanVo;
-import org.dromara.chronic.domain.vo.ChFollowupQuestionnaireVo;
-import org.dromara.chronic.domain.vo.ChFollowupRecordVo;
-import org.dromara.chronic.domain.vo.ChFollowupTaskDetailVo;
-import org.dromara.chronic.domain.vo.ChFollowupTaskVo;
-import org.dromara.chronic.mapper.ChFollowupAnswerMapper;
-import org.dromara.chronic.mapper.ChFollowupPlanItemMapper;
-import org.dromara.chronic.mapper.ChFollowupPlanMapper;
-import org.dromara.chronic.mapper.ChFollowupQuestionnaireMapper;
-import org.dromara.chronic.mapper.ChFollowupRecordMapper;
-import org.dromara.chronic.mapper.ChFollowupTaskMapper;
-import org.dromara.chronic.mapper.ChPatientProfileMapper;
+import org.dromara.chronic.domain.entity.*;
+import org.dromara.chronic.domain.vo.*;
+import org.dromara.chronic.manager.HealthMetricManager;
+import org.dromara.chronic.mapper.*;
 import org.dromara.chronic.service.IChFollowupService;
+import org.dromara.chronic.service.IChNotificationTemplateService;
 import org.dromara.chronic.support.FollowupOverdueRefresher;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.resource.api.RemoteMessageService;
+import org.dromara.resource.api.RemoteSmsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,6 +39,7 @@ import java.util.stream.Collectors;
  *
  * @author unimed
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChFollowupServiceImpl implements IChFollowupService {
@@ -73,9 +51,23 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     private final ChFollowupQuestionnaireMapper questionnaireMapper;
     private final ChFollowupAnswerMapper answerMapper;
     private final ChPatientProfileMapper patientProfileMapper;
+    private final ChPatientTimelineMapper patientTimelineMapper;
+    private final ChHealthMetricRecordMapper healthMetricRecordMapper;
+    private final ChMedicationRecordMapper medicationRecordMapper;
+    private final IChNotificationTemplateService notificationTemplateService;
+    private final HealthMetricManager healthMetricManager;
     private final DiseaseNameHelper diseaseNameHelper;
     private final FollowupOverdueRefresher overdueRefresher;
     private final ObjectMapper objectMapper;
+
+    @DubboReference(mock = "org.dromara.resource.api.RemoteMessageServiceStub")
+    private RemoteMessageService remoteMessageService;
+
+    @DubboReference(mock = "true")
+    private RemoteSmsService remoteSmsService;
+
+    /** 支持的三种标准随访类型：线上、线下、电话 */
+    private static final Set<String> VALID_VISIT_TYPES = Set.of("ONLINE", "OFFLINE", "PHONE");
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -97,7 +89,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         if (CollUtil.isEmpty(batchBo.getPatientIds())) {
             throw new ServiceException("患者列表不能为空");
         }
-        List<Long> planIds = new java.util.ArrayList<>();
+        List<Long> planIds = new ArrayList<>();
         for (Long patientId : batchBo.getPatientIds()) {
             ChFollowupPlanBo bo = new ChFollowupPlanBo();
             bo.setPatientId(patientId);
@@ -152,8 +144,8 @@ public class ChFollowupServiceImpl implements IChFollowupService {
 
     @Override
     public TableDataInfo<ChFollowupPlanVo> queryPlanPage(Long patientId, String diseaseCode,
-                                                          Long assigneeUserId,
-                                                          String planStatus, PageQuery pageQuery) {
+                                                           Long assigneeUserId,
+                                                           String planStatus, PageQuery pageQuery) {
         Page<ChFollowupPlanVo> page = followupPlanMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChFollowupPlan>lambdaQuery()
@@ -205,8 +197,8 @@ public class ChFollowupServiceImpl implements IChFollowupService {
 
     @Override
     public TableDataInfo<ChFollowupTaskVo> queryTaskPage(Long patientId, Long assigneeUserId,
-                                                          String taskStatus, String visitType,
-                                                          PageQuery pageQuery) {
+                                                           String taskStatus, String visitType,
+                                                           PageQuery pageQuery) {
         overdueRefresher.refreshIfNeeded();
         Page<ChFollowupTaskVo> page = followupTaskMapper.selectVoPage(
             pageQuery.build(),
@@ -221,10 +213,72 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     }
 
     @Override
+    public TableDataInfo<ChFollowupTaskVo> queryTaskPoolPage(String diseaseCode, String visitType, PageQuery pageQuery) {
+        overdueRefresher.refreshIfNeeded();
+        // 随访任务池：assignee_user_id 为空，且状态为 PENDING / REMINDING / OVERDUE
+        var wrapper = Wrappers.<ChFollowupTask>lambdaQuery()
+            .isNull(ChFollowupTask::getAssigneeUserId)
+            .in(ChFollowupTask::getTaskStatus, List.of("PENDING", "REMINDING", "OVERDUE"))
+            .eq(StringUtils.isNotBlank(visitType), ChFollowupTask::getVisitType, visitType);
+
+        if (StringUtils.isNotBlank(diseaseCode)) {
+            List<ChFollowupPlan> plans = followupPlanMapper.selectList(
+                Wrappers.<ChFollowupPlan>lambdaQuery().eq(ChFollowupPlan::getDiseaseCode, diseaseCode));
+            if (plans.isEmpty()) {
+                return TableDataInfo.build(new ArrayList<>());
+            }
+            List<Long> planIds = plans.stream().map(ChFollowupPlan::getPlanId).toList();
+            wrapper.in(ChFollowupTask::getPlanId, planIds);
+        }
+
+        wrapper.orderByAsc(ChFollowupTask::getPlanDueDate);
+        Page<ChFollowupTaskVo> page = followupTaskMapper.selectVoPage(pageQuery.build(), wrapper);
+        fillTaskMetadata(page.getRecords());
+        return TableDataInfo.build(page);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void claimTask(Long taskId, Long userId) {
+        if (userId == null) {
+            throw new ServiceException("未获取到当前认领人信息");
+        }
+        ChFollowupTask task = followupTaskMapper.selectOne(
+            Wrappers.<ChFollowupTask>lambdaQuery()
+                .eq(ChFollowupTask::getTaskId, taskId)
+                .last("for update"));
+        if (task == null) {
+            throw new ServiceException("随访任务不存在");
+        }
+        if (Set.of("DONE", "CANCELLED").contains(task.getTaskStatus())) {
+            throw new ServiceException("该任务已结束，无法认领");
+        }
+        if (task.getAssigneeUserId() != null) {
+            throw new ServiceException("该任务已被其他执行人认领或指派");
+        }
+        task.setAssigneeUserId(userId);
+        followupTaskMapper.updateById(task);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchClaimTasks(List<Long> taskIds, Long userId) {
+        if (CollUtil.isEmpty(taskIds)) {
+            throw new ServiceException("认领任务列表不能为空");
+        }
+        if (userId == null) {
+            throw new ServiceException("未获取到当前认领人信息");
+        }
+        for (Long taskId : taskIds) {
+            claimTask(taskId, userId);
+        }
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void assignTask(Long taskId, Long assigneeUserId) {
         if (assigneeUserId == null) {
-            throw new ServiceException("指派人不能为空");
+            throw new ServiceException("指派执行人不能为空");
         }
         ChFollowupTask task = followupTaskMapper.selectById(taskId);
         if (task == null) {
@@ -234,6 +288,34 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             throw new ServiceException("已结束的任务不能重新指派");
         }
         task.setAssigneeUserId(assigneeUserId);
+        followupTaskMapper.updateById(task);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchAssignTasks(List<Long> taskIds, Long assigneeUserId) {
+        if (CollUtil.isEmpty(taskIds)) {
+            throw new ServiceException("指派任务列表不能为空");
+        }
+        if (assigneeUserId == null) {
+            throw new ServiceException("指派执行人不能为空");
+        }
+        for (Long taskId : taskIds) {
+            assignTask(taskId, assigneeUserId);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void releaseTask(Long taskId, Long userId) {
+        ChFollowupTask task = followupTaskMapper.selectById(taskId);
+        if (task == null) {
+            throw new ServiceException("随访任务不存在");
+        }
+        if (Set.of("DONE", "CANCELLED").contains(task.getTaskStatus())) {
+            throw new ServiceException("已结束的任务无法释放");
+        }
+        task.setAssigneeUserId(null);
         followupTaskMapper.updateById(task);
     }
 
@@ -270,7 +352,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             throw new ServiceException("无权操作该患者随访任务");
         }
         if (expectedAssigneeUserId != null && !expectedAssigneeUserId.equals(task.getAssigneeUserId())) {
-            throw new ServiceException("该任务未指派给当前医生");
+            throw new ServiceException("该任务未指派给当前执行人");
         }
         if (Set.of("DONE", "CANCELLED").contains(task.getTaskStatus())) {
             throw new ServiceException("随访任务已结束，不能重复提交");
@@ -287,21 +369,30 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         ChFollowupQuestionnaire questionnaire = resolveQuestionnaire(task);
         validateAnswers(bo, questionnaire);
 
+        // 1. 结构化随访内容组装
         FollowupContentJson content = new FollowupContentJson();
         content.setSummary(bo.getVisitContent());
         content.setVitalSigns(bo.getVitalSigns());
         content.setMedicationStatus(bo.getMedicationStatus());
         content.setAdherence(bo.getAdherence());
         content.setLifestyle(bo.getLifestyle());
+        content.setRehabilitationStatus(bo.getRehabilitationStatus());
+        content.setFollowupResult(bo.getFollowupResult());
+        content.setRehabLevel(bo.getRehabLevel());
         content.setAdvice(bo.getAdvice());
+        content.setFeedbackAdvice(bo.getFeedbackAdvice());
         content.setNextFollowupDate(bo.getNextFollowupDate());
 
+        // 2. 插入随访记录
         ChFollowupRecord record = new ChFollowupRecord();
         record.setTaskId(taskId);
         record.setPatientId(task.getPatientId());
         record.setVisitType(StringUtils.isNotBlank(forcedVisitType) ? forcedVisitType : task.getVisitType());
-        record.setVisitorUserId(visitorUserId);
+        record.setVisitorUserId(visitorUserId != null ? visitorUserId : task.getAssigneeUserId());
         record.setVisitDate(new Date());
+        record.setFollowupResult(bo.getFollowupResult());
+        record.setRehabLevel(bo.getRehabLevel());
+        record.setFeedbackAdvice(bo.getFeedbackAdvice());
         try {
             record.setVisitContent(objectMapper.writeValueAsString(content));
         } catch (Exception e) {
@@ -309,12 +400,186 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         }
         followupRecordMapper.insert(record);
 
+        // 3. 问卷答案保存
         saveAnswers(record.getRecordId(), questionnaire, bo.getAnswers());
 
+        // 4. 自动提取健康体征指标并入库（核心：进入健康数据表，联动预警与达标判定）
+        saveHealthMetricsFromFollowup(task.getPatientId(), bo.getVitalSigns());
+
+        // 5. 沉淀用药与康复病情到时间线
+        recordPatientTimeline(task.getPatientId(), bo);
+
+        // 6. 更新任务状态与方案轮次进度
         task.setTaskStatus("DONE");
         followupTaskMapper.updateById(task);
         updatePlanProgress(task);
         return record.getRecordId();
+    }
+
+    /**
+     * 从随访生命体征数据中解析并沉淀健康指标到 ch_health_metric_record
+     */
+    private void saveHealthMetricsFromFollowup(Long patientId, Map<String, Object> vitalSigns) {
+        if (patientId == null || CollUtil.isEmpty(vitalSigns)) {
+            return;
+        }
+        List<ChHealthMetricRecordBo> metricBoList = new ArrayList<>();
+
+        // 血压解析 (收缩压/舒张压 或 组合字符串 "120/80")
+        Object systolic = vitalSigns.get("systolicBp");
+        if (systolic == null) systolic = vitalSigns.get("systolic");
+        Object diastolic = vitalSigns.get("diastolicBp");
+        if (diastolic == null) diastolic = vitalSigns.get("diastolic");
+        Object bloodPressure = vitalSigns.get("bloodPressure");
+
+        if (systolic != null && diastolic != null) {
+            ChHealthMetricRecordBo sBo = new ChHealthMetricRecordBo();
+            sBo.setPatientId(patientId);
+            sBo.setMetricType("BP_SYSTOLIC");
+            sBo.setMetricValue(String.valueOf(systolic));
+            sBo.setUnit("mmHg");
+            sBo.setMeasureScene("FOLLOWUP");
+            sBo.setDataSource("MANUAL");
+            metricBoList.add(sBo);
+
+            ChHealthMetricRecordBo dBo = new ChHealthMetricRecordBo();
+            dBo.setPatientId(patientId);
+            dBo.setMetricType("BP_DIASTOLIC");
+            dBo.setMetricValue(String.valueOf(diastolic));
+            dBo.setUnit("mmHg");
+            dBo.setMeasureScene("FOLLOWUP");
+            dBo.setDataSource("MANUAL");
+            metricBoList.add(dBo);
+        } else if (bloodPressure != null) {
+            String bpStr = String.valueOf(bloodPressure).trim();
+            if (bpStr.contains("/")) {
+                String[] parts = bpStr.split("/");
+                if (parts.length == 2) {
+                    ChHealthMetricRecordBo sBo = new ChHealthMetricRecordBo();
+                    sBo.setPatientId(patientId);
+                    sBo.setMetricType("BP_SYSTOLIC");
+                    sBo.setMetricValue(parts[0].trim());
+                    sBo.setUnit("mmHg");
+                    sBo.setMeasureScene("FOLLOWUP");
+                    sBo.setDataSource("MANUAL");
+                    metricBoList.add(sBo);
+
+                    ChHealthMetricRecordBo dBo = new ChHealthMetricRecordBo();
+                    dBo.setPatientId(patientId);
+                    dBo.setMetricType("BP_DIASTOLIC");
+                    dBo.setMetricValue(parts[1].trim());
+                    dBo.setUnit("mmHg");
+                    dBo.setMeasureScene("FOLLOWUP");
+                    dBo.setDataSource("MANUAL");
+                    metricBoList.add(dBo);
+                }
+            }
+        }
+
+        // 血糖解析 (空腹血糖 / 餐后血糖)
+        Object fastingGlu = vitalSigns.get("fastingGlucose");
+        if (fastingGlu == null) fastingGlu = vitalSigns.get("fbg");
+        if (fastingGlu != null) {
+            ChHealthMetricRecordBo bo = new ChHealthMetricRecordBo();
+            bo.setPatientId(patientId);
+            bo.setMetricType("BLOOD_GLUCOSE");
+            bo.setMetricValue(String.valueOf(fastingGlu));
+            bo.setUnit("mmol/L");
+            bo.setMeasureScene("FOLLOWUP");
+            bo.setDataSource("MANUAL");
+            metricBoList.add(bo);
+        }
+
+        Object postprandialGlu = vitalSigns.get("postprandialGlucose");
+        if (postprandialGlu == null) postprandialGlu = vitalSigns.get("pbg");
+        if (postprandialGlu != null) {
+            ChHealthMetricRecordBo bo = new ChHealthMetricRecordBo();
+            bo.setPatientId(patientId);
+            bo.setMetricType("POSTPRANDIAL_GLUCOSE");
+            bo.setMetricValue(String.valueOf(postprandialGlu));
+            bo.setUnit("mmol/L");
+            bo.setMeasureScene("FOLLOWUP");
+            bo.setDataSource("MANUAL");
+            metricBoList.add(bo);
+        }
+
+        // 心率解析
+        Object heartRate = vitalSigns.get("heartRate");
+        if (heartRate == null) heartRate = vitalSigns.get("pulse");
+        if (heartRate != null) {
+            ChHealthMetricRecordBo bo = new ChHealthMetricRecordBo();
+            bo.setPatientId(patientId);
+            bo.setMetricType("HEART_RATE");
+            bo.setMetricValue(String.valueOf(heartRate));
+            bo.setUnit("bpm");
+            bo.setMeasureScene("FOLLOWUP");
+            bo.setDataSource("MANUAL");
+            metricBoList.add(bo);
+        }
+
+        // BMI / 体重解析
+        Object weight = vitalSigns.get("weight");
+        if (weight != null) {
+            ChHealthMetricRecordBo bo = new ChHealthMetricRecordBo();
+            bo.setPatientId(patientId);
+            bo.setMetricType("WEIGHT");
+            bo.setMetricValue(String.valueOf(weight));
+            bo.setUnit("kg");
+            bo.setMeasureScene("FOLLOWUP");
+            bo.setDataSource("MANUAL");
+            metricBoList.add(bo);
+        }
+
+        Object bmi = vitalSigns.get("bmi");
+        if (bmi != null) {
+            ChHealthMetricRecordBo bo = new ChHealthMetricRecordBo();
+            bo.setPatientId(patientId);
+            bo.setMetricType("BMI");
+            bo.setMetricValue(String.valueOf(bmi));
+            bo.setUnit("kg/m²");
+            bo.setMeasureScene("FOLLOWUP");
+            bo.setDataSource("MANUAL");
+            metricBoList.add(bo);
+        }
+
+        if (!metricBoList.isEmpty()) {
+            try {
+                healthMetricManager.reportAndCheckBatch(metricBoList);
+                log.info("随访体征指标自动入库成功, patientId={}, 指标数={}", patientId, metricBoList.size());
+            } catch (Exception e) {
+                log.warn("随访体征指标自动入库失败, patientId={}, err={}", patientId, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 沉淀随访事件到患者时间线
+     */
+    private void recordPatientTimeline(Long patientId, ChFollowupSubmitBo bo) {
+        try {
+            ChPatientTimeline timeline = new ChPatientTimeline();
+            timeline.setPatientId(patientId);
+            timeline.setEventType("FOLLOWUP");
+            timeline.setEventTitle("完成慢病随访");
+            StringBuilder detail = new StringBuilder();
+            if (StringUtils.isNotBlank(bo.getFollowupResult())) {
+                detail.append("随访结论: ").append(bo.getFollowupResult()).append("; ");
+            }
+            if (StringUtils.isNotBlank(bo.getRehabLevel())) {
+                detail.append("康复评级: ").append(bo.getRehabLevel()).append("; ");
+            }
+            if (StringUtils.isNotBlank(bo.getVisitContent())) {
+                detail.append("摘要: ").append(bo.getVisitContent()).append("; ");
+            }
+            if (StringUtils.isNotBlank(bo.getFeedbackAdvice())) {
+                detail.append("回报指导: ").append(bo.getFeedbackAdvice());
+            }
+            timeline.setEventDetail(detail.toString());
+            timeline.setEventTime(new Date());
+            patientTimelineMapper.insert(timeline);
+        } catch (Exception e) {
+            log.warn("随访事件沉淀时间线失败, patientId={}, err={}", patientId, e.getMessage());
+        }
     }
 
     @Override
@@ -329,7 +594,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
 
     @Override
     public TableDataInfo<ChFollowupRecordVo> queryRecordPage(Long patientId, String visitType,
-                                                              PageQuery pageQuery) {
+                                                               PageQuery pageQuery) {
         Page<ChFollowupRecordVo> page = followupRecordMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChFollowupRecord>lambdaQuery()
@@ -353,7 +618,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     @Override
     public List<ChFollowupTaskVo> queryTodoTasks(Long assigneeUserId, String taskStatus) {
         if (assigneeUserId == null) {
-            throw new ServiceException("未获取当前医生身份");
+            throw new ServiceException("未获取当前执行人身份");
         }
         overdueRefresher.refreshIfNeeded();
         List<ChFollowupTaskVo> list = followupTaskMapper.selectVoList(
@@ -378,7 +643,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             throw new ServiceException("无权查看该患者随访任务");
         }
         if (expectedAssigneeUserId != null && !expectedAssigneeUserId.equals(task.getAssigneeUserId())) {
-            throw new ServiceException("无权查看该医生随访任务");
+            throw new ServiceException("无权查看该执行人随访任务");
         }
 
         ChFollowupTaskVo taskVo = followupTaskMapper.selectVoById(taskId);
@@ -403,6 +668,10 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             detail.setRecord(recordVo);
             detail.setAnswers(answers);
         }
+
+        // 组装智能预填与参考数据 (最新体征、当前用药、历史随访)
+        detail.setPrefillData(buildPrefillData(task.getPatientId(), taskId));
+
         return detail;
     }
 
@@ -442,9 +711,6 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         if (StringUtils.isBlank(bo.getDiseaseCode())) {
             throw new ServiceException("病种编码不能为空");
         }
-        if (bo.getAssigneeUserId() == null) {
-            throw new ServiceException("执行医生用户ID不能为空");
-        }
         if (StringUtils.isNotBlank(bo.getPlanStatus())
             && !Set.of("ACTIVE", "DISABLED").contains(bo.getPlanStatus())) {
             throw new ServiceException("计划状态仅支持启用或停用");
@@ -457,6 +723,11 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         }
         if (CollUtil.isEmpty(bo.getItemList())) {
             throw new ServiceException("至少配置一个随访计划项");
+        }
+        for (ChFollowupPlanItemBo item : bo.getItemList()) {
+            if (StringUtils.isNotBlank(item.getVisitType()) && !VALID_VISIT_TYPES.contains(item.getVisitType())) {
+                throw new ServiceException("随访方式不合法，仅支持线上(ONLINE)、线下(OFFLINE)、电话(PHONE)");
+            }
         }
         boolean hasVisitItem = bo.getItemList().stream().anyMatch(item -> StringUtils.isNotBlank(item.getVisitType()));
         if (!hasVisitItem) {
@@ -488,7 +759,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setPlanDueDate(calendar.getTime());
             task.setTaskStatus("PENDING");
             task.setVisitType(visitItem.getVisitType());
-            task.setAssigneeUserId(plan.getAssigneeUserId());
+            task.setAssigneeUserId(plan.getAssigneeUserId()); // 可为 null 进入任务池
             followupTaskMapper.insert(task);
             calendar.add(Calendar.DAY_OF_MONTH, plan.getCycleDays());
         }
@@ -546,17 +817,26 @@ public class ChFollowupServiceImpl implements IChFollowupService {
 
     private ChFollowupQuestionnaire resolveQuestionnaire(ChFollowupTask task) {
         Long questionnaireId = resolveQuestionnaireId(task);
-        if (questionnaireId == null) {
-            return null;
+        if (questionnaireId != null) {
+            ChFollowupQuestionnaire questionnaire = questionnaireMapper.selectById(questionnaireId);
+            if (questionnaire != null && Boolean.TRUE.equals(questionnaire.getIsActive())) {
+                return questionnaire;
+            }
         }
-        ChFollowupQuestionnaire questionnaire = questionnaireMapper.selectById(questionnaireId);
-        if (questionnaire == null) {
-            throw new ServiceException("任务关联的问卷不存在");
+        // 智能兜底：根据计划所选病种，自动匹配该病种下激活的标准问卷
+        if (task != null && task.getPlanId() != null) {
+            ChFollowupPlan plan = followupPlanMapper.selectById(task.getPlanId());
+            if (plan != null && StringUtils.isNotBlank(plan.getDiseaseCode())) {
+                return questionnaireMapper.selectOne(
+                    Wrappers.<ChFollowupQuestionnaire>lambdaQuery()
+                        .eq(ChFollowupQuestionnaire::getDiseaseCode, plan.getDiseaseCode())
+                        .eq(ChFollowupQuestionnaire::getIsActive, true)
+                        .orderByDesc(ChFollowupQuestionnaire::getIsNationalStandard)
+                        .orderByDesc(ChFollowupQuestionnaire::getVersion)
+                        .last("limit 1"));
+            }
         }
-        if (Boolean.FALSE.equals(questionnaire.getIsActive())) {
-            throw new ServiceException("任务关联的问卷已停用");
-        }
-        return questionnaire;
+        return null;
     }
 
     private Long resolveQuestionnaireId(ChFollowupTask task) {
@@ -681,6 +961,11 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         }
         List<Long> planIds = tasks.stream().map(ChFollowupTaskVo::getPlanId).filter(ObjectUtil::isNotNull).distinct().toList();
         if (!planIds.isEmpty()) {
+            List<ChFollowupPlan> plans = followupPlanMapper.selectBatchIds(planIds);
+            Map<Long, ChFollowupPlan> planMap = plans.stream().collect(Collectors.toMap(ChFollowupPlan::getPlanId, Function.identity(), (a, b) -> a));
+            List<String> diseaseCodes = plans.stream().map(ChFollowupPlan::getDiseaseCode).filter(StringUtils::isNotBlank).distinct().toList();
+            Map<String, String> diseaseNameMap = diseaseCodes.isEmpty() ? Collections.emptyMap() : diseaseNameHelper.batchGetDiseaseName(diseaseCodes);
+
             List<ChFollowupPlanItem> items = followupPlanItemMapper.selectList(
                 Wrappers.<ChFollowupPlanItem>lambdaQuery().in(ChFollowupPlanItem::getPlanId, planIds));
             Map<Long, Long> questionnaireByPlan = new HashMap<>();
@@ -694,7 +979,14 @@ public class ChFollowupServiceImpl implements IChFollowupService {
                     throw new ServiceException("随访计划项配置格式不合法");
                 }
             }
-            tasks.forEach(task -> task.setQuestionnaireId(questionnaireByPlan.get(task.getPlanId())));
+            tasks.forEach(task -> {
+                task.setQuestionnaireId(questionnaireByPlan.get(task.getPlanId()));
+                ChFollowupPlan p = planMap.get(task.getPlanId());
+                if (p != null) {
+                    task.setDiseaseCode(p.getDiseaseCode());
+                    task.setDiseaseName(diseaseNameMap.get(p.getDiseaseCode()));
+                }
+            });
         }
     }
 
@@ -742,5 +1034,170 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         Map<Long, String> patientNames = patientProfileMapper.selectBatchIds(patientIds).stream()
             .collect(Collectors.toMap(ChPatientProfile::getPatientId, ChPatientProfile::getName, (a, b) -> a));
         list.forEach(v -> v.setPatientName(patientNames.get(v.getPatientId())));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void sendTaskRemind(Long taskId, Long operatorUserId) {
+        if (taskId == null) {
+            throw new ServiceException("随访任务ID不能为空");
+        }
+        ChFollowupTask task = followupTaskMapper.selectById(taskId);
+        if (task == null) {
+            throw new ServiceException("随访任务不存在");
+        }
+        if (Set.of("DONE", "CANCELLED").contains(task.getTaskStatus())) {
+            throw new ServiceException("已结束的任务无法发送随访提醒");
+        }
+
+        // 1. 查询患者信息
+        ChPatientProfile patient = patientProfileMapper.selectById(task.getPatientId());
+        String patientName = patient != null ? patient.getName() : "患者";
+        String patientPhone = patient != null ? patient.getPhone() : null;
+
+        // 2. 构造通知文案
+        String dueDateStr = task.getPlanDueDate() != null
+            ? DateUtil.format(task.getPlanDueDate(), "yyyy-MM-dd") : "近期";
+        String message = String.format("【慢病管理】尊敬的%s，您有一条慢病随访计划将于%s进行，请留意医护人员联系或通过小程序自填完成随访。",
+            patientName, dueDateStr);
+
+        // 如果配置了模板，尝试使用模板渲染
+        if (notificationTemplateService != null) {
+            try {
+                Map<String, String> params = new HashMap<>();
+                params.put("name", patientName);
+                params.put("date", dueDateStr);
+                params.put("dueDate", dueDateStr);
+                params.put("patientId", String.valueOf(task.getPatientId()));
+                params.put("taskId", String.valueOf(task.getTaskId()));
+                String rendered = notificationTemplateService.render("FOLLOWUP_REMIND", null, params);
+                if (StringUtils.isNotBlank(rendered)) {
+                    message = rendered;
+                }
+            } catch (Exception e) {
+                log.warn("渲染随访提醒模板失败: {}", e.getMessage());
+            }
+        }
+
+        // 3. 推送短信给患者
+        if (StringUtils.isNotBlank(patientPhone) && remoteSmsService != null) {
+            try {
+                remoteSmsService.sendMessageAsync(patientPhone, message);
+                log.info("已向患者发送随访提醒短信: taskId={}, phone={}", taskId, patientPhone);
+            } catch (Exception e) {
+                log.warn("向患者发送随访提醒短信失败: taskId={}, err={}", taskId, e.getMessage());
+            }
+        }
+
+        // 4. 若有执行人，向执行人推送待办提醒
+        if (task.getAssigneeUserId() != null && remoteMessageService != null) {
+            try {
+                String docMsg = String.format("随访催办提醒：患者【%s】的第%s轮随访任务待执行（到期日：%s）",
+                    patientName, task.getTaskRound() != null ? task.getTaskRound() : "-", dueDateStr);
+                remoteMessageService.publishMessage(List.of(task.getAssigneeUserId()), docMsg);
+            } catch (Exception e) {
+                log.warn("向执行人推送随访提醒失败: taskId={}, err={}", taskId, e.getMessage());
+            }
+        }
+
+        // 5. 更新任务状态为 REMINDING（若原为 PENDING）
+        if ("PENDING".equals(task.getTaskStatus())) {
+            task.setTaskStatus("REMINDING");
+            followupTaskMapper.updateById(task);
+        }
+    }
+
+    /**
+     * 组装随访智能预填与参考数据 (最新体征、当前用药、历史随访)
+     */
+    private ChFollowupPrefillVo buildPrefillData(Long patientId, Long currentTaskId) {
+        if (patientId == null) {
+            return null;
+        }
+        ChFollowupPrefillVo prefill = new ChFollowupPrefillVo();
+
+        // 1. 获取最新生命体征数据
+        if (healthMetricRecordMapper != null) {
+            try {
+                List<ChHealthMetricRecordVo> latestMetrics = healthMetricRecordMapper.selectLatestByPatientId(patientId);
+                if (CollUtil.isNotEmpty(latestMetrics)) {
+                    Map<String, Object> metricMap = new HashMap<>();
+                    Date latestTime = null;
+                    for (ChHealthMetricRecordVo m : latestMetrics) {
+                        if (m == null || m.getMetricType() == null || m.getMetricValue() == null) continue;
+                        if (latestTime == null || (m.getCreateTime() != null && m.getCreateTime().after(latestTime))) {
+                            latestTime = m.getCreateTime();
+                        }
+                        String type = m.getMetricType().toUpperCase();
+                        String val = m.getMetricValue();
+                        switch (type) {
+                            case "SYSTOLIC_BP", "BP_SYSTOLIC", "SBP" -> metricMap.put("systolicBp", val);
+                            case "DIASTOLIC_BP", "BP_DIASTOLIC", "DBP" -> metricMap.put("diastolicBp", val);
+                            case "FASTING_GLUCOSE", "BLOOD_GLUCOSE", "FBG" -> metricMap.put("fastingGlucose", val);
+                            case "POSTPRANDIAL_GLUCOSE", "PBG" -> metricMap.put("postprandialGlucose", val);
+                            case "HEART_RATE", "PULSE" -> metricMap.put("heartRate", val);
+                            case "WEIGHT" -> metricMap.put("weight", val);
+                            case "BMI" -> metricMap.put("bmi", val);
+                            case "SPO2" -> metricMap.put("spo2", val);
+                            default -> metricMap.put(m.getMetricType(), val);
+                        }
+                    }
+                    prefill.setLatestMetrics(metricMap);
+                    prefill.setLatestMetricTime(latestTime);
+                }
+            } catch (Exception e) {
+                log.warn("组装随访预填指标失败 patientId={} err={}", patientId, e.getMessage());
+            }
+        }
+
+        // 2. 获取当前在服药物列表与格式化描述
+        if (medicationRecordMapper != null) {
+            try {
+                List<ChMedicationRecordVo> medList = medicationRecordMapper.selectVoList(
+                    Wrappers.<ChMedicationRecord>lambdaQuery()
+                        .eq(ChMedicationRecord::getPatientId, patientId)
+                        .eq(ChMedicationRecord::getStatus, "ACTIVE")
+                        .orderByDesc(ChMedicationRecord::getStartDate));
+                if (CollUtil.isNotEmpty(medList)) {
+                    prefill.setActiveMedications(medList);
+                    String medDesc = medList.stream().map(m -> {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(m.getDrugName());
+                        if (StringUtils.isNotBlank(m.getDosage())) sb.append(" ").append(m.getDosage());
+                        if (StringUtils.isNotBlank(m.getFrequency())) sb.append(" ").append(m.getFrequency());
+                        return sb.toString();
+                    }).collect(Collectors.joining(", "));
+                    prefill.setMedicationDescription(medDesc);
+                }
+            } catch (Exception e) {
+                log.warn("组装随访预填用药失败 patientId={} err={}", patientId, e.getMessage());
+            }
+        }
+
+        // 3. 获取上一轮随访历史记录与答卷
+        try {
+            var wrapper = Wrappers.<ChFollowupRecord>lambdaQuery()
+                .eq(ChFollowupRecord::getPatientId, patientId);
+            if (currentTaskId != null) {
+                wrapper.ne(ChFollowupRecord::getTaskId, currentTaskId);
+            }
+            ChFollowupRecord lastRec = followupRecordMapper.selectOne(
+                wrapper.orderByDesc(ChFollowupRecord::getVisitDate).last("limit 1"));
+            if (lastRec != null) {
+                ChFollowupRecordVo lastRecVo = MapstructUtils.convert(lastRec, ChFollowupRecordVo.class);
+                fillRecordContent(lastRecVo);
+                prefill.setLastRecord(lastRecVo);
+
+                List<ChFollowupAnswerVo> lastAns = answerMapper.selectVoList(
+                    Wrappers.<ChFollowupAnswer>lambdaQuery()
+                        .eq(ChFollowupAnswer::getRecordId, lastRec.getRecordId())
+                        .orderByAsc(ChFollowupAnswer::getCreateTime));
+                prefill.setLastAnswers(lastAns);
+            }
+        } catch (Exception e) {
+            log.warn("组装上次随访历史失败 patientId={} err={}", patientId, e.getMessage());
+        }
+
+        return prefill;
     }
 }

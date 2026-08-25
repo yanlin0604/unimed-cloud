@@ -22,7 +22,15 @@ public class FollowupContentJson {
 
     private Map<String, Object> lifestyle;
 
+    private Map<String, Object> rehabilitationStatus;
+
+    private String followupResult;
+
+    private String rehabLevel;
+
     private String advice;
+
+    private String feedbackAdvice;
 
     private String nextFollowupDate;
 }

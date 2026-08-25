@@ -13,7 +13,7 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import java.util.List;
 
 /**
- * 随访服务
+ * 随访服务接口
  *
  * @author unimed
  */
@@ -28,8 +28,7 @@ public interface IChFollowupService {
     void updateBatchPlans(List<ChFollowupPlanBo> planList);
 
     TableDataInfo<ChFollowupPlanVo> queryPlanPage(Long patientId, String diseaseCode, Long assigneeUserId,
-                                                   String planStatus,
-                                                   PageQuery pageQuery);
+                                                   String planStatus, PageQuery pageQuery);
 
     void updatePlanStatus(Long planId, String planStatus);
 
@@ -38,7 +37,35 @@ public interface IChFollowupService {
     TableDataInfo<ChFollowupTaskVo> queryTaskPage(Long patientId, Long assigneeUserId, String taskStatus,
                                                   String visitType, PageQuery pageQuery);
 
+    /**
+     * 分页查询随访任务池（未分配执行人的待办任务）
+     */
+    TableDataInfo<ChFollowupTaskVo> queryTaskPoolPage(String diseaseCode, String visitType, PageQuery pageQuery);
+
+    /**
+     * 单个认领随访任务
+     */
+    void claimTask(Long taskId, Long userId);
+
+    /**
+     * 批量认领随访任务
+     */
+    void batchClaimTasks(List<Long> taskIds, Long userId);
+
+    /**
+     * 单个指派随访任务
+     */
     void assignTask(Long taskId, Long assigneeUserId);
+
+    /**
+     * 批量指派随访任务
+     */
+    void batchAssignTasks(List<Long> taskIds, Long assigneeUserId);
+
+    /**
+     * 释放任务退回随访任务池
+     */
+    void releaseTask(Long taskId, Long userId);
 
     void cancelTask(Long taskId);
 
@@ -58,4 +85,12 @@ public interface IChFollowupService {
     ChFollowupPlanVo queryCurrentPlan(Long patientId);
 
     List<ChFollowupTaskVo> queryPatientTasks(Long patientId);
+
+    /**
+     * 发送随访任务提醒 (向患者和执行人推送短信/通知)
+     *
+     * @param taskId 随访任务ID
+     * @param operatorUserId 操作人ID (医生/管理员)
+     */
+    void sendTaskRemind(Long taskId, Long operatorUserId);
 }
