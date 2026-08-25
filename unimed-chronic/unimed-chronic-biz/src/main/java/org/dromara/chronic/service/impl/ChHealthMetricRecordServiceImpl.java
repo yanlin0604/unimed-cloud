@@ -14,6 +14,7 @@ import org.dromara.chronic.domain.vo.ChHealthMetricRecordVo;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChHealthMetricRecordService;
+import org.dromara.chronic.support.rule.WarningRuleEngine;
 import org.dromara.chronic.utils.MetricValueUtils;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -41,6 +42,7 @@ public class ChHealthMetricRecordServiceImpl implements IChHealthMetricRecordSer
 
     @Override
     public Long reportMetric(ChHealthMetricRecordBo bo) {
+        bo.setMetricType(WarningRuleEngine.normalizeMetricType(bo.getMetricType()));
         applyReferenceValues(bo);
         if (bo.getIsAbnormal() == null && bo.getReferenceValueMin() != null && bo.getReferenceValueMax() != null) {
             BigDecimal value = MetricValueUtils.extractPrimaryValue(bo.getMetricValue(), bo.getMetricType());

@@ -5,16 +5,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChDeviceBindBo;
 import org.dromara.chronic.domain.bo.ChDeviceRawRecordBo;
 import org.dromara.chronic.domain.bo.ChHealthMetricRecordBo;
+import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.chronic.domain.entity.ChAuditLog;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
 import org.dromara.chronic.domain.entity.ChManagePlanItem;
+import org.dromara.chronic.domain.entity.ChPatientProfile;
+import org.dromara.chronic.domain.entity.ChManagePlan;
 import org.dromara.chronic.domain.vo.ChDeviceRawRecordVo;
 import org.dromara.chronic.mapper.ChAuditLogMapper;
+import org.dromara.chronic.mapper.ChManagePlanMapper;
 import org.dromara.chronic.mapper.ChManagePlanItemMapper;
+import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChDeviceBindService;
 import org.dromara.chronic.service.IChHealthMetricRecordService;
+import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.chronic.utils.MetricValueUtils;
+import org.dromara.chronic.support.rule.WarningRuleEngine;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +44,11 @@ public class HealthMetricManager {
     private final IChHealthMetricRecordService metricRecordService;
     private final IChDeviceBindService deviceBindService;
     private final WarningManager warningManager;
+    private final IChWarningEventService warningEventService;
     private final ChAuditLogMapper auditLogMapper;
+    private final ChManagePlanMapper managePlanMapper;
     private final ChManagePlanItemMapper planItemMapper;
+    private final ChPatientProfileMapper patientProfileMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public Long reportAndCheck(ChHealthMetricRecordBo bo) {
@@ -114,6 +125,7 @@ public class HealthMetricManager {
             ChHealthMetricRecord updated = metricRecordService.getById(metricId);
             if (updated != null) {
                 warningManager.checkAndTrigger(updated);
+                checkPlanCompliance(updated);
             }
         } catch (Exception e) {
             log.warn("人工指标修改后预警重检失败, metricId={}", metricId, e);
@@ -149,43 +161,95 @@ public class HealthMetricManager {
     }
 
     /**
-     * 方案量化达标判定：比对上报指标与现行方案的目标区间
+     * 方案量化达标判定：比对上报指标与该患者现行有效方案的目标区间
      */
     private void checkPlanCompliance(ChHealthMetricRecord record) {
         if (record.getPatientId() == null || record.getMetricType() == null || record.getMetricValue() == null) {
             return;
         }
 
-        // 查询该患者现行方案中类型匹配的量化目标
+        // 1. 查询该患者当前所有激活/进行中的管理方案
+        List<ChManagePlan> activePlans = managePlanMapper.selectList(
+            Wrappers.<ChManagePlan>lambdaQuery()
+                .eq(ChManagePlan::getPatientId, record.getPatientId())
+                .eq(ChManagePlan::getPlanStatus, "ACTIVE")
+                .eq(ChManagePlan::getDelFlag, "0")
+        );
+
+        if (activePlans.isEmpty()) {
+            return;
+        }
+
+        List<Long> activePlanIds = activePlans.stream().map(ChManagePlan::getPlanId).toList();
+
+        // 2. 查询该患者现行方案中类型匹配的量化目标
         List<ChManagePlanItem> matchingItems = planItemMapper.selectList(
             new LambdaQueryWrapper<ChManagePlanItem>()
-                .eq(ChManagePlanItem::getTargetMetricType, record.getMetricType())
-                .isNotNull(ChManagePlanItem::getTargetMinValue)
-                .isNotNull(ChManagePlanItem::getTargetMaxValue)
+                .in(ChManagePlanItem::getPlanId, activePlanIds)
+                .in(ChManagePlanItem::getTargetMetricType,
+                    WarningRuleEngine.getMetricTypeAliases(record.getMetricType()))
+                .eq(ChManagePlanItem::getItemType, "MONITOR")
+                .and(wrapper -> wrapper.isNotNull(ChManagePlanItem::getTargetMinValue)
+                    .or().isNotNull(ChManagePlanItem::getTargetMaxValue))
                 .eq(ChManagePlanItem::getDelFlag, "0")
         );
 
+        BigDecimal value = MetricValueUtils.extractPrimaryValue(record.getMetricValue(), record.getMetricType());
+        if (value == null) {
+            log.warn("方案量化达标判定跳过: 指标值解析失败, patientId={}, metricType={}, metricValue={}",
+                record.getPatientId(), record.getMetricType(), record.getMetricValue());
+            return;
+        }
+
         for (ChManagePlanItem item : matchingItems) {
-            BigDecimal value = MetricValueUtils.extractPrimaryValue(record.getMetricValue(), record.getMetricType());
-            if (value == null) {
-                log.warn("方案量化达标判定跳过: 指标值解析失败, patientId={}, metricType={}, metricValue={}",
-                    record.getPatientId(), record.getMetricType(), record.getMetricValue());
-                continue;
-            }
             BigDecimal min = item.getTargetMinValue();
             BigDecimal max = item.getTargetMaxValue();
 
-            boolean isCompliant = value.compareTo(min) >= 0 && value.compareTo(max) <= 0;
+            boolean isCompliant = (min == null || value.compareTo(min) >= 0)
+                && (max == null || value.compareTo(max) <= 0);
 
             if (!isCompliant) {
-                log.info("方案量化未达标: patientId={}, metricType={}, value={}, target=[{}, {}], planItemId={}",
-                    record.getPatientId(), record.getMetricType(), value, min, max, item.getId());
+                log.info("方案量化未达标: patientId={}, planId={}, metricType={}, value={}, target=[{}, {}], planItemId={}",
+                    record.getPatientId(), item.getPlanId(), record.getMetricType(), value, min, max, item.getId());
                 logAudit("PLAN_NON_COMPLIANT", "METRIC_CHECK",
-                    String.format("未达标: patientId=%d, metricType=%s, value=%s, target=[%s,%s]",
-                        record.getPatientId(), record.getMetricType(), value, min, max));
+                    String.format("方案目标偏离: patientId=%d, planId=%d, metricType=%s, 当前值=%s, 目标区间=[%s,%s]",
+                        record.getPatientId(), item.getPlanId(), record.getMetricType(), value, min, max));
+                // 方案未达标软提醒使用 PLAN 来源，ruleId=0 仅为历史兼容字段。
+                try {
+                    ChWarningEventBo eventBo = new ChWarningEventBo();
+                    eventBo.setPatientId(record.getPatientId());
+                    eventBo.setRuleId(0L);
+                    eventBo.setEventSource("PLAN");
+                    eventBo.setSourceId(item.getId());
+                    eventBo.setPlanId(item.getPlanId());
+                    eventBo.setMetricType(WarningRuleEngine.normalizeMetricType(record.getMetricType()));
+                    ChManagePlan activePlan = activePlans.stream()
+                        .filter(plan -> item.getPlanId().equals(plan.getPlanId()))
+                        .findFirst().orElse(null);
+                    if (activePlan != null) {
+                        eventBo.setOrgId(activePlan.getOrgId());
+                    }
+                    eventBo.setWarningLevel("LOW");
+                    eventBo.setWarningValue(String.format("方案目标偏离: metricType=%s, 当前值=%s, 目标区间=[%s,%s], planId=%d",
+                        record.getMetricType(), value, min, max, item.getPlanId()));
+                    eventBo.setEventStatus("NEW");
+                    if (record.getPatientId() != null) {
+                        ChPatientProfile profile = patientProfileMapper.selectById(record.getPatientId());
+                        if (profile != null && profile.getDoctorUserId() != null) {
+                            eventBo.setAssigneeUserId(profile.getDoctorUserId());
+                        }
+                    }
+                    warningEventService.createEvent(eventBo);
+                    log.info("方案未达标软提醒已创建: patientId={}, planId={}, metricType={}",
+                        record.getPatientId(), item.getPlanId(), record.getMetricType());
+                } catch (Exception e) {
+                    log.warn("方案未达标软提醒创建失败", e);
+                }
             } else {
-                log.debug("方案量化达标: patientId={}, metricType={}, value={}",
-                    record.getPatientId(), record.getMetricType(), value);
+                warningEventService.resolveActiveEvents(record.getPatientId(), "PLAN", item.getId(),
+                    "指标已恢复到管理方案目标范围");
+                log.debug("方案量化达标: patientId={}, planId={}, metricType={}, value={}",
+                    record.getPatientId(), item.getPlanId(), record.getMetricType(), value);
             }
         }
     }

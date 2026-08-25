@@ -32,6 +32,16 @@ public class ChWarningEventVo implements Serializable {
     private Long patientId;
     @Schema(description = "规则ID")
     private Long ruleId;
+    @Schema(description = "事件来源：RULE/PLAN/SOS/SLA/MANUAL")
+    private String eventSource;
+    @Schema(description = "来源业务记录ID")
+    private Long sourceId;
+    @Schema(description = "触发事件的标准指标类型")
+    private String metricType;
+    @Schema(description = "管理方案ID")
+    private Long planId;
+    @Schema(description = "机构ID")
+    private Long orgId;
     @Schema(description = "预警级别")
     private String warningLevel;
     @Schema(description = "预警值（同指标值格式）")
@@ -48,7 +58,7 @@ public class ChWarningEventVo implements Serializable {
     @Schema(description = "处置动作列表")
     private List<ChWarningActionVo> actions;
 
-    @Schema(description = "规则名称（取 ch_warning_rule.description，由 service 层回填）")
+    @Schema(description = "规则名称，方案软提醒显示为管理方案目标偏离")
     private String ruleName;
 
     @Schema(description = "患者姓名")
@@ -65,4 +75,10 @@ public class ChWarningEventVo implements Serializable {
     @Schema(description = "处理人昵称")
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "assigneeUserId")
     private String assigneeNickName;
+
+    @Schema(description = "临床处置建议")
+    private String clinicalAdvice;
+
+    @Schema(description = "要求响应时限（小时）")
+    private Integer responseSlaHours;
 }

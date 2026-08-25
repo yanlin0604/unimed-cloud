@@ -1,15 +1,18 @@
 package org.dromara.chronic.controller.patient;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChSosRecordBo;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
+import org.dromara.chronic.domain.entity.ChDoctorTeamMember;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.vo.ChPatientContractVo;
 import org.dromara.chronic.manager.SosNotificationManager;
+import org.dromara.chronic.mapper.ChDoctorTeamMemberMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.chronic.service.IChSosRecordService;
@@ -42,6 +45,7 @@ public class PatientSosController extends BaseController {
     private final SosNotificationManager sosNotificationManager;
     private final ChPatientProfileMapper patientProfileMapper;
     private final IChPatientContractService patientContractService;
+    private final ChDoctorTeamMemberMapper doctorTeamMemberMapper;
 
     /**
      * SOS一键求助
@@ -73,6 +77,8 @@ public class PatientSosController extends BaseController {
         // 2. 创建 CRITICAL 紧急预警事件并指派责任医生
         ChWarningEventBo eventBo = new ChWarningEventBo();
         eventBo.setPatientId(patientId);
+        eventBo.setEventSource("SOS");
+        eventBo.setSourceId(sosId);
         eventBo.setWarningLevel("CRITICAL");
         eventBo.setEventStatus("NEW");
         eventBo.setWarningValue("SOS一键紧急求助" + (description != null && !description.isBlank() ? ": " + description : ""));
@@ -86,8 +92,15 @@ public class PatientSosController extends BaseController {
         if (assigneeDoctorUserId == null) {
             try {
                 ChPatientContractVo contract = patientContractService.queryCurrentContract(patientId);
-                if (contract != null && contract.getTeamDoctorUserId() != null) {
-                    assigneeDoctorUserId = contract.getTeamDoctorUserId();
+                if (contract != null && contract.getTeamId() != null) {
+                    ChDoctorTeamMember leader = doctorTeamMemberMapper.selectOne(
+                        Wrappers.<ChDoctorTeamMember>lambdaQuery()
+                            .eq(ChDoctorTeamMember::getTeamId, contract.getTeamId())
+                            .eq(ChDoctorTeamMember::getMemberRole, "LEADER")
+                            .last("limit 1"));
+                    if (leader != null) {
+                        assigneeDoctorUserId = leader.getUserId();
+                    }
                 }
             } catch (Exception ignored) {
             }
@@ -101,4 +114,3 @@ public class PatientSosController extends BaseController {
         return R.ok(sosId);
     }
 }
-

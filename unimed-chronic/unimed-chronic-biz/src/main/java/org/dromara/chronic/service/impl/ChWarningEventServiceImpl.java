@@ -25,6 +25,8 @@ import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
@@ -45,6 +47,8 @@ import java.util.stream.Collectors;
 public class ChWarningEventServiceImpl implements IChWarningEventService {
 
     private static final Set<String> VALID_STATUSES = Set.of("NEW", "CONFIRMED", "PROCESSING", "ESCALATED", "RESOLVED", "ARCHIVED");
+    private static final List<String> ACTIVE_STATUSES = List.of("NEW", "CONFIRMED", "PROCESSING", "ESCALATED");
+    private static final long LEGACY_PLAN_RULE_ID = 0L;
 
     private final ChWarningEventMapper eventMapper;
     private final ChWarningActionMapper actionMapper;
@@ -52,25 +56,60 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
     private final ChPatientProfileMapper patientProfileMapper;
 
     /**
-     * 批量回填规则名称：取 ch_warning_rule.rule_name 作为 ruleName
+     * 批量回填事件来源名称和规则处置信息。
      */
-    private void fillRuleName(Collection<ChWarningEventVo> vos) {
+    private void fillRuleDetails(Collection<ChWarningEventVo> vos) {
         if (vos == null || vos.isEmpty()) {
             return;
         }
         Set<Long> ruleIds = vos.stream()
+            .filter(vo -> "RULE".equals(resolveEventSource(vo)))
             .map(ChWarningEventVo::getRuleId)
-            .filter(Objects::nonNull)
+            .filter(ruleId -> ruleId != null && ruleId > 0)
             .collect(Collectors.toSet());
-        if (ruleIds.isEmpty()) {
-            return;
+        Map<Long, ChWarningRule> ruleById = new HashMap<>();
+        if (!ruleIds.isEmpty()) {
+            for (ChWarningRule rule : warningRuleMapper.selectByIds(ruleIds)) {
+                ruleById.put(rule.getRuleId(), rule);
+            }
         }
-        List<ChWarningRule> rules = warningRuleMapper.selectByIds(ruleIds);
-        Map<Long, String> ruleIdToName = new HashMap<>(rules.size());
-        for (ChWarningRule rule : rules) {
-            ruleIdToName.put(rule.getRuleId(), rule.getRuleName());
+        for (ChWarningEventVo vo : vos) {
+            String eventSource = resolveEventSource(vo);
+            vo.setEventSource(eventSource);
+            if ("PLAN".equals(eventSource)) {
+                vo.setRuleName("管理方案目标偏离");
+            } else if ("SOS".equals(eventSource)) {
+                vo.setRuleName("SOS紧急求助");
+            } else if ("SLA".equals(eventSource)) {
+                vo.setRuleName("签约服务SLA提醒");
+            } else if ("MANUAL".equals(eventSource) && (vo.getRuleId() == null || vo.getRuleId() <= 0)) {
+                vo.setRuleName("手动预警");
+            } else {
+                ChWarningRule rule = ruleById.get(vo.getRuleId());
+                if (rule != null) {
+                    vo.setRuleName(StringUtils.isNotBlank(rule.getRuleName()) ? rule.getRuleName() : rule.getDescription());
+                    vo.setClinicalAdvice(rule.getClinicalAdvice());
+                    vo.setResponseSlaHours(rule.getResponseSlaHours());
+                }
+            }
         }
-        vos.forEach(vo -> vo.setRuleName(ruleIdToName.get(vo.getRuleId())));
+    }
+
+    private String resolveEventSource(ChWarningEventVo vo) {
+        if (StringUtils.isNotBlank(vo.getEventSource())) {
+            return vo.getEventSource();
+        }
+        if (Objects.equals(vo.getRuleId(), LEGACY_PLAN_RULE_ID)
+            || (vo.getWarningValue() != null && vo.getWarningValue().startsWith("方案目标偏离"))) {
+            return "PLAN";
+        }
+        if (vo.getWarningValue() != null && vo.getWarningValue().contains("SOS")) {
+            return "SOS";
+        }
+        if ("SLA_VIOLATION".equals(vo.getWarningValue())) {
+            return "SLA";
+        }
+        return vo.getRuleId() != null && vo.getRuleId() > 0 ? "RULE" : "MANUAL";
     }
 
     /**
@@ -93,7 +132,34 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public Long createEvent(ChWarningEventBo bo) {
+        normalizeEventSource(bo);
+        ChPatientProfile profile = bo.getPatientId() == null ? null : patientProfileMapper.selectById(bo.getPatientId());
+        if (profile != null) {
+            if (bo.getAssigneeUserId() == null) {
+                bo.setAssigneeUserId(profile.getDoctorUserId());
+            }
+            if (bo.getOrgId() == null) {
+                bo.setOrgId(profile.getOrgId());
+            }
+        }
+
+        ChWarningEvent activeEvent = findActiveEvent(bo);
+        if (activeEvent != null) {
+            activeEvent.setWarningLevel(bo.getWarningLevel());
+            activeEvent.setWarningValue(bo.getWarningValue());
+            activeEvent.setWarningTime(new Date());
+            activeEvent.setMetricType(bo.getMetricType());
+            activeEvent.setPlanId(bo.getPlanId());
+            activeEvent.setOrgId(bo.getOrgId());
+            if (bo.getAssigneeUserId() != null) {
+                activeEvent.setAssigneeUserId(bo.getAssigneeUserId());
+            }
+            eventMapper.updateById(activeEvent);
+            return activeEvent.getWarningId();
+        }
+
         ChWarningEvent entity = MapstructUtils.convert(bo, ChWarningEvent.class);
         if (entity.getEventStatus() == null) {
             entity.setEventStatus("NEW");
@@ -103,12 +169,48 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         return entity.getWarningId();
     }
 
+    private void normalizeEventSource(ChWarningEventBo bo) {
+        if (StringUtils.isBlank(bo.getEventSource())) {
+            if (Objects.equals(bo.getRuleId(), LEGACY_PLAN_RULE_ID)) {
+                bo.setEventSource("PLAN");
+            } else if (bo.getRuleId() != null && bo.getRuleId() > 0) {
+                bo.setEventSource("RULE");
+            } else {
+                bo.setEventSource("MANUAL");
+            }
+        }
+        bo.setEventSource(bo.getEventSource().trim().toUpperCase());
+        if (bo.getSourceId() == null && "RULE".equals(bo.getEventSource())) {
+            bo.setSourceId(bo.getRuleId());
+        }
+    }
+
+    private ChWarningEvent findActiveEvent(ChWarningEventBo bo) {
+        LambdaQueryWrapper<ChWarningEvent> query = Wrappers.lambdaQuery();
+        query.eq(ChWarningEvent::getPatientId, bo.getPatientId())
+            .eq(ChWarningEvent::getEventSource, bo.getEventSource())
+            .in(ChWarningEvent::getEventStatus, ACTIVE_STATUSES)
+            .eq(ChWarningEvent::getDelFlag, "0")
+            .orderByDesc(ChWarningEvent::getWarningTime)
+            .last("LIMIT 1");
+        if (bo.getSourceId() != null) {
+            query.eq(ChWarningEvent::getSourceId, bo.getSourceId());
+        } else if (bo.getRuleId() != null) {
+            query.eq(ChWarningEvent::getRuleId, bo.getRuleId());
+        } else if (StringUtils.isNotBlank(bo.getMetricType())) {
+            query.eq(ChWarningEvent::getMetricType, bo.getMetricType());
+        } else {
+            return null;
+        }
+        return eventMapper.selectOne(query);
+    }
+
     @Override
     public ChWarningEventVo queryById(Long warningId) {
         ChWarningEventVo vo = eventMapper.selectVoById(warningId);
         if (vo != null) {
             vo.setActions(queryActionsByWarningId(warningId));
-            fillRuleName(List.of(vo));
+            fillRuleDetails(List.of(vo));
             fillPatientName(List.of(vo));
         }
         return vo;
@@ -119,12 +221,17 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
         LambdaQueryWrapper<ChWarningEvent> lqw = Wrappers.lambdaQuery();
         lqw.eq(ObjectUtil.isNotNull(bo.getPatientId()), ChWarningEvent::getPatientId, bo.getPatientId());
         lqw.eq(ObjectUtil.isNotNull(bo.getRuleId()), ChWarningEvent::getRuleId, bo.getRuleId());
+        lqw.eq(StringUtils.isNotBlank(bo.getEventSource()), ChWarningEvent::getEventSource, bo.getEventSource());
+        lqw.eq(ObjectUtil.isNotNull(bo.getSourceId()), ChWarningEvent::getSourceId, bo.getSourceId());
+        lqw.eq(StringUtils.isNotBlank(bo.getMetricType()), ChWarningEvent::getMetricType, bo.getMetricType());
+        lqw.eq(ObjectUtil.isNotNull(bo.getPlanId()), ChWarningEvent::getPlanId, bo.getPlanId());
+        lqw.eq(ObjectUtil.isNotNull(bo.getOrgId()), ChWarningEvent::getOrgId, bo.getOrgId());
         lqw.eq(ObjectUtil.isNotNull(bo.getAssigneeUserId()), ChWarningEvent::getAssigneeUserId, bo.getAssigneeUserId());
         lqw.eq(StringUtils.isNotBlank(bo.getWarningLevel()), ChWarningEvent::getWarningLevel, bo.getWarningLevel());
         lqw.eq(StringUtils.isNotBlank(bo.getEventStatus()), ChWarningEvent::getEventStatus, bo.getEventStatus());
         lqw.orderByDesc(ChWarningEvent::getWarningTime);
         Page<ChWarningEventVo> page = eventMapper.selectVoPage(pageQuery.build(), lqw);
-        fillRuleName(page.getRecords());
+        fillRuleDetails(page.getRecords());
         fillPatientName(page.getRecords());
         return TableDataInfo.build(page);
     }
@@ -139,7 +246,7 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
                 .eq(ChWarningEvent::getAssigneeUserId, assigneeUserId)
                 .notIn(ChWarningEvent::getEventStatus, List.of("RESOLVED", "ARCHIVED"))
                 .orderByDesc(ChWarningEvent::getWarningTime));
-        fillRuleName(list);
+        fillRuleDetails(list);
         fillPatientName(list);
         return list;
     }
@@ -151,8 +258,29 @@ public class ChWarningEventServiceImpl implements IChWarningEventService {
                 .eq(ChWarningEvent::getPatientId, patientId)
                 .orderByDesc(ChWarningEvent::getWarningTime)
         );
-        fillRuleName(list);
+        fillRuleDetails(list);
+        fillPatientName(list);
         return list;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public int resolveActiveEvents(Long patientId, String eventSource, Long sourceId, String detail) {
+        if (patientId == null || StringUtils.isBlank(eventSource) || sourceId == null) {
+            return 0;
+        }
+        List<ChWarningEvent> activeEvents = eventMapper.selectList(
+            Wrappers.<ChWarningEvent>lambdaQuery()
+                .eq(ChWarningEvent::getPatientId, patientId)
+                .eq(ChWarningEvent::getEventSource, eventSource)
+                .eq(ChWarningEvent::getSourceId, sourceId)
+                .in(ChWarningEvent::getEventStatus, ACTIVE_STATUSES)
+        );
+        for (ChWarningEvent activeEvent : activeEvents) {
+            updateStatus(activeEvent.getWarningId(), "RESOLVED", null,
+                StringUtils.isNotBlank(detail) ? detail : "指标已恢复正常，系统自动解决");
+        }
+        return activeEvents.size();
     }
 
     @Override

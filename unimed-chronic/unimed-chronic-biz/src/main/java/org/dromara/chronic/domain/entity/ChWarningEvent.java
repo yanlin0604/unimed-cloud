@@ -28,6 +28,21 @@ public class ChWarningEvent extends TenantEntity {
 
     private Long ruleId;
 
+    /** 事件来源：RULE/PLAN/SOS/SLA/MANUAL。 */
+    private String eventSource;
+
+    /** 来源业务记录ID，例如规则ID、方案子项ID、SOS ID。 */
+    private Long sourceId;
+
+    /** 触发事件的标准指标类型。 */
+    private String metricType;
+
+    /** 方案软提醒关联的管理方案ID。 */
+    private Long planId;
+
+    /** 机构ID。 */
+    private Long orgId;
+
     private String warningLevel;
 
     private String warningValue;

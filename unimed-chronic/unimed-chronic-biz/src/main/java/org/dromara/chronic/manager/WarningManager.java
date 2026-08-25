@@ -5,21 +5,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.chronic.domain.entity.ChHealthMetricRecord;
+import org.dromara.chronic.domain.entity.ChManagePlan;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChSosRecord;
 import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
+import org.dromara.chronic.domain.entity.ChPatientDisease;
+import org.dromara.chronic.mapper.ChManagePlanMapper;
+import org.dromara.chronic.mapper.ChPatientDiseaseMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.mapper.ChSosRecordMapper;
 import org.dromara.chronic.mapper.ChWarningRuleMapper;
 import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.chronic.support.rule.WarningRuleEngine;
+import org.dromara.common.core.utils.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 预警管理器：规则匹配→触发事件→通知→处置→闭环
@@ -36,21 +44,85 @@ public class WarningManager {
     private final ChWarningRuleMapper warningRuleMapper;
     private final ChHealthMetricRecordMapper metricRecordMapper;
     private final ChPatientProfileMapper patientProfileMapper;
+    private final ChPatientDiseaseMapper patientDiseaseMapper;
+    private final ChManagePlanMapper managePlanMapper;
     private final ChSosRecordMapper sosRecordMapper;
 
     /**
-     * 指标上报后检查所有匹配规则，触发预警事件
+     * 指标上报后检查所有匹配规则，触发预警事件（精准按患者专病过滤）
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW,
+        rollbackFor = Exception.class)
     public void checkAndTrigger(ChHealthMetricRecord record) {
-        List<ChWarningRule> rules = warningRuleMapper.selectList(
-            Wrappers.<ChWarningRule>lambdaQuery().eq(ChWarningRule::getDelFlag, "0")
+        if (record == null || record.getPatientId() == null) {
+            return;
+        }
+
+        ChPatientProfile patientProfile = patientProfileMapper.selectById(record.getPatientId());
+        Long patientOrgId = patientProfile == null ? null : patientProfile.getOrgId();
+
+        // 查询患者已确诊/管理的专病编码列表
+        List<ChPatientDisease> patientDiseases = patientDiseaseMapper.selectList(
+            Wrappers.<ChPatientDisease>lambdaQuery()
+                .eq(ChPatientDisease::getPatientId, record.getPatientId())
+                .eq(ChPatientDisease::getEnableStatus, true)
+                .eq(ChPatientDisease::getDelFlag, "0")
         );
+        Set<String> patientDiseaseCodes = patientDiseases.stream()
+            .map(ChPatientDisease::getDiseaseCode)
+            .filter(StringUtils::isNotBlank)
+            .map(this::normalizeDiseaseCode)
+            .collect(Collectors.toSet());
+
+        // 补充：从该患者当前 ACTIVE 的管理方案中获取 diseaseCode（取并集，避免专病未录入时漏匹配）
+        List<ChManagePlan> activePlans = managePlanMapper.selectList(
+            Wrappers.<ChManagePlan>lambdaQuery()
+                .eq(ChManagePlan::getPatientId, record.getPatientId())
+                .eq(ChManagePlan::getPlanStatus, "ACTIVE")
+                .eq(ChManagePlan::getDelFlag, "0")
+        );
+        activePlans.stream()
+            .map(ChManagePlan::getDiseaseCode)
+            .filter(StringUtils::isNotBlank)
+            .map(this::normalizeDiseaseCode)
+            .forEach(patientDiseaseCodes::add);
+
+        var ruleQuery = Wrappers.<ChWarningRule>lambdaQuery()
+            .eq(ChWarningRule::getDelFlag, "0");
+        if (patientOrgId != null) {
+            ruleQuery.and(wrapper -> wrapper.isNull(ChWarningRule::getOrgId)
+                .or()
+                .eq(ChWarningRule::getOrgId, patientOrgId));
+        } else {
+            // 没有机构归属的患者只能命中租户级通用规则，避免跨机构规则泄漏。
+            ruleQuery.isNull(ChWarningRule::getOrgId);
+        }
+        List<ChWarningRule> rules = warningRuleMapper.selectList(ruleQuery);
+
         for (ChWarningRule rule : rules) {
+            // 专病过滤：如果规则限定了专病，且患者未患该病种，则跳过
+            String ruleDisease = normalizeDiseaseCode(rule.getDiseaseCode());
+            if (StringUtils.isNotBlank(ruleDisease) && !"*".equals(ruleDisease) && !"ALL".equals(ruleDisease)) {
+                if (!patientDiseaseCodes.contains(ruleDisease)) {
+                    continue;
+                }
+            }
+
+            if (!WarningRuleEngine.isMetricTypeMatch(rule.getMetricType(), record.getMetricType())) {
+                continue;
+            }
+
             if (ruleEngine.evaluate(rule, record)) {
                 createWarningEvent(record, rule);
+            } else if (!ruleEngine.isCurrentValueAbnormal(rule, record)) {
+                warningEventService.resolveActiveEvents(record.getPatientId(), "RULE", rule.getRuleId(),
+                    "指标已恢复到预警规则正常范围");
             }
         }
+    }
+
+    private String normalizeDiseaseCode(String diseaseCode) {
+        return diseaseCode == null ? null : diseaseCode.trim().toUpperCase(Locale.ROOT);
     }
 
     /**
@@ -126,9 +198,9 @@ public class WarningManager {
                 bo.setAssigneeUserId(profile.getDoctorUserId());
             }
         }
-        warningEventService.createEvent(bo);
+        Long warningId = warningEventService.createEvent(bo);
         log.info("手动触发预警: patientId={}, ruleId={}, level={}, assigneeUserId={}", patientId, ruleId, rule.getWarningLevel(), bo.getAssigneeUserId());
-        return bo.getWarningId();
+        return warningId;
     }
 
     public ChWarningEventVo queryDetail(Long warningId) {
@@ -139,6 +211,9 @@ public class WarningManager {
         ChWarningEventBo bo = new ChWarningEventBo();
         bo.setPatientId(record.getPatientId());
         bo.setRuleId(rule.getRuleId());
+        bo.setEventSource("RULE");
+        bo.setSourceId(rule.getRuleId());
+        bo.setMetricType(WarningRuleEngine.normalizeMetricType(record.getMetricType()));
         bo.setWarningLevel(rule.getWarningLevel());
         bo.setWarningValue(record.getMetricValue());
         bo.setEventStatus("NEW");

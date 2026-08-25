@@ -28,9 +28,23 @@ public class ChWarningEventBo extends BaseEntity {
     @NotNull(message = "患者ID不能为空")
     private Long patientId;
 
-    @Schema(description = "规则ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "规则ID不能为空")
+    @Schema(description = "规则ID，方案软提醒历史兼容值为0，SOS/SLA事件可为空")
     private Long ruleId;
+
+    @Schema(description = "事件来源：RULE/PLAN/SOS/SLA/MANUAL")
+    private String eventSource;
+
+    @Schema(description = "来源业务记录ID")
+    private Long sourceId;
+
+    @Schema(description = "触发事件的标准指标类型")
+    private String metricType;
+
+    @Schema(description = "管理方案ID")
+    private Long planId;
+
+    @Schema(description = "机构ID")
+    private Long orgId;
 
     @Schema(description = "预警级别")
     private String warningLevel;

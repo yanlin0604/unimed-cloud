@@ -7,6 +7,7 @@ import com.aizuda.snailjob.common.log.SnailJobLog;
 import com.aizuda.snailjob.model.dto.ExecuteResult;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.domain.bo.ChWarningEventBo;
 import org.dromara.chronic.domain.entity.ChContractFulfillment;
 import org.dromara.chronic.domain.entity.ChContractServicePackage;
 import org.dromara.chronic.domain.entity.ChPatientContract;
@@ -15,10 +16,10 @@ import org.dromara.chronic.mapper.ChContractFulfillmentMapper;
 import org.dromara.chronic.mapper.ChContractServicePackageMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
 import org.dromara.chronic.mapper.ChWarningEventMapper;
+import org.dromara.chronic.service.IChWarningEventService;
 import org.dromara.common.json.utils.JsonUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,6 +49,7 @@ public class ContractSlaCheckJob {
 
     private final ChPatientContractMapper contractMapper;
     private final ChWarningEventMapper warningEventMapper;
+    private final IChWarningEventService warningEventService;
     private final ChContractServicePackageMapper packageMapper;
     private final ChContractFulfillmentMapper fulfillmentMapper;
 
@@ -64,20 +66,21 @@ public class ContractSlaCheckJob {
         for (ChPatientContract contract : activeContracts) {
             // —— SLA 违约检测 ——
             if (isSlaViolated(contract)) {
-                // R6 AC3: 同一签约不重复生成，用 ruleId 存 contractId 做关联。
-                // 去重条件按 warningValue 而非 warningLevel —— 见下方对 warningLevel 的说明。
+                // R6 AC3: 同一签约的未关闭 SLA 事件不重复生成。
                 Long slaAlertsForContract = warningEventMapper.selectCount(
                     Wrappers.<ChWarningEvent>lambdaQuery()
                         .eq(ChWarningEvent::getPatientId, contract.getPatientId())
-                        .eq(ChWarningEvent::getRuleId, contract.getContractId())
+                        .eq(ChWarningEvent::getEventSource, "SLA")
+                        .eq(ChWarningEvent::getSourceId, contract.getContractId())
                         .eq(ChWarningEvent::getWarningValue, SLA_VIOLATION_FLAG)
-                        .eq(ChWarningEvent::getEventStatus, "NEW")
+                        .notIn(ChWarningEvent::getEventStatus, List.of("RESOLVED", "ARCHIVED"))
                 );
                 if (slaAlertsForContract == 0) {
-                    ChWarningEvent event = new ChWarningEvent();
+                    ChWarningEventBo event = new ChWarningEventBo();
                     event.setPatientId(contract.getPatientId());
-                    // ruleId 复用为 contractId，SLA 事件无预警规则来源
-                    event.setRuleId(contract.getContractId());
+                    event.setRuleId(null);
+                    event.setEventSource("SLA");
+                    event.setSourceId(contract.getContractId());
                     // warningLevel 是**严重程度**字段，值域由字典 chronic_warning_level 约束
                     // （LOW/MEDIUM/HIGH/CRITICAL）。原实现往这里写事件类型 "SLA_VIOLATION"，
                     // 该值不在字典内，会导致前端预警列表的「等级」列因 @Translation 翻译不出而空白。
@@ -86,8 +89,7 @@ public class ContractSlaCheckJob {
                     event.setWarningLevel("MEDIUM");
                     event.setWarningValue(SLA_VIOLATION_FLAG);
                     event.setEventStatus("NEW");
-                    event.setWarningTime(new Date());
-                    warningEventMapper.insert(event);
+                    warningEventService.createEvent(event);
                     violations++;
                 }
             }

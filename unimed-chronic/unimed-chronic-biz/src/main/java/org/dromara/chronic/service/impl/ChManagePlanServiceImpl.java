@@ -14,6 +14,7 @@ import org.dromara.chronic.domain.vo.ChManagePlanVo;
 import org.dromara.chronic.mapper.ChManagePlanItemMapper;
 import org.dromara.chronic.mapper.ChManagePlanMapper;
 import org.dromara.chronic.service.IChManagePlanService;
+import org.dromara.chronic.support.rule.WarningRuleEngine;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -139,6 +140,7 @@ public class ChManagePlanServiceImpl implements IChManagePlanService {
         items.forEach(item -> {
             item.setId(null);
             item.setPlanId(planId);
+            item.setTargetMetricType(WarningRuleEngine.normalizeMetricType(item.getTargetMetricType()));
         });
         managePlanItemMapper.insertBatch(items);
     }

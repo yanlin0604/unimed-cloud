@@ -12,6 +12,7 @@ import org.dromara.chronic.domain.entity.ChWarningRule;
 import org.dromara.chronic.domain.vo.ChWarningRuleVo;
 import org.dromara.chronic.mapper.ChWarningRuleMapper;
 import org.dromara.chronic.service.IChWarningRuleService;
+import org.dromara.chronic.support.rule.WarningRuleEngine;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,7 @@ public class ChWarningRuleServiceImpl implements IChWarningRuleService {
 
     @Override
     public Long add(ChWarningRuleBo bo) {
+        normalizeRule(bo);
         ChWarningRule entity = MapstructUtils.convert(bo, ChWarningRule.class);
         baseMapper.insert(entity);
         return entity.getRuleId();
@@ -49,6 +52,7 @@ public class ChWarningRuleServiceImpl implements IChWarningRuleService {
         if (ObjectUtil.isNull(existing)) {
             throw new ServiceException("预警规则不存在");
         }
+        normalizeRule(bo);
         ChWarningRule entity = MapstructUtils.convert(bo, ChWarningRule.class);
         baseMapper.updateById(entity);
         return null;
@@ -69,10 +73,23 @@ public class ChWarningRuleServiceImpl implements IChWarningRuleService {
         lqw.eq(StringUtils.isNotBlank(bo.getDiseaseCode()), ChWarningRule::getDiseaseCode, bo.getDiseaseCode());
         lqw.eq(StringUtils.isNotBlank(bo.getMetricType()), ChWarningRule::getMetricType, bo.getMetricType());
         lqw.eq(StringUtils.isNotBlank(bo.getWarningLevel()), ChWarningRule::getWarningLevel, bo.getWarningLevel());
+        lqw.eq(ObjectUtil.isNotNull(bo.getOrgId()), ChWarningRule::getOrgId, bo.getOrgId());
         lqw.orderByDesc(ChWarningRule::getCreateTime);
         Page<ChWarningRuleVo> page = baseMapper.selectVoPage(pageQuery.build(), lqw);
         fillWarningRuleNames(page.getRecords());
         return TableDataInfo.build(page);
+    }
+
+    private void normalizeRule(ChWarningRuleBo bo) {
+        bo.setDiseaseCode(bo.getDiseaseCode().trim().toUpperCase(Locale.ROOT));
+        bo.setMetricType(WarningRuleEngine.normalizeMetricType(bo.getMetricType()));
+        bo.setWarningLevel(bo.getWarningLevel().trim().toUpperCase(Locale.ROOT));
+        if (bo.getConsecutiveWindow() == null || bo.getConsecutiveWindow() < 1) {
+            bo.setConsecutiveWindow(1);
+        }
+        if (bo.getThresholdMin() == null && bo.getThresholdMax() == null) {
+            throw new ServiceException("预警阈值下限和上限至少填写一项");
+        }
     }
 
     @Override

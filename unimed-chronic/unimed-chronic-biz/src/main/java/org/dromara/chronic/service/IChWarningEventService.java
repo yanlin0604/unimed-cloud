@@ -25,6 +25,11 @@ public interface IChWarningEventService {
     List<ChWarningEventVo> queryByPatientId(Long patientId);
 
     /**
+     * 将指定来源下仍未解决的事件标记为已解决，供指标恢复和方案目标恢复使用。
+     */
+    int resolveActiveEvents(Long patientId, String eventSource, Long sourceId, String detail);
+
+    /**
      * 查询指派给指定医生的未解决预警（NEW/CONFIRMED/PROCESSING/ESCALATED）
      */
     List<ChWarningEventVo> queryTodoByAssignee(Long assigneeUserId);
