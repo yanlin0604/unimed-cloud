@@ -92,7 +92,7 @@ public class FollowupPlanController extends BaseController {
     @GetMapping("/chronic/admin/followup-plan/page")
     public TableDataInfo<ChFollowupPlanVo> page(@Parameter(description = "患者ID") @RequestParam(required = false) Long patientId,
                                                 @Parameter(description = "病种编码") @RequestParam(required = false) String diseaseCode,
-                                                @Parameter(description = "执行医生用户ID") @RequestParam(required = false) Long assigneeUserId,
+                                                @Parameter(description = "执行人用户ID") @RequestParam(required = false) Long assigneeUserId,
                                                 @Parameter(description = "计划状态") @RequestParam(required = false) String planStatus,
                                                 PageQuery pageQuery) {
         return followupService.queryPlanPage(patientId, diseaseCode, assigneeUserId, planStatus, pageQuery);
@@ -129,7 +129,7 @@ public class FollowupPlanController extends BaseController {
     @SaCheckPermission("chronic:followup-record:list")
     @GetMapping("/chronic/admin/followup-record/page")
     public TableDataInfo<ChFollowupRecordVo> recordPage(@Parameter(description = "患者ID") @RequestParam(required = false) Long patientId,
-                                                        @Parameter(description = "随访方式") @RequestParam(required = false) String visitType,
+                                                        @Parameter(description = "随访方式(ONLINE/OFFLINE/PHONE)") @RequestParam(required = false) String visitType,
                                                         PageQuery pageQuery) {
         return followupService.queryRecordPage(patientId, visitType, pageQuery);
     }

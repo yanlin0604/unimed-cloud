@@ -1935,6 +1935,11 @@ CREATE TABLE `ch_warning_event`  (
   `warning_id` bigint NOT NULL AUTO_INCREMENT COMMENT '预警ID',
   `patient_id` bigint NULL DEFAULT NULL COMMENT '患者ID',
   `rule_id` bigint NULL DEFAULT NULL COMMENT '规则ID',
+  `event_source` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '事件来源(RULE/PLAN/SOS/SLA/MANUAL)',
+  `source_id` bigint NULL DEFAULT NULL COMMENT '来源业务ID',
+  `metric_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '标准指标类型',
+  `plan_id` bigint NULL DEFAULT NULL COMMENT '管理方案ID',
+  `org_id` bigint NULL DEFAULT NULL COMMENT '机构ID',
   `warning_level` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '预警等级',
   `warning_value` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '预警值',
   `warning_time` datetime NULL DEFAULT NULL COMMENT '预警时间',
@@ -1949,6 +1954,7 @@ CREATE TABLE `ch_warning_event`  (
   `del_flag` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '0' COMMENT '删除标志(0存在 1删除)',
   PRIMARY KEY (`warning_id`) USING BTREE,
   INDEX `idx_we_patient_id`(`patient_id` ASC) USING BTREE,
+  INDEX `idx_we_source_active`(`tenant_id` ASC, `patient_id` ASC, `event_source` ASC, `source_id` ASC, `event_status` ASC) USING BTREE,
   INDEX `idx_we_tenant_id`(`tenant_id` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2056276442148249603 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '预警事件表' ROW_FORMAT = Dynamic;
 
