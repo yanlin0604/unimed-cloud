@@ -44,6 +44,12 @@ public class ChFollowupPlanVo implements Serializable {
     private String planStatus;
     @Schema(description = "创建时间")
     private Date createTime;
+    @Schema(description = "管理等级")
+    private String managementLevel;
+    @Schema(description = "是否多病共管")
+    private Boolean isMultiDisease;
+    @Schema(description = "多病共管合并病种(JSON数组)")
+    private String mergedDiseaseCodes;
     @Schema(description = "子项列表")
     private List<ChFollowupPlanItemVo> itemList;
 

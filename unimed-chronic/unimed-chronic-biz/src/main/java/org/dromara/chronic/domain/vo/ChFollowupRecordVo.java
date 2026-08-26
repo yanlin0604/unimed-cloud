@@ -59,6 +59,15 @@ public class ChFollowupRecordVo implements Serializable {
     @Schema(description = "随访回报与健康指导建议")
     private String feedbackAdvice;
 
+    @Schema(description = "控制不满意原因")
+    private String unsatisfiedReason;
+
+    @Schema(description = "药物不良反应描述")
+    private String adrDescription;
+
+    @Schema(description = "是否建议转诊: 0-否 1-是")
+    private Boolean isReferralSuggested;
+
     @Schema(description = "患者姓名")
     private String patientName;
 

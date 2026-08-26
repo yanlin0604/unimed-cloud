@@ -45,6 +45,21 @@ public class ChFollowupRecord extends TenantEntity {
     /** 随访回报与健康指导建议 */
     private String feedbackAdvice;
 
+    /**
+     * 控制不满意原因
+     */
+    private String unsatisfiedReason;
+
+    /**
+     * 药物不良反应描述
+     */
+    private String adrDescription;
+
+    /**
+     * 是否建议转诊: 0-否 1-是
+     */
+    private Boolean isReferralSuggested;
+
     @TableLogic
     private String delFlag;
 }

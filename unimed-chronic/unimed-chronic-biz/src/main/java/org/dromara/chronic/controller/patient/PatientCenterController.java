@@ -34,4 +34,11 @@ public class PatientCenterController extends BaseController {
         Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(patientProfileService.queryDetailById(patientId));
     }
+
+    @Operation(summary = "患者健康动态时间线")
+    @GetMapping("/timeline")
+    public R<java.util.List<org.dromara.chronic.domain.vo.ChPatientTimelineVo>> timeline() {
+        Long patientId = patientContextHelper.getCurrentPatientId();
+        return R.ok(patientProfileService.queryTimelineByPatientId(patientId));
+    }
 }

@@ -40,6 +40,21 @@ public class ChFollowupPlan extends TenantEntity {
     @TableField("status")
     private String planStatus;
 
+    /**
+     * 管理等级: LOW/MEDIUM/HIGH/VERY_HIGH
+     */
+    private String managementLevel;
+
+    /**
+     * 是否多病共管: 0-否 1-是
+     */
+    private Boolean isMultiDisease;
+
+    /**
+     * 多病共管合并病种(JSON数组)
+     */
+    private String mergedDiseaseCodes;
+
     @TableLogic
     private String delFlag;
 }

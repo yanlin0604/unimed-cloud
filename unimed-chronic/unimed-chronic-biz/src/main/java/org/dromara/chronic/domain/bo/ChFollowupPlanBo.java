@@ -51,6 +51,15 @@ public class ChFollowupPlanBo extends BaseEntity {
     @Schema(description = "执行人用户ID（为空时自动进入随访任务池）")
     private Long assigneeUserId;
 
+    @Schema(description = "管理等级: LOW/MEDIUM/HIGH/VERY_HIGH")
+    private String managementLevel;
+
+    @Schema(description = "是否多病共管: 0-否 1-是")
+    private Boolean isMultiDisease;
+
+    @Schema(description = "多病共管合并病种(JSON数组)")
+    private String mergedDiseaseCodes;
+
     @Valid
     @Schema(description = "随访计划项列表", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty(message = "随访计划项列表不能为空")

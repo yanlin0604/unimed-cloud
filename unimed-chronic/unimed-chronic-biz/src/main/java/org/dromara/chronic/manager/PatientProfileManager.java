@@ -43,6 +43,7 @@ public class PatientProfileManager {
     private final ChPatientTagMapper patientTagMapper;
     private final ChPatientTimelineMapper patientTimelineMapper;
     private final ChPatientAccountMapper patientAccountMapper;
+    private final FollowupEnrollmentManager followupEnrollmentManager;
 
     /**
      * 创建患者档案
@@ -81,6 +82,19 @@ public class PatientProfileManager {
                     .eq(ChPatientAccount::getPhone, bo.getPhone())
                     .set(ChPatientAccount::getPatientId, patientId)
             );
+        }
+
+        // 自动入组触发：若建档时已包含确诊慢病，自动触发慢病随访计划生成流水线
+        if (CollUtil.isNotEmpty(diseases)) {
+            for (ChPatientDisease disease : diseases) {
+                if (disease != null && StringUtils.isNotBlank(disease.getDiseaseCode())) {
+                    try {
+                        followupEnrollmentManager.autoEnrollAndGeneratePlan(patientId, disease.getDiseaseCode(), bo.getDoctorUserId());
+                    } catch (Exception e) {
+                        // 自动入组失败不阻断建档主流程
+                    }
+                }
+            }
         }
 
         return patientId;
@@ -157,6 +171,13 @@ public class PatientProfileManager {
         timeline.setEventDetail("新增病种: " + bo.getDiseaseCode() + ", ICD: " + bo.getIcdCode());
         timeline.setEventTime(new Date());
         patientTimelineMapper.insert(timeline);
+
+        // 自动入组触发：绑定新病种后自动生成或合并随访计划
+        try {
+            followupEnrollmentManager.autoEnrollAndGeneratePlan(bo.getPatientId(), bo.getDiseaseCode(), null);
+        } catch (Exception e) {
+            // 自动入组失败不阻断绑定主流程
+        }
 
         return entity.getId();
     }

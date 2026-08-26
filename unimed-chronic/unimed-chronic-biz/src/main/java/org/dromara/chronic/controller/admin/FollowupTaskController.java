@@ -22,8 +22,10 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.web.core.BaseController;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,8 +49,10 @@ public class FollowupTaskController extends BaseController {
                                                 @Parameter(description = "执行人用户ID") @RequestParam(required = false) Long assigneeUserId,
                                                 @Parameter(description = "任务状态") @RequestParam(required = false) String taskStatus,
                                                 @Parameter(description = "随访方式(ONLINE/OFFLINE/PHONE)") @RequestParam(required = false) String visitType,
+                                                @Parameter(description = "计划日期起始(yyyy-MM-dd)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date beginDate,
+                                                @Parameter(description = "计划日期截止(yyyy-MM-dd)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate,
                                                 PageQuery pageQuery) {
-        return followupService.queryTaskPage(patientId, assigneeUserId, taskStatus, visitType, pageQuery);
+        return followupService.queryTaskPage(patientId, assigneeUserId, taskStatus, visitType, beginDate, endDate, pageQuery);
     }
 
     @Operation(summary = "分页查询随访任务池")

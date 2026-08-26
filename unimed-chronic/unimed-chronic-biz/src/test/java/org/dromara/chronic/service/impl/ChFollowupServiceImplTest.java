@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -74,6 +75,7 @@ public class ChFollowupServiceImplTest {
     private HealthMetricManager healthMetricManager;
     private DiseaseNameHelper diseaseNameHelper;
     private FollowupOverdueRefresher overdueRefresher;
+    private org.dromara.chronic.service.IChMessageSessionService messageSessionService;
 
     private ChFollowupServiceImpl service;
 
@@ -103,10 +105,12 @@ public class ChFollowupServiceImplTest {
         healthMetricManager = mock(HealthMetricManager.class);
         diseaseNameHelper = mock(DiseaseNameHelper.class);
         overdueRefresher = mock(FollowupOverdueRefresher.class);
+        messageSessionService = mock(org.dromara.chronic.service.IChMessageSessionService.class);
+        org.dromara.chronic.support.rule.FollowupDynamicAdjuster dynamicAdjuster = mock(org.dromara.chronic.support.rule.FollowupDynamicAdjuster.class);
         service = new ChFollowupServiceImpl(planMapper, planItemMapper, taskMapper, recordMapper,
             questionnaireMapper, answerMapper, patientProfileMapper, patientTimelineMapper,
             healthMetricRecordMapper, medicationRecordMapper, notificationTemplateService,
-            healthMetricManager, diseaseNameHelper, overdueRefresher, new ObjectMapper());
+            healthMetricManager, diseaseNameHelper, overdueRefresher, messageSessionService, dynamicAdjuster, new ObjectMapper());
     }
 
     private ChFollowupTask pendingTask() {
@@ -374,5 +378,145 @@ public class ChFollowupServiceImplTest {
         when(taskMapper.selectById(1L)).thenReturn(task);
 
         assertThrows(ServiceException.class, () -> service.sendTaskRemind(1L, 200L));
+    }
+
+    // ==================== 患者自填待医生评估 (submitSelfFill) ====================
+
+    private ChFollowupTask onlineNormalTask() {
+        ChFollowupTask task = new ChFollowupTask();
+        task.setTaskId(1L);
+        task.setPlanId(10L);
+        task.setPatientId(100L);
+        task.setTaskRound(1);
+        task.setTaskStatus("PENDING");
+        task.setVisitType("ONLINE");
+        task.setTaskType("NORMAL");
+        task.setAssigneeUserId(200L);
+        return task;
+    }
+
+    @Test
+    public void submitSelfFillShouldMarkPatientFilledWithoutRecord() {
+        ChFollowupTask task = onlineNormalTask();
+        when(taskMapper.selectOne(any())).thenReturn(task);
+
+        ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
+        bo.setVisitContent("血压偏高");
+        bo.setVitalSigns(Map.of("systolicBp", 150, "diastolicBp", 95));
+
+        Long ret = service.submitSelfFill(1L, bo, 100L, 300L, "ONLINE");
+        assertEquals(0L, ret);
+        assertEquals("PATIENT_FILLED", task.getTaskStatus());
+        assertNotNull(task.getPatientFillContent());
+        assertNotNull(task.getPatientFillTime());
+        // 患者自填不写完成记录、不触发动态调整
+        verify(recordMapper, never()).insert(any(ChFollowupRecord.class));
+        ArgumentCaptor<ChFollowupTask> captor = ArgumentCaptor.forClass(ChFollowupTask.class);
+        verify(taskMapper).updateById(captor.capture());
+        assertEquals("PATIENT_FILLED", captor.getValue().getTaskStatus());
+    }
+
+    @Test
+    public void submitSelfFillShouldRejectDoctorOwnedTask() {
+        ChFollowupTask task = onlineNormalTask();
+        task.setTaskType("DYNAMIC");
+        task.setVisitType("PHONE");
+        when(taskMapper.selectOne(any())).thenReturn(task);
+
+        ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
+        bo.setVisitContent("x");
+
+        assertThrows(ServiceException.class,
+            () -> service.submitSelfFill(1L, bo, 100L, 300L, "ONLINE"));
+        verify(taskMapper, never()).updateById(any(ChFollowupTask.class));
+    }
+
+    @Test
+    public void submitSelfFillShouldRejectFinishedTask() {
+        ChFollowupTask task = onlineNormalTask();
+        task.setTaskStatus("DONE");
+        when(taskMapper.selectOne(any())).thenReturn(task);
+        ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
+        bo.setVisitContent("x");
+        assertThrows(ServiceException.class,
+            () -> service.submitSelfFill(1L, bo, 100L, 300L, "ONLINE"));
+    }
+
+    @Test
+    public void submitSelfFillShouldRejectOtherPatient() {
+        ChFollowupTask task = onlineNormalTask();
+        when(taskMapper.selectOne(any())).thenReturn(task);
+        ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
+        bo.setVisitContent("x");
+        assertThrows(ServiceException.class,
+            () -> service.submitSelfFill(1L, bo, 999L, 300L, "ONLINE"));
+    }
+
+    /**
+     * 修复验证: 患者可自填所有常规轮次任务(线下门诊前预填/电话回访预填等),
+     * 不再以 visitType==ONLINE 为硬性拦截条件, 仅排除医生专属 taskType。
+     */
+    @Test
+    public void submitSelfFillShouldAllowNormalPhoneAndOfflineTask() {
+        // PHONE 常规任务可自填(电话回访预填)
+        ChFollowupTask phoneTask = onlineNormalTask();
+        phoneTask.setTaskId(2L);
+        phoneTask.setTaskStatus("PENDING");
+        phoneTask.setVisitType("PHONE");
+        phoneTask.setTaskType("NORMAL");
+        when(taskMapper.selectOne(any())).thenReturn(phoneTask);
+
+        ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
+        bo.setVisitContent("电话自填主诉");
+        bo.setVitalSigns(Map.of("systolicBp", 130, "diastolicBp", 85));
+
+        Long ret = service.submitSelfFill(2L, bo, 100L, 300L, "PHONE");
+        assertEquals(0L, ret);
+        assertEquals("PATIENT_FILLED", phoneTask.getTaskStatus());
+        assertNotNull(phoneTask.getPatientFillContent());
+        assertNotNull(phoneTask.getPatientFillTime());
+
+        // OFFLINE 常规任务可自填(门诊就诊前预填)
+        ChFollowupTask offlineTask = onlineNormalTask();
+        offlineTask.setTaskId(3L);
+        offlineTask.setTaskStatus("PENDING");
+        offlineTask.setVisitType("OFFLINE");
+        offlineTask.setTaskType("NORMAL");
+        when(taskMapper.selectOne(any())).thenReturn(offlineTask);
+
+        ChFollowupSubmitBo bo2 = new ChFollowupSubmitBo();
+        bo2.setVisitContent("门诊预填主诉");
+
+        Long ret2 = service.submitSelfFill(3L, bo2, 100L, 300L, "OFFLINE");
+        assertEquals(0L, ret2);
+        assertEquals("PATIENT_FILLED", offlineTask.getTaskStatus());
+    }
+
+    @Test
+    public void completeTaskMergesPatientFillWhenPatientFilled() {
+        ChFollowupTask task = onlineNormalTask();
+        task.setTaskStatus("PATIENT_FILLED");
+        task.setPatientFillContent("{\"summary\":\"患者自填小结\",\"vitalSigns\":{\"systolicBp\":150},\"answers\":[{\"questionId\":\"q1\",\"answerValue\":\"是\"}]}");
+        when(taskMapper.selectOne(any())).thenReturn(task);
+        when(recordMapper.selectOne(any())).thenReturn(null);
+        when(planItemMapper.selectList(any())).thenReturn(Collections.emptyList());
+        ChFollowupPlan plan = new ChFollowupPlan();
+        plan.setPlanId(10L);
+        plan.setPlanStatus("ACTIVE");
+        plan.setCurrentRound(0);
+        when(planMapper.selectById(10L)).thenReturn(plan);
+        when(taskMapper.selectCount(any())).thenReturn(0L);
+
+        ChFollowupSubmitBo bo = new ChFollowupSubmitBo();
+        bo.setVisitContent("医生评估小结");
+        bo.setFollowupResult("UNCONTROLLED");
+        bo.setRehabLevel("FAIR");
+        bo.setVitalSigns(Map.of("diastolicBp", 96));
+
+        service.completeTask(1L, bo, null, 200L, 200L, null);
+
+        assertEquals("DONE", task.getTaskStatus());
+        // 合并后的体征入库
+        verify(healthMetricManager, times(1)).reportAndCheckBatch(any());
     }
 }
