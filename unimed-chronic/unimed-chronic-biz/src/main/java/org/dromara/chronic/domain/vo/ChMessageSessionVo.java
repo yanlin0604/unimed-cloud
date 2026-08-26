@@ -33,6 +33,9 @@ public class ChMessageSessionVo implements Serializable {
     @Schema(description = "会话类型")
     private String sessionType;
 
+    @Schema(description = "关联随访任务ID(TASK_CHAT 会话)")
+    private Long taskId;
+
     @Schema(description = "最后消息时间")
     private Date lastMessageTime;
 

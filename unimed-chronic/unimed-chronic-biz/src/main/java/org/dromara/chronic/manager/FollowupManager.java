@@ -72,4 +72,8 @@ public class FollowupManager {
         return followupService.completeTask(taskId, bo, expectedPatientId, expectedAssigneeUserId,
             visitorUserId, forcedVisitType);
     }
+
+    public Long submitSelfFill(Long taskId, ChFollowupSubmitBo bo, Long patientId, Long accountId, String forcedVisitType) {
+        return followupService.submitSelfFill(taskId, bo, patientId, accountId, forcedVisitType);
+    }
 }

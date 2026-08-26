@@ -10,6 +10,7 @@ import org.dromara.chronic.domain.vo.ChFollowupTaskVo;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public interface IChFollowupService {
     void updateBatchPlanStatus(List<Long> planIds, String planStatus);
 
     TableDataInfo<ChFollowupTaskVo> queryTaskPage(Long patientId, Long assigneeUserId, String taskStatus,
-                                                  String visitType, PageQuery pageQuery);
+                                                  String visitType, Date beginDate, Date endDate, PageQuery pageQuery);
 
     /**
      * 分页查询随访任务池（未分配执行人的待办任务）
@@ -69,8 +70,22 @@ public interface IChFollowupService {
 
     void cancelTask(Long taskId);
 
+    void cancelTask(Long taskId, String cancelReasonCode, String cancelReasonDesc);
+
     Long completeTask(Long taskId, ChFollowupSubmitBo bo, Long expectedPatientId,
                       Long expectedAssigneeUserId, Long visitorUserId, String forcedVisitType);
+
+    /**
+     * 患者自填:仅采集体征/问卷/小结并保存为任务摘录,任务进入 PATIENT_FILLED 待医生评估,不标记完成。
+     *
+     * @param taskId   随访任务ID
+     * @param bo       患者自填提交内容
+     * @param patientId 患者ID(登录上下文取,禁止前端传入)
+     * @param accountId 患者账号ID
+     * @param forcedVisitType 强制随访方式(患者端按任务自身 visitType 提交: ONLINE/OFFLINE/PHONE/VIDEO)
+     * @return 无意义占位返回 0
+     */
+    Long submitSelfFill(Long taskId, ChFollowupSubmitBo bo, Long patientId, Long accountId, String forcedVisitType);
 
     List<ChFollowupRecordVo> queryRecordList(Long patientId);
 

@@ -29,9 +29,14 @@ public class ChMessageSession extends TenantEntity {
     private Long doctorUserId;
 
     /**
-     * 会话类型: DOCTOR_PATIENT/TEAM_PATIENT
+     * 会话类型: DOCTOR_PATIENT/TEAM_PATIENT/TASK_CHAT
      */
     private String sessionType;
+
+    /**
+     * 关联随访任务ID(TASK_CHAT 会话用, 其余类型为空)
+     */
+    private Long taskId;
 
     private Date lastMessageTime;
 

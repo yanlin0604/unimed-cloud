@@ -10,6 +10,7 @@ import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 
 @Schema(description = "消息内容视图对象")
 @Data
@@ -34,11 +35,18 @@ public class ChMessageContentVo implements Serializable {
     @Schema(description = "内容")
     private String content;
 
-    @Schema(description = "文件ID")
+    @Schema(description = "文件ID(图片/语音消息存 OSS 文件ID)")
     private Long fileId;
+
+    @Schema(description = "文件访问地址(IMAGE/VOICE 消息由 fileId 翻译)")
+    @Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "fileId")
+    private String fileUrl;
 
     @Schema(description = "语音时长")
     private Integer voiceDuration;
+
+    @Schema(description = "消息时间")
+    private Date createTime;
 
     @Schema(description = "发送者类型名称")
     @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "senderType", other = ChronicDictTypeConstant.CHRONIC_SENDER_TYPE)

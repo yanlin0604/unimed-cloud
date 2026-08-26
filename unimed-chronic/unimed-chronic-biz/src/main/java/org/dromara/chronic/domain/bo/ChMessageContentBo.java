@@ -21,8 +21,7 @@ public class ChMessageContentBo extends BaseEntity {
     @NotNull(message = "会话ID不能为空")
     private Long sessionId;
 
-    @Schema(description = "发送者类型", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "发送者类型不能为空")
+    @Schema(description = "发送者类型", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String senderType;
 
     @Schema(description = "内容类型", requiredMode = Schema.RequiredMode.REQUIRED)

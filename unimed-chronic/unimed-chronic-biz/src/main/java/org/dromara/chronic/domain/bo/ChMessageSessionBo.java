@@ -29,4 +29,7 @@ public class ChMessageSessionBo extends BaseEntity {
     @Schema(description = "会话类型")
     private String sessionType;
 
+    @Schema(description = "关联随访任务ID(TASK_CHAT 会话)")
+    private Long taskId;
+
 }

@@ -43,6 +43,27 @@ public class ChFollowupTaskVo implements Serializable {
     @Schema(description = "随访方式")
     private String visitType;
 
+    @Schema(description = "任务类型: NORMAL-常规/DYNAMIC-动态调整/REFERRAL_TRACK-转诊追踪/EMERGENCY-预警临时")
+    private String taskType;
+
+    @Schema(description = "任务类型名称")
+    private String taskTypeName;
+
+    @Schema(description = "是否面对面随访")
+    private Boolean isFaceToFace;
+
+    @Schema(description = "取消/失访原因")
+    private String cancelReasonCode;
+
+    @Schema(description = "取消原因补充说明")
+    private String cancelReasonDesc;
+
+    @Schema(description = "患者自填内容(体征/问卷/小结, JSON)")
+    private String patientFillContent;
+
+    @Schema(description = "患者自填提交时间")
+    private Date patientFillTime;
+
     @Schema(description = "患者姓名")
     private String patientName;
 

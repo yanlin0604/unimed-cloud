@@ -15,12 +15,14 @@ import org.dromara.chronic.domain.vo.ChMessageSessionVo;
 import org.dromara.chronic.mapper.ChMessageContentMapper;
 import org.dromara.chronic.mapper.ChMessageSessionMapper;
 import org.dromara.chronic.service.IChMessageSessionService;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -51,6 +53,32 @@ public class ChMessageSessionServiceImpl implements IChMessageSessionService {
             vo.setRecentMessages(queryMessagesBySessionId(sessionId));
         }
         return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long getOrCreateTaskSession(Long patientId, Long doctorUserId, Long taskId) {
+        if (patientId == null || taskId == null) {
+            throw new ServiceException("患者与任务ID不能为空");
+        }
+        ChMessageSession existing = sessionMapper.selectOne(
+            Wrappers.<ChMessageSession>lambdaQuery()
+                .eq(ChMessageSession::getPatientId, patientId)
+                .eq(doctorUserId != null, ChMessageSession::getDoctorUserId, doctorUserId)
+                .eq(ChMessageSession::getTaskId, taskId)
+                .eq(ChMessageSession::getSessionType, "TASK_CHAT")
+                .last("limit 1"));
+        if (existing != null) {
+            return existing.getSessionId();
+        }
+        ChMessageSession session = new ChMessageSession();
+        session.setPatientId(patientId);
+        session.setDoctorUserId(doctorUserId);
+        session.setTaskId(taskId);
+        session.setSessionType("TASK_CHAT");
+        session.setLastMessageTime(new Date());
+        sessionMapper.insert(session);
+        return session.getSessionId();
     }
 
     @Override
@@ -87,11 +115,30 @@ public class ChMessageSessionServiceImpl implements IChMessageSessionService {
 
     @Override
     public List<ChMessageContentVo> queryMessagesBySessionId(Long sessionId) {
+        // 倒序取最新 50 条后反转为正序: 原 orderByAsc + LIMIT 50 取到的是最早 50 条,
+        // 会话超过 50 条后新消息永远查不出来(刷新也无效)
+        List<ChMessageContentVo> list = contentMapper.selectVoList(
+            Wrappers.<ChMessageContent>lambdaQuery()
+                .eq(ChMessageContent::getSessionId, sessionId)
+                .orderByDesc(ChMessageContent::getId)
+                .last("LIMIT 50")
+        );
+        Collections.reverse(list);
+        return list;
+    }
+
+    @Override
+    public List<ChMessageContentVo> queryMessagesBySessionId(Long sessionId, Long sinceId) {
+        if (sinceId == null || sinceId <= 0) {
+            return queryMessagesBySessionId(sessionId);
+        }
+        // 增量拉取: 消息主键为雪花ID(随时间单调递增), 仅返回 sinceId 之后的新消息, 供前端轮询使用
         return contentMapper.selectVoList(
             Wrappers.<ChMessageContent>lambdaQuery()
                 .eq(ChMessageContent::getSessionId, sessionId)
-                .orderByAsc(ChMessageContent::getCreateTime)
-                .last("LIMIT 50")
+                .gt(ChMessageContent::getId, sinceId)
+                .orderByAsc(ChMessageContent::getId)
+                .last("LIMIT 200")
         );
     }
 }

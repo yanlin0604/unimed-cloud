@@ -18,6 +18,7 @@ import org.dromara.chronic.domain.vo.*;
 import org.dromara.chronic.manager.HealthMetricManager;
 import org.dromara.chronic.mapper.*;
 import org.dromara.chronic.service.IChFollowupService;
+import org.dromara.chronic.service.IChMessageSessionService;
 import org.dromara.chronic.service.IChNotificationTemplateService;
 import org.dromara.chronic.support.FollowupOverdueRefresher;
 import org.dromara.common.core.exception.ServiceException;
@@ -58,6 +59,8 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     private final HealthMetricManager healthMetricManager;
     private final DiseaseNameHelper diseaseNameHelper;
     private final FollowupOverdueRefresher overdueRefresher;
+    private final IChMessageSessionService messageSessionService;
+    private final org.dromara.chronic.support.rule.FollowupDynamicAdjuster dynamicAdjuster;
     private final ObjectMapper objectMapper;
 
     @DubboReference(mock = "org.dromara.resource.api.RemoteMessageServiceStub")
@@ -198,6 +201,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     @Override
     public TableDataInfo<ChFollowupTaskVo> queryTaskPage(Long patientId, Long assigneeUserId,
                                                            String taskStatus, String visitType,
+                                                           Date beginDate, Date endDate,
                                                            PageQuery pageQuery) {
         overdueRefresher.refreshIfNeeded();
         Page<ChFollowupTaskVo> page = followupTaskMapper.selectVoPage(
@@ -207,6 +211,8 @@ public class ChFollowupServiceImpl implements IChFollowupService {
                 .eq(ObjectUtil.isNotNull(assigneeUserId), ChFollowupTask::getAssigneeUserId, assigneeUserId)
                 .eq(StringUtils.isNotBlank(taskStatus), ChFollowupTask::getTaskStatus, taskStatus)
                 .eq(StringUtils.isNotBlank(visitType), ChFollowupTask::getVisitType, visitType)
+                .ge(ObjectUtil.isNotNull(beginDate), ChFollowupTask::getPlanDueDate, beginDate)
+                .le(ObjectUtil.isNotNull(endDate), ChFollowupTask::getPlanDueDate, endDate)
                 .orderByAsc(ChFollowupTask::getPlanDueDate));
         fillTaskMetadata(page.getRecords());
         return TableDataInfo.build(page);
@@ -322,6 +328,12 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void cancelTask(Long taskId) {
+        cancelTask(taskId, null, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelTask(Long taskId, String cancelReasonCode, String cancelReasonDesc) {
         ChFollowupTask task = followupTaskMapper.selectById(taskId);
         if (task == null) {
             throw new ServiceException("随访任务不存在");
@@ -333,6 +345,12 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             return;
         }
         task.setTaskStatus("CANCELLED");
+        if (StringUtils.isNotBlank(cancelReasonCode)) {
+            task.setCancelReasonCode(cancelReasonCode);
+        }
+        if (StringUtils.isNotBlank(cancelReasonDesc)) {
+            task.setCancelReasonDesc(cancelReasonDesc);
+        }
         followupTaskMapper.updateById(task);
         refreshPlanCompletion(task.getPlanId());
     }
@@ -367,12 +385,47 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         }
 
         ChFollowupQuestionnaire questionnaire = resolveQuestionnaire(task);
+        // 医生/管理端评估完成时, 合并患者自填(PATIENT_FILLED)的体征/问卷/小结
+        Map<String, Object> patientVital = null;
+        List<ChFollowupAnswerInputBo> patientAnswers = null;
+        String patientSummary = null;
+        if ("PATIENT_FILLED".equals(task.getTaskStatus()) && StringUtils.isNotBlank(task.getPatientFillContent())) {
+            try {
+                JsonNode fillNode = objectMapper.readTree(task.getPatientFillContent());
+                if (fillNode != null && fillNode.isObject()) {
+                    if (fillNode.has("vitalSigns")) {
+                        patientVital = objectMapper.convertValue(fillNode.get("vitalSigns"), Map.class);
+                    }
+                    if (fillNode.has("answers") && fillNode.get("answers").isArray()) {
+                        List<ChFollowupAnswerInputBo> collectedAnswers = new ArrayList<>();
+                        fillNode.get("answers").forEach(en -> {
+                            if (en != null && en.isObject() && en.hasNonNull("questionId")) {
+                                ChFollowupAnswerInputBo ans = new ChFollowupAnswerInputBo();
+                                ans.setQuestionId(en.get("questionId").asText());
+                                ans.setAnswerValue(en.path("answerValue").asText(""));
+                                collectedAnswers.add(ans);
+                            }
+                        });
+                        patientAnswers = collectedAnswers;
+                    }
+                    if (fillNode.has("summary")) {
+                        patientSummary = fillNode.get("summary").asText();
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("解析患者自填内容失败 taskId={}, err={}", taskId, e.getMessage());
+            }
+        }
+
         validateAnswers(bo, questionnaire);
 
         // 1. 结构化随访内容组装
         FollowupContentJson content = new FollowupContentJson();
-        content.setSummary(bo.getVisitContent());
-        content.setVitalSigns(bo.getVitalSigns());
+        // 医生评估若无独立小结, 则回退采用患者自填小结; 若有则以医生为准
+        content.setSummary(StringUtils.isNotBlank(bo.getVisitContent()) ? bo.getVisitContent() : patientSummary);
+        // 体征: 医生评估体征优先, 缺失项用患者自填体征补齐
+        Map<String, Object> mergedVital = mergeVitalSigns(patientVital, bo.getVitalSigns());
+        content.setVitalSigns(mergedVital);
         content.setMedicationStatus(bo.getMedicationStatus());
         content.setAdherence(bo.getAdherence());
         content.setLifestyle(bo.getLifestyle());
@@ -393,6 +446,9 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         record.setFollowupResult(bo.getFollowupResult());
         record.setRehabLevel(bo.getRehabLevel());
         record.setFeedbackAdvice(bo.getFeedbackAdvice());
+        record.setUnsatisfiedReason(bo.getUnsatisfiedReason());
+        record.setAdrDescription(bo.getAdrDescription());
+        record.setIsReferralSuggested(bo.getIsReferralSuggested());
         try {
             record.setVisitContent(objectMapper.writeValueAsString(content));
         } catch (Exception e) {
@@ -400,11 +456,11 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         }
         followupRecordMapper.insert(record);
 
-        // 3. 问卷答案保存
-        saveAnswers(record.getRecordId(), questionnaire, bo.getAnswers());
+        // 3. 问卷答案保存(合并患者自填答案与医生补充答案, 去重保留医生答案优先)
+        saveAnswers(record.getRecordId(), questionnaire, mergeAnswers(patientAnswers, bo.getAnswers()));
 
-        // 4. 自动提取健康体征指标并入库（核心：进入健康数据表，联动预警与达标判定）
-        saveHealthMetricsFromFollowup(task.getPatientId(), bo.getVitalSigns());
+        // 4. 自动提取健康体征指标并入库(合并后的体征) (核心:进入健康数据表,联动预警与达标判定)
+        saveHealthMetricsFromFollowup(task.getPatientId(), mergedVital);
 
         // 5. 沉淀用药与康复病情到时间线
         recordPatientTimeline(task.getPatientId(), bo);
@@ -413,7 +469,94 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         task.setTaskStatus("DONE");
         followupTaskMapper.updateById(task);
         updatePlanProgress(task);
+
+        // 7. 动态调整状态机评估（控制不满意14天核查、连续不满意/转诊跟踪）
+        if (dynamicAdjuster != null) {
+            try {
+                dynamicAdjuster.evaluateAndAdjust(task, record, bo);
+            } catch (Exception e) {
+                log.warn("随访动态调整评估失败 taskId={}, err={}", taskId, e.getMessage());
+            }
+        }
+
         return record.getRecordId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long submitSelfFill(Long taskId, ChFollowupSubmitBo bo, Long patientId, Long accountId, String forcedVisitType) {
+        ChFollowupTask task = followupTaskMapper.selectOne(
+            Wrappers.<ChFollowupTask>lambdaQuery()
+                .eq(ChFollowupTask::getTaskId, taskId)
+                .last("for update"));
+        if (task == null) {
+            throw new ServiceException("随访任务不存在");
+        }
+        if (patientId != null && !patientId.equals(task.getPatientId())) {
+            throw new ServiceException("无权操作该患者随访任务");
+        }
+        if (Set.of("DONE", "CANCELLED", "PATIENT_FILLED").contains(task.getTaskStatus())) {
+            throw new ServiceException("该任务当前状态不可自填");
+        }
+        // 患者可自填所有常规轮次任务(ONLINE/OFFLINE/PHONE/VIDEO),用于线下门诊前预填、电话/视频回访预填及线上自填;
+        // 仅排除动态调整/转诊追踪/预警临时等医生专属任务类型,不开放患者自填。
+        if (!"NORMAL".equals(task.getTaskType())) {
+            throw new ServiceException("该任务需由医生执行,不可自填");
+        }
+
+        Map<String, Object> fill = new HashMap<>();
+        fill.put("summary", bo.getVisitContent());
+        fill.put("vitalSigns", bo.getVitalSigns());
+        fill.put("questionnaireId", bo.getQuestionnaireId());
+        fill.put("answers", bo.getAnswers());
+        try {
+            task.setPatientFillContent(objectMapper.writeValueAsString(fill));
+        } catch (Exception e) {
+            throw new ServiceException("患者自填内容格式化失败");
+        }
+        task.setPatientFillTime(new Date());
+        task.setTaskStatus("PATIENT_FILLED");
+        followupTaskMapper.updateById(task);
+        return 0L;
+    }
+
+    /**
+     * 合并体征: 医生评估体征优先, 患者自填体征补缺。二者均为空则返回空 Map。
+     */
+    private Map<String, Object> mergeVitalSigns(Map<String, Object> patientVital, Map<String, Object> doctorVital) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        if (CollUtil.isNotEmpty(patientVital)) {
+            result.putAll(patientVital);
+        }
+        if (CollUtil.isNotEmpty(doctorVital)) {
+            result.putAll(doctorVital);
+        }
+        return result;
+    }
+
+    /**
+     * 合并问卷答案: 医生答案优先, 患者答案补存未覆盖题目; 按 questionId 去重。
+     */
+    private List<ChFollowupAnswerInputBo> mergeAnswers(List<ChFollowupAnswerInputBo> patientAnswers,
+                                                      List<ChFollowupAnswerInputBo> doctorAnswers) {
+        if (CollUtil.isEmpty(patientAnswers)) {
+            return doctorAnswers;
+        }
+        if (CollUtil.isEmpty(doctorAnswers)) {
+            return patientAnswers;
+        }
+        Map<String, ChFollowupAnswerInputBo> map = new LinkedHashMap<>();
+        for (ChFollowupAnswerInputBo a : patientAnswers) {
+            if (a.getQuestionId() != null) {
+                map.put(a.getQuestionId(), a);
+            }
+        }
+        for (ChFollowupAnswerInputBo a : doctorAnswers) {
+            if (a.getQuestionId() != null) {
+                map.put(a.getQuestionId(), a);
+            }
+        }
+        return new ArrayList<>(map.values());
     }
 
     /**
@@ -626,7 +769,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
                 .eq(ChFollowupTask::getAssigneeUserId, assigneeUserId)
                 .eq(StringUtils.isNotBlank(taskStatus), ChFollowupTask::getTaskStatus, taskStatus)
                 .in(StringUtils.isBlank(taskStatus), ChFollowupTask::getTaskStatus,
-                    List.of("PENDING", "REMINDING", "OVERDUE"))
+                    List.of("PENDING", "REMINDING", "OVERDUE", "PATIENT_FILLED"))
                 .orderByAsc(ChFollowupTask::getPlanDueDate));
         fillTaskMetadata(list);
         return list;
@@ -758,6 +901,9 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setTaskRound(round);
             task.setPlanDueDate(calendar.getTime());
             task.setTaskStatus("PENDING");
+            task.setTaskType("NORMAL");
+            boolean faceToFace = "OFFLINE".equalsIgnoreCase(visitItem.getVisitType()) || round == 1 || round == 3;
+            task.setIsFaceToFace(faceToFace);
             task.setVisitType(visitItem.getVisitType());
             task.setAssigneeUserId(plan.getAssigneeUserId()); // 可为 null 进入任务池
             followupTaskMapper.insert(task);
@@ -802,6 +948,8 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setTaskRound(round);
             task.setPlanDueDate(calculateDueDate(firstDueDate, plan.getCycleDays(), round));
             task.setTaskStatus("PENDING");
+            task.setTaskType("NORMAL");
+            task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(visitItem.getVisitType()) || round == 1 || round == 3);
             task.setVisitType(visitItem.getVisitType());
             task.setAssigneeUserId(plan.getAssigneeUserId());
             followupTaskMapper.insert(task);
@@ -928,7 +1076,10 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     private void updatePlanProgress(ChFollowupTask task) {
         ChFollowupPlan plan = followupPlanMapper.selectById(task.getPlanId());
         if (plan == null) return;
-        plan.setCurrentRound(Math.max(ObjectUtil.defaultIfNull(plan.getCurrentRound(), 0), task.getTaskRound()));
+        // 紧急/动态等计划外任务 taskRound 为空, 不参与轮次推进(直接取 max 会在拆箱时 NPE)
+        if (task.getTaskRound() != null) {
+            plan.setCurrentRound(Math.max(ObjectUtil.defaultIfNull(plan.getCurrentRound(), 0), task.getTaskRound()));
+        }
         if (countUnfinishedTasks(task.getPlanId()) == 0) plan.setPlanStatus("COMPLETED");
         followupPlanMapper.updateById(plan);
     }
@@ -943,9 +1094,13 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     }
 
     private long countUnfinishedTasks(Long planId) {
+        // 仅统计计划内常规轮次任务: 紧急/动态/转诊跟踪属计划外临时任务, 否则一条挂着的预警任务
+        // 会让计划永远收敛不到 COMPLETED
         return followupTaskMapper.selectCount(
             Wrappers.<ChFollowupTask>lambdaQuery().eq(ChFollowupTask::getPlanId, planId)
-                .notIn(ChFollowupTask::getTaskStatus, List.of("DONE", "CANCELLED")));
+                .notIn(ChFollowupTask::getTaskStatus, List.of("DONE", "CANCELLED"))
+                .and(w -> w.isNull(ChFollowupTask::getTaskType)
+                    .or().notIn(ChFollowupTask::getTaskType, List.of("EMERGENCY", "DYNAMIC", "REFERRAL_TRACK"))));
     }
 
     private void fillTaskMetadata(List<ChFollowupTaskVo> tasks) {
@@ -988,6 +1143,41 @@ public class ChFollowupServiceImpl implements IChFollowupService {
                 }
             });
         }
+
+        // 填充随访方式名称与状态中文名称
+        Map<String, String> visitTypeMap = Map.of(
+            "ONLINE", "线上随访",
+            "OFFLINE", "线下随访",
+            "PHONE", "电话随访",
+            "VIDEO", "视频随访",
+            "SELF_FILL", "患者自填",
+            "ADMIN_PROXY", "医护代填"
+        );
+        Map<String, String> statusMap = Map.of(
+            "PENDING", "待执行",
+            "REMINDING", "提醒中",
+            "DONE", "已完成",
+            "OVERDUE", "已逾期",
+            "CANCELLED", "已取消",
+            "PATIENT_FILLED", "已自填待评估"
+        );
+        Map<String, String> taskTypeMap = Map.of(
+            "NORMAL", "常规随访",
+            "DYNAMIC", "动态调整随访",
+            "REFERRAL_TRACK", "转诊跟踪随访",
+            "EMERGENCY", "预警临时随访"
+        );
+        tasks.forEach(task -> {
+            if (StringUtils.isBlank(task.getVisitTypeName()) && StringUtils.isNotBlank(task.getVisitType())) {
+                task.setVisitTypeName(visitTypeMap.getOrDefault(task.getVisitType(), task.getVisitType()));
+            }
+            if (StringUtils.isBlank(task.getTaskStatusName()) && StringUtils.isNotBlank(task.getTaskStatus())) {
+                task.setTaskStatusName(statusMap.getOrDefault(task.getTaskStatus(), task.getTaskStatus()));
+            }
+            if (StringUtils.isBlank(task.getTaskTypeName()) && StringUtils.isNotBlank(task.getTaskType())) {
+                task.setTaskTypeName(taskTypeMap.getOrDefault(task.getTaskType(), task.getTaskType()));
+            }
+        });
     }
 
     private void fillRecordDetails(List<ChFollowupRecordVo> records) {
@@ -1100,10 +1290,42 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             }
         }
 
-        // 5. 更新任务状态为 REMINDING（若原为 PENDING）
+        // 5. 沉淀至患者时间线与动态记录
+        if (patientTimelineMapper != null && task.getPatientId() != null) {
+            try {
+                ChPatientTimeline timeline = new ChPatientTimeline();
+                timeline.setPatientId(task.getPatientId());
+                timeline.setEventType("FOLLOWUP_REMIND");
+                timeline.setEventTitle("随访提醒通知");
+                timeline.setEventDetail(String.format("您的慢病管理团队向您发送了第%s轮随访提醒（到期日：%s），请按期通过小程序完成随访自填或配合医护随访。",
+                    task.getTaskRound() != null ? task.getTaskRound() : "1", dueDateStr));
+                timeline.setEventTime(new Date());
+                timeline.setTenantId(task.getTenantId());
+                patientTimelineMapper.insert(timeline);
+            } catch (Exception e) {
+                log.warn("向患者时间线沉淀随访提醒事件失败: taskId={}, err={}", taskId, e.getMessage());
+            }
+        }
+
+        // 6. 更新任务状态为 REMINDING（若原为 PENDING）
         if ("PENDING".equals(task.getTaskStatus())) {
             task.setTaskStatus("REMINDING");
             followupTaskMapper.updateById(task);
+        }
+
+        // 7. 同步写入基于任务的医患会话(TASK_CHAT): 测试/未接入短信通道时, 患者打开"与医生沟通"
+        //    即可看到提醒内容, 避免医生点提醒后患者端无任何可见反馈
+        try {
+            Long sessionId = messageSessionService.getOrCreateTaskSession(
+                task.getPatientId(), task.getAssigneeUserId(), taskId);
+            ChMessageContentBo chatMsg = new ChMessageContentBo();
+            chatMsg.setSessionId(sessionId);
+            chatMsg.setSenderType("DOCTOR");
+            chatMsg.setContentType("TEXT");
+            chatMsg.setContent(message);
+            messageSessionService.sendMessage(chatMsg);
+        } catch (Exception e) {
+            log.warn("随访提醒写入任务会话失败: taskId={}, err={}", taskId, e.getMessage());
         }
     }
 
