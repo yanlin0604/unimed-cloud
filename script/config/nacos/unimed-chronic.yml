@@ -46,3 +46,20 @@ chronic:
     token-header-name: X-Chronic-Api-Token
     check-allowed-endpoints: true
     rate-limit: 0
+
+# SnailJob 客户端配置
+snail-job:
+  enabled: true
+  # 执行组名称，与 SnailJob 控制台中的组名一致
+  group: "unimed_group"
+  # SnailJob 接入验证令牌
+  token: "SJ_cKqBTPzCsWA3VyuCfFoccmuIEGXjr5KT"
+  server:
+    # 从 Nacos 获取服务端地址
+    server-name: unimed-snailjob-server
+    host: 127.0.0.1
+    port: 17888
+  # 命名空间绑定
+  namespace: ${spring.profiles.active}
+  # 客户端通信端口（默认 2 + 业务端口，即 29208）
+  port: 2${server.port}

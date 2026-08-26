@@ -13,9 +13,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SecurityConfig {
 
-    @Value("${spring.cloud.nacos.discovery.metadata.username}")
+    @Value("${spring.cloud.nacos.discovery.metadata.username:unimed}")
     private String username;
-    @Value("${spring.cloud.nacos.discovery.metadata.userpassword}")
+    @Value("${spring.cloud.nacos.discovery.metadata.userpassword:123456}")
     private String password;
 
     @Bean

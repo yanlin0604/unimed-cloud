@@ -8,6 +8,8 @@ spring:
     name: unimed-snailjob-server
   profiles:
     active: @profiles.active@
+  mvc:
+    static-path-pattern: /**
   web:
     resources:
       static-locations: classpath:admin/
@@ -56,5 +58,6 @@ spring:
         namespace: ${spring.profiles.active}
   config:
     import:
+      - optional:nacos:application-common.yml
       - optional:nacos:datasource.yml
-      - optional:nacos:${spring.application.name}.yml
+      - optional:nacos:unimed-snailjob-server.yml

@@ -195,6 +195,12 @@ mybatis-plus:
   mapperLocations: classpath*:mapper/**/*Mapper.xml
   # 实体扫描，多个package用逗号或者分号分隔
   typeAliasesPackage: org.dromara.**.domain
+  configuration:
+    # 当一行记录的所有映射列都为 NULL 时返回实体实例而非 null。
+    # 关闭时(MyBatis 默认): 若查询用 .select() 只投影了可空列(如仅 select 某个枚举字符串列),
+    # 该列为 NULL 的行会在 selectList 结果中变成 null 元素, 后续 .map(实体::getXxx) 直接 NPE;
+    # selectOne 同理返回 null, 链式取值即 NPE。开启后统一返回空实体, 从根上消除该类隐患。
+    return-instance-for-empty-row: true
   global-config:
     dbConfig:
       # 主键类型

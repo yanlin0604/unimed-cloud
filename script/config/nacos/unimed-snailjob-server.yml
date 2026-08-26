@@ -13,6 +13,11 @@ spring:
       idle-timeout: 600000
       max-lifetime: 900000
       keepaliveTime: 30000
+  mvc:
+    static-path-pattern: /**
+  web:
+    resources:
+      static-locations: classpath:admin/
   cloud:
     nacos:
       discovery:
