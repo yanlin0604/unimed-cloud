@@ -77,11 +77,12 @@ public class SysDictDataServiceImpl implements ISysDictDataService {
      */
     @Override
     public String selectDictLabel(String dictType, String dictValue) {
-        return baseMapper.selectOne(new LambdaQueryWrapper<SysDictData>()
-                .select(SysDictData::getDictLabel)
-                .eq(SysDictData::getDictType, dictType)
-                .eq(SysDictData::getDictValue, dictValue))
-            .getDictLabel();
+        // 投影列仅含可空的 dict_label, 命中行该列为 NULL 或未命中任何行时 selectOne 均返回 null, 需兜底避免 NPE
+        SysDictData dictData = baseMapper.selectOne(new LambdaQueryWrapper<SysDictData>()
+            .select(SysDictData::getDictLabel)
+            .eq(SysDictData::getDictType, dictType)
+            .eq(SysDictData::getDictValue, dictValue));
+        return dictData == null ? StringUtils.EMPTY : StringUtils.defaultString(dictData.getDictLabel());
     }
 
     /**

@@ -10,8 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.chronic.domain.entity.ChFollowupTask;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
+import org.dromara.chronic.domain.entity.ChPatientTimeline;
 import org.dromara.chronic.mapper.ChFollowupTaskMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
+import org.dromara.chronic.mapper.ChPatientTimelineMapper;
 import org.dromara.chronic.service.IChNotificationTemplateService;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.resource.api.RemoteMessageService;
@@ -43,6 +45,7 @@ public class FollowupRemindJob {
 
     private final ChFollowupTaskMapper followupTaskMapper;
     private final ChPatientProfileMapper patientProfileMapper;
+    private final ChPatientTimelineMapper patientTimelineMapper;
     private final IChNotificationTemplateService notificationTemplateService;
     @DubboReference(mock = "org.dromara.resource.api.RemoteMessageServiceStub")
     private RemoteMessageService remoteMessageService;
@@ -128,19 +131,35 @@ public class FollowupRemindJob {
             }
         }
 
-        // 2. 向患者推送随访短信提醒
-        if (task.getPatientId() != null && patientProfileMapper != null && remoteSmsService != null) {
-            try {
-                ChPatientProfile patient = patientProfileMapper.selectById(task.getPatientId());
-                if (patient != null && StringUtils.isNotBlank(patient.getPhone())) {
-                    String patientMsg = String.format("【慢病管理】尊敬的%s，您有一条随访任务即将于%s到期，请做好准备或通过小程序线上完成自填。",
-                        patient.getName() != null ? patient.getName() : "患者",
-                        task.getPlanDueDate() != null ? task.getPlanDueDate() : "近期");
-                    remoteSmsService.sendMessageAsync(patient.getPhone(), patientMsg);
+        // 2. 向患者推送随访短信提醒并记录到时间线
+        if (task.getPatientId() != null) {
+            String dueDateStr = task.getPlanDueDate() != null ? String.valueOf(task.getPlanDueDate()) : "近期";
+            String patientMsg = message;
+            if (patientProfileMapper != null) {
+                try {
+                    ChPatientProfile patient = patientProfileMapper.selectById(task.getPatientId());
+                    if (patient != null && StringUtils.isNotBlank(patient.getPhone()) && remoteSmsService != null) {
+                        remoteSmsService.sendMessageAsync(patient.getPhone(), patientMsg);
+                    }
+                } catch (Exception e) {
+                    log.warn("随访提醒向患者推送短信失败 patientId={} taskId={} msg={}",
+                        task.getPatientId(), task.getTaskId(), e.getMessage());
                 }
-            } catch (Exception e) {
-                log.warn("随访提醒向患者推送短信失败 patientId={} taskId={} msg={}",
-                    task.getPatientId(), task.getTaskId(), e.getMessage());
+            }
+            if (patientTimelineMapper != null) {
+                try {
+                    ChPatientTimeline timeline = new ChPatientTimeline();
+                    timeline.setPatientId(task.getPatientId());
+                    timeline.setEventType("FOLLOWUP_REMIND");
+                    timeline.setEventTitle("随访提醒通知");
+                    timeline.setEventDetail(String.format("您的慢病管理团队向您发送了第%s轮随访提醒（到期日：%s），请按期自填完成随访。",
+                        task.getTaskRound() != null ? task.getTaskRound() : "1", dueDateStr));
+                    timeline.setEventTime(new Date());
+                    timeline.setTenantId(task.getTenantId());
+                    patientTimelineMapper.insert(timeline);
+                } catch (Exception e) {
+                    log.warn("随访提醒记录患者时间线失败 patientId={} taskId={}", task.getPatientId(), task.getTaskId());
+                }
             }
         }
     }

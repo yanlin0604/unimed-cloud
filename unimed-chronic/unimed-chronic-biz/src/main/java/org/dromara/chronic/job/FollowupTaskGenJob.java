@@ -58,6 +58,13 @@ public class FollowupTaskGenJob {
                 task.setTaskRound(round);
                 task.setTaskStatus("PENDING");
                 task.setPlanDueDate(computeDueDate(plan, round));
+                task.setAssigneeUserId(plan.getAssigneeUserId());
+                task.setTaskType("NORMAL");
+                task.setIsFaceToFace(Boolean.FALSE);
+                task.setTenantId(plan.getTenantId() != null ? plan.getTenantId() : "000000");
+                task.setCreateDept(plan.getCreateDept());
+                task.setCreateTime(new Date());
+                task.setDelFlag("0");
                 followupTaskMapper.insert(task);
                 generated++;
             }

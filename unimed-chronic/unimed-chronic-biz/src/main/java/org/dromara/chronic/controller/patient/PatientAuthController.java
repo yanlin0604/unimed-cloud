@@ -72,11 +72,11 @@ public class PatientAuthController extends BaseController {
      */
     @Operation(summary = "发送短信验证码")
     @GetMapping("/chronic/patient/auth/sms/send")
-    public R<Boolean> sendSmsCode(@Parameter(description = "手机号") @RequestParam String phone) {
+    public R<String> sendSmsCode(@Parameter(description = "手机号") @RequestParam String phone) {
         String code = String.format("%06d", RANDOM.nextInt(1000000));
         RedisUtils.setCacheObject(SMS_CODE_KEY + phone, code, Duration.ofMinutes(5));
         log.info("【慢病管理-短信验证码】手机号: {}，验证码: {}（5分钟内有效）", phone, code);
-        return R.ok(true);
+        return R.ok("验证码已发送", code);
     }
 
     /**
