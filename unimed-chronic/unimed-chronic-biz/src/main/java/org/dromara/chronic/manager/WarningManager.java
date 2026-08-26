@@ -9,6 +9,8 @@ import org.dromara.chronic.domain.entity.ChManagePlan;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.entity.ChSosRecord;
 import org.dromara.chronic.domain.entity.ChWarningRule;
+import org.dromara.chronic.domain.entity.ChFollowupPlan;
+import org.dromara.chronic.domain.entity.ChFollowupTask;
 import org.dromara.chronic.domain.vo.ChWarningEventVo;
 import org.dromara.chronic.mapper.ChHealthMetricRecordMapper;
 import org.dromara.chronic.domain.entity.ChPatientDisease;
@@ -47,6 +49,8 @@ public class WarningManager {
     private final ChPatientDiseaseMapper patientDiseaseMapper;
     private final ChManagePlanMapper managePlanMapper;
     private final ChSosRecordMapper sosRecordMapper;
+    private final org.dromara.chronic.mapper.ChFollowupTaskMapper followupTaskMapper;
+    private final org.dromara.chronic.mapper.ChFollowupPlanMapper followupPlanMapper;
 
     /**
      * 指标上报后检查所有匹配规则，触发预警事件（精准按患者专病过滤）
@@ -226,5 +230,65 @@ public class WarningManager {
         warningEventService.createEvent(bo);
         log.info("预警触发: patientId={}, metricType={}, level={}, assigneeUserId={}",
             record.getPatientId(), record.getMetricType(), rule.getWarningLevel(), bo.getAssigneeUserId());
+
+        // 远程监测预警联动：二级及以上严重预警（HIGH/VERY_HIGH）自动插入临时紧急随访干预任务。
+        // 仅适用于患者自测/设备/OCR 等"尚无医生介入"的数据来源；随访现场由医生当面测量并已给出
+        // 临床结论的指标不在此列（该场景的后续任务由 FollowupDynamicAdjuster 依医生结论决定），
+        // 否则会出现"医生刚提交随访 → 系统给同一个医生派一条电话干预任务"的自触发闭环。
+        if (Set.of("HIGH", "VERY_HIGH").contains(rule.getWarningLevel())) {
+            if ("FOLLOWUP".equals(record.getMeasureScene())) {
+                log.info("随访现场指标已由医生当面处置, 跳过紧急干预任务生成: patientId={}, metricType={}",
+                    record.getPatientId(), record.getMetricType());
+            } else {
+                createEmergencyFollowupTask(record, rule, bo.getAssigneeUserId());
+            }
+        }
+    }
+
+    /**
+     * 该患者是否已存在未完结的紧急干预随访任务。
+     * 预警事件本身会按活跃事件去重（见 ChWarningEventServiceImpl.createEvent），但紧急任务此前是裸 insert，
+     * 导致同一个未处理预警每上报一次指标就多一条待办，医生待办被雪崩式污染。
+     */
+    private boolean hasOpenEmergencyTask(Long patientId) {
+        return followupTaskMapper.exists(
+            Wrappers.<ChFollowupTask>lambdaQuery()
+                .eq(ChFollowupTask::getPatientId, patientId)
+                .eq(ChFollowupTask::getTaskType, "EMERGENCY")
+                .notIn(ChFollowupTask::getTaskStatus, List.of("DONE", "CANCELLED")));
+    }
+
+    private void createEmergencyFollowupTask(ChHealthMetricRecord record, ChWarningRule rule, Long assigneeUserId) {
+        if (followupTaskMapper == null || record.getPatientId() == null) return;
+        try {
+            if (hasOpenEmergencyTask(record.getPatientId())) {
+                log.info("已存在未完结的紧急干预随访任务, 跳过重复生成: patientId={}", record.getPatientId());
+                return;
+            }
+            ChFollowupPlan plan = followupPlanMapper != null ? followupPlanMapper.selectOne(
+                Wrappers.<ChFollowupPlan>lambdaQuery()
+                    .eq(ChFollowupPlan::getPatientId, record.getPatientId())
+                    .eq(ChFollowupPlan::getPlanStatus, "ACTIVE")
+                    .orderByDesc(ChFollowupPlan::getCreateTime)
+                    .last("limit 1")
+            ) : null;
+            ChFollowupTask task = new ChFollowupTask();
+            task.setPatientId(record.getPatientId());
+            task.setPlanId(plan != null ? plan.getPlanId() : null);
+            // 紧急任务不属于计划轮次: 此前恒置 1 会与计划内 round1 撞键(污染 FollowupTaskGenJob 的
+            // planId+round 去重, 且前端把它显示成"第 1 轮"), 故留空
+            task.setTaskRound(null);
+            task.setTaskType("EMERGENCY");
+            task.setVisitType("PHONE");
+            task.setIsFaceToFace(false);
+            task.setPlanDueDate(new Date());
+            task.setTaskStatus("PENDING");
+            task.setAssigneeUserId(assigneeUserId);
+            followupTaskMapper.insert(task);
+            log.info("预警联动: 已自动生成紧急干预随访任务 taskId={}, patientId={}, warningLevel={}",
+                task.getTaskId(), record.getPatientId(), rule.getWarningLevel());
+        } catch (Exception e) {
+            log.warn("预警联动生成紧急随访任务失败 patientId={}, err={}", record.getPatientId(), e.getMessage());
+        }
     }
 }

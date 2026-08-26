@@ -4,8 +4,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.chronic.domain.entity.ChDoctorTeam;
+import org.dromara.chronic.domain.entity.ChFollowupPlan;
+import org.dromara.chronic.domain.entity.ChFollowupTask;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.mapper.ChDoctorTeamMapper;
+import org.dromara.chronic.mapper.ChFollowupPlanMapper;
+import org.dromara.chronic.mapper.ChFollowupTaskMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.satoken.utils.LoginHelper;
@@ -21,9 +25,10 @@ import java.util.Collection;
  * 「是不是医生」，<b>不提供任何水平隔离</b>。医生端凡是吃路径参数 id 的端点，
  * 都必须显式校验目标数据是否属于当前登录医生，否则可通过枚举 id 越权读写他人患者数据。
  * <p>
- * 归属语义沿用 {@code DoctorPatientController.page} 既有的正确定义：
- * 医生的患者 = {@code ch_patient_profile.doctor_user_id} 等于当前登录用户。
- * 该定义是唯一权威来源，不要在别处另立一套。
+ * 归属语义：
+ * 1. 患者档案的主管/责任医生 (ch_patient_profile.doctor_user_id)；
+ * 2. 随访任务执行人/认领人 (ch_followup_task.assignee_user_id)；
+ * 3. 随访计划责任人 (ch_followup_plan.assignee_user_id)。
  *
  * @author unimed
  */
@@ -34,6 +39,8 @@ public class DoctorScopeGuard {
 
     private final ChPatientProfileMapper patientProfileMapper;
     private final ChDoctorTeamMapper doctorTeamMapper;
+    private final ChFollowupTaskMapper followupTaskMapper;
+    private final ChFollowupPlanMapper followupPlanMapper;
 
     /**
      * 获取当前登录医生的用户ID
@@ -62,11 +69,43 @@ public class DoctorScopeGuard {
         if (LoginHelper.isSuperAdmin() || LoginHelper.isTenantAdmin()) {
             return true;
         }
-        return patientProfileMapper.exists(
+        Long doctorUserId = currentDoctorUserId();
+
+        // 1. 患者档案的主管/责任医生
+        boolean isPrimaryDoctor = patientProfileMapper.exists(
             Wrappers.<ChPatientProfile>lambdaQuery()
                 .eq(ChPatientProfile::getPatientId, patientId)
-                .eq(ChPatientProfile::getDoctorUserId, currentDoctorUserId())
+                .eq(ChPatientProfile::getDoctorUserId, doctorUserId)
         );
+        if (isPrimaryDoctor) {
+            return true;
+        }
+
+        // 2. 随访任务执行人（任务池认领/派发给该医生的随访任务）
+        if (followupTaskMapper != null) {
+            boolean isTaskAssignee = followupTaskMapper.exists(
+                Wrappers.<ChFollowupTask>lambdaQuery()
+                    .eq(ChFollowupTask::getPatientId, patientId)
+                    .eq(ChFollowupTask::getAssigneeUserId, doctorUserId)
+            );
+            if (isTaskAssignee) {
+                return true;
+            }
+        }
+
+        // 3. 随访计划责任医生
+        if (followupPlanMapper != null) {
+            boolean isPlanAssignee = followupPlanMapper.exists(
+                Wrappers.<ChFollowupPlan>lambdaQuery()
+                    .eq(ChFollowupPlan::getPatientId, patientId)
+                    .eq(ChFollowupPlan::getAssigneeUserId, doctorUserId)
+            );
+            if (isPlanAssignee) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
