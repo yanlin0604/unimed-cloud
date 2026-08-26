@@ -45,6 +45,36 @@ public interface IChFollowupStatService {
     List<ChFollowupStatVo.DiseaseStatItem> getDiseaseStats(String areaCode, Long orgId);
 
     /**
+     * 获取随访结论分布
+     */
+    List<ChFollowupStatVo.ResultDistributionItem> getResultDistribution(String areaCode, Long orgId);
+
+    /**
+     * 获取康复评级分布
+     */
+    List<ChFollowupStatVo.RehabDistributionItem> getRehabDistribution(String areaCode, Long orgId);
+
+    /**
+     * 获取任务状态分布
+     */
+    List<ChFollowupStatVo.StatusDistributionItem> getStatusDistribution(String areaCode, Long orgId);
+
+    /**
+     * 获取任务来源拆解
+     */
+    List<ChFollowupStatVo.TaskTypeDistributionItem> getTaskTypeDistribution(String areaCode, Long orgId);
+
+    /**
+     * 获取失访/取消原因分布
+     */
+    List<ChFollowupStatVo.LostReasonItem> getLostReasonStats(String areaCode, Long orgId);
+
+    /**
+     * 获取控制/逾期趋势统计
+     */
+    List<ChFollowupStatVo.RateTrendItem> getControlledTrend(int days, String areaCode, Long orgId);
+
+    /**
      * 跑批聚合某天的随访日统计数据
      */
     void aggregateDailyStat(Date statDate);

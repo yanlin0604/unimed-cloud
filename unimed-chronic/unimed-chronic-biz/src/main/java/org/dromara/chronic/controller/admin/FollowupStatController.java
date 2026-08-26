@@ -77,4 +77,53 @@ public class FollowupStatController extends BaseController {
                                                                   @Parameter(description = "机构ID") @RequestParam(required = false) Long orgId) {
         return R.ok(followupStatService.getDiseaseStats(areaCode, orgId));
     }
+
+    @Operation(summary = "获取随访结论分布")
+    @SaCheckPermission("chronic:followup-stat:query")
+    @GetMapping("/result-distribution")
+    public R<List<ChFollowupStatVo.ResultDistributionItem>> resultDistribution(@Parameter(description = "区域编码") @RequestParam(required = false) String areaCode,
+                                                                                @Parameter(description = "机构ID") @RequestParam(required = false) Long orgId) {
+        return R.ok(followupStatService.getResultDistribution(areaCode, orgId));
+    }
+
+    @Operation(summary = "获取康复评级分布")
+    @SaCheckPermission("chronic:followup-stat:query")
+    @GetMapping("/rehab-distribution")
+    public R<List<ChFollowupStatVo.RehabDistributionItem>> rehabDistribution(@Parameter(description = "区域编码") @RequestParam(required = false) String areaCode,
+                                                                             @Parameter(description = "机构ID") @RequestParam(required = false) Long orgId) {
+        return R.ok(followupStatService.getRehabDistribution(areaCode, orgId));
+    }
+
+    @Operation(summary = "获取任务状态分布")
+    @SaCheckPermission("chronic:followup-stat:query")
+    @GetMapping("/status-distribution")
+    public R<List<ChFollowupStatVo.StatusDistributionItem>> statusDistribution(@Parameter(description = "区域编码") @RequestParam(required = false) String areaCode,
+                                                                               @Parameter(description = "机构ID") @RequestParam(required = false) Long orgId) {
+        return R.ok(followupStatService.getStatusDistribution(areaCode, orgId));
+    }
+
+    @Operation(summary = "获取任务来源拆解")
+    @SaCheckPermission("chronic:followup-stat:query")
+    @GetMapping("/task-type-distribution")
+    public R<List<ChFollowupStatVo.TaskTypeDistributionItem>> taskTypeDistribution(@Parameter(description = "区域编码") @RequestParam(required = false) String areaCode,
+                                                                                    @Parameter(description = "机构ID") @RequestParam(required = false) Long orgId) {
+        return R.ok(followupStatService.getTaskTypeDistribution(areaCode, orgId));
+    }
+
+    @Operation(summary = "获取失访/取消原因分布")
+    @SaCheckPermission("chronic:followup-stat:query")
+    @GetMapping("/lost-reason-stats")
+    public R<List<ChFollowupStatVo.LostReasonItem>> lostReasonStats(@Parameter(description = "区域编码") @RequestParam(required = false) String areaCode,
+                                                                    @Parameter(description = "机构ID") @RequestParam(required = false) Long orgId) {
+        return R.ok(followupStatService.getLostReasonStats(areaCode, orgId));
+    }
+
+    @Operation(summary = "获取控制/逾期趋势统计")
+    @SaCheckPermission("chronic:followup-stat:query")
+    @GetMapping("/controlled-trend")
+    public R<List<ChFollowupStatVo.RateTrendItem>> controlledTrend(@Parameter(description = "最近天数") @RequestParam(defaultValue = "15") int days,
+                                                                   @Parameter(description = "区域编码") @RequestParam(required = false) String areaCode,
+                                                                   @Parameter(description = "机构ID") @RequestParam(required = false) Long orgId) {
+        return R.ok(followupStatService.getControlledTrend(days, areaCode, orgId));
+    }
 }
