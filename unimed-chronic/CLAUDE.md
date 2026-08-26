@@ -7,7 +7,7 @@
 ### 签约相关字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **contract_type**<br>(签约类型) | PERSONAL<br>FAMILY<br>GROUP<br>COMMUNITY<br>CORPORATE | 个人签约<br>家庭签约<br>团体签约<br>社区签约<br>企业签约 | <ul><li>PERSONAL：患者个人与医疗机构/医生团队的服务协议</li><li>FAMILY：家庭成员（如夫妻、父母子女）统一签约慢病管理服务</li><li>GROUP：企业、学校、机构等为成员统一签约服务（员工福利、学生健康等）</li><li>COMMUNITY：社区卫生中心为辖区居民提供统一的慢病管理服务（公共卫生项目）</li><li>CORPORATE：专门针对企业客户的健康管理服务包（员工健康计划）</li></ul> |
 | **renewal_status**<br>(续约状态) | ACTIVE<br>EXPIRING<br>EXPIRED<br>RENEWED | 有效中<br>即将到期<br>已到期<br>已续约 | <ul><li>ACTIVE：合同当前处于有效状态，在有效期内</li><li>EXPIRING：合同即将到达结束日期（通常提前30-60天开始续约提醒）</li><li>EXPIRED：合同已超过结束日期，未及时续约</li><li>RENEWED：合同已经成功续约，重新开始新的服务周期</li></ul> |
 | **contract_status**<br>(合同状态) | ACTIVE<br>TERMINATED | 有效中<br>已终止 | <ul><li>ACTIVE：合同当前有效且正在执行中，双方履行义务</li><li>TERMINATED：合同被提前终止，不再执行（可能原因：患者主动退约、机构终止服务、违约等）</li></ul> |
@@ -17,7 +17,7 @@
 ### 患者档案字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **gender**<br>(性别) | 0<br>1<br>2 | 女<br>男<br>未知 | 系统字典 chronic_gender |
 | **manage_status**<br>(管理状态) | PENDING_ENTRY<br>MANAGED<br>FOLLOWUP_OVERDUE<br>WARNING_ACTIVE<br>REFERRING<br>PAUSED<br>CLOSED | 待入组<br>管理中<br>随访逾期<br>预警活跃<br>转诊中<br>暂停管理<br>已关闭 | <ul><li>PENDING_ENTRY：筛查通过待建档</li><li>MANAGED：正常管理中</li><li>FOLLOWUP_OVERDUE：有随访任务超期未完成</li><li>WARNING_ACTIVE：存在未处理预警</li><li>REFERRING：正在转诊流程中</li><li>PAUSED：管理暂停（如住院、外出）</li><li>CLOSED：管理终止</li></ul> |
 | **source**<br>(患者来源) | OUTPATIENT<br>SCREENING<br>HIS_SYNC<br>TRANSFER | 门诊<br>筛查<br>HIS同步<br>转入 | <ul><li>OUTPATIENT：门诊就诊建档</li><li>SCREENING：社区筛查建档</li><li>HIS_SYNC：HIS系统自动同步</li><li>TRANSFER：其他机构转入</li></ul> |
@@ -32,7 +32,7 @@
 ### 用药管理字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **status**<br>(用药状态) | ACTIVE<br>STOPPED | 使用中<br>已停药 | <ul><li>ACTIVE：当前正在使用</li><li>STOPPED：已停用</li></ul> |
 | **adjust_type**<br>(调整类型) | ADD<br>REDUCE<br>SWITCH<br>DOSE_CHANGE | 加药<br>减药<br>换药<br>调量 | <ul><li>ADD：新增药品</li><li>REDUCE：减少药品</li><li>SWITCH：替换药品</li><li>DOSE_CHANGE：调整剂量</li></ul> |
 | **interaction_level**<br>(相互作用等级) | CONTRAINDICATED<br>MAJOR_RISK<br>MONITOR | 禁忌<br>重大风险<br>需监测 | <ul><li>CONTRAINDICATED：禁止联用</li><li>MAJOR_RISK：联用风险高，需医生确认</li><li>MONITOR：联用需常规监测</li></ul> |
@@ -40,7 +40,7 @@
 ### 风险与评估字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **risk_level**<br>(风险等级) | LOW<br>MEDIUM<br>HIGH<br>VERY_HIGH | 低风险<br>中风险<br>高风险<br>极高风险 | 筛查记录和风险评估共用此字段 |
 | **plan_status**<br>(管理计划状态) | DRAFT<br>ACTIVE<br>DISABLED<br>HISTORY | 草稿<br>生效中<br>已停用<br>历史 | <ul><li>DRAFT：草稿状态</li><li>ACTIVE：当前生效方案</li><li>DISABLED：已停用</li><li>HISTORY：历史方案（被新方案替代）</li></ul> |
 | **item_type**<br>(计划项类型) | MEDICATION<br>DIET<br>EXERCISE<br>PSYCHOLOGY<br>FOLLOWUP<br>MONITOR | 用药<br>饮食<br>运动<br>心理<br>随访<br>监测 | 管理计划和随访计划共用此字段 |
@@ -61,7 +61,7 @@
 ### 生活方式字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **smoking_status**<br>(吸烟状态) | NEVER<br>FORMER<br>CURRENT | 从不吸烟<br>已戒烟<br>当前吸烟 | 字典 chronic_smoking_status |
 | **drinking_status**<br>(饮酒状态) | NEVER<br>FORMER<br>CURRENT | 从不饮酒<br>已戒酒<br>当前饮酒 | 字典 chronic_drinking_status |
 | **compliance_level**<br>(依从性等级) | GOOD<br>FAIR<br>POOR | 良好<br>一般<br>差 | 字典 chronic_compliance_level |
@@ -76,7 +76,7 @@
 ### 预警字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **warning_level**<br>(预警等级) | LOW<br>MEDIUM<br>HIGH<br>CRITICAL | 低<br>中<br>高<br>危急 | <ul><li>LOW：轻微偏离，关注即可</li><li>MEDIUM：中度偏离，需干预</li><li>HIGH：严重偏离，需立即干预</li><li>CRITICAL：危急值，需紧急处理</li></ul> |
 | **event_status**<br>(事件状态) | NEW<br>CONFIRMED<br>PROCESSING<br>ESCALATED<br>RESOLVED<br>ARCHIVED | 新建<br>已确认<br>处理中<br>已升级<br>已解决<br>已归档 | <ul><li>NEW：系统自动生成</li><li>CONFIRMED：医生已确认</li><li>PROCESSING：正在处理</li><li>ESCALATED：已升级处理</li><li>RESOLVED：已解决</li><li>ARCHIVED：已归档</li></ul> |
 | **action_type**<br>(处置类型) | CONFIRM<br>HANDLE<br>ESCALATE<br>RESOLVE | 确认<br>处理<br>升级<br>解决 | <ul><li>CONFIRM：确认预警有效</li><li>HANDLE：执行处理措施</li><li>ESCALATE：升级到上级处理</li><li>RESOLVE：标记为已解决</li></ul> |
@@ -91,7 +91,7 @@
 ### 就诊字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **encounter_type**<br>(就诊类型) | INITIAL<br>FOLLOWUP | 首诊<br>复诊 | <ul><li>INITIAL：首次就诊</li><li>FOLLOWUP：复诊随访</li></ul> |
 | **submit_status**<br>(提交状态) | DRAFT<br>SUBMITTED | 草稿<br>已提交 | <ul><li>DRAFT：暂存草稿</li><li>SUBMITTED：已正式提交</li></ul> |
 | **diagnosis_type**<br>(诊断类型) | PRIMARY<br>SECONDARY | 主诊断<br>次诊断 | <ul><li>PRIMARY：主要诊断</li><li>SECONDARY：次要/伴随诊断</li></ul> |
@@ -99,7 +99,7 @@
 ### 其他字段取值表
 
 | 字段名 | 可能取值 | 中文含义 | 业务说明 |
-|--------|----------|----------|----------|
+| -------- | ---------- | ---------- | ---------- |
 | **tag_type**<br>(标签类型) | RISK<br>CUSTOM<br>COMORBIDITY | 风险标签<br>自定义标签<br>合并症标签 | 字典 chronic_tag_type |
 | **event_type**<br>(时间线事件类型) | ARCHIVE<br>SIGN<br>FOLLOWUP<br>MEDICATION_ADJUST<br>WARNING<br>REFERRAL<br>PLAN_CHANGE | 建档<br>签约<br>随访<br>用药调整<br>预警<br>转诊<br>方案变更 | 字典 chronic_event_type |
 | **enroll_status**<br>(入组状态) | PENDING<br>ENROLLED<br>REJECTED | 待入组<br>已入组<br>已拒绝 | <ul><li>PENDING：筛查通过待入组</li><li>ENROLLED：已入组管理</li><li>REJECTED：拒绝入组</li></ul> |
@@ -112,21 +112,26 @@
 | **kpi_category**<br>(KPI分类) | MANAGEMENT_RATE<br>COMPLIANCE_RATE<br>CONTROL_RATE | 管理率<br>依从率<br>控制率 | 字典 chronic_kpi_category |
 
 **说明：**
+
 - `renewal_status` 和 `contract_status` 的取值直接来自 `script/sql/unimed-chronic.sql` 表注释
 - `contract_type` 的取值基于业务场景合理推断（数据库中仅示例 `PERSONAL`，但结合慢病管理系统需求补充了其他常见类型）
 - 所有字段取值采用全大写+下划线命名 convention，便于在代码中定义枚举或常量
 - 业务逻辑中需注意：`renewal_status` 和 `contract_status` 是独立维度，一个合同可能同时处于如 `ACTIVE`（有效中）+ `EXPIRING`（即将到期） 的组合状态
 
 ## 变更记录 (Changelog)
-- **2026-04-22** - 初始化慢病模块文档；双数据源架构（独立慢病库 + 系统库只读兜底）；62个控制器覆盖4层管控（admin/doctor/patient/openapi）；55张业务表
+
+- **随访统计看板重设计** - 后端 `ChFollowupStatVo` 新增 随访结论/康复评级/任务状态/任务来源/失访原因 五个分布口径与 `controlledTrend` 控制趋势,`IChFollowupStatService`/`ChFollowupStatServiceImpl`/`FollowupStatController` 新增 6 个 `/chronic/admin/followup-stat/*` 端点并让 `getFullStatDashboard` 全量返回;前端 `stat/index.vue` 由 antdv 表格重写为 ECharts 看板(KPI 指标卡 + 趋势/方式/病种/结论/复康/状态漏斗/来源/失访图表 + 底表),`days` 时间范围筛选驱动趋势。约束:`areaCode`/`orgId` 仅透传不参与过滤。纯前端渲染+Java 内存统计,无 DB/SQL 变更。
+- **2026-04-22** - 初始化慢病模块文档;双数据源架构(独立慢病库 + 系统库只读兜底);62个控制器覆盖4层管控(admin/doctor/patient/openapi);55张业务表
 - **2026-04-20** - slow病管理服务增强（R4-R12）
 - **2026-04-18** - 端口调整及测试优化
 - **2026-04-17** - 添加 unimed-chronic 慢病管理模块初始代码
 
 ## 模块职责
+
 慢病管理业务聚合模块，基于"一个患者、一份档案、签约家庭医生、终身健康管理"的业务理念，提供慢病患者全生命周期健康管理服务。支持多层级管控：平台管理端（Admin）、医生端（Doctor）、患者端（Patient）、对外开放接口（OpenAPI）。
 
 ## 模块结构
+
 ```
 unimed-chronic/
 ├── unimed-chronic-api        # 慢病域 API 定义（接口层，无实现）
@@ -146,6 +151,7 @@ unimed-chronic/
 ```
 
 ## 入口与启动
+
 - **启动类**: `unimed-chronic-biz/src/main/java/org/dromara/chronic/UnimedChronicApplication.java`
 - **包名**: `org.dromara.chronic`
 - **端口**: 9208
@@ -153,6 +159,7 @@ unimed-chronic/
 - **主配置**: `unimed-chronic-biz/src/main/resources/application.yml`
 
 ### 双数据源配置
+
 ```yaml
 chronic:
   datasource:
@@ -166,8 +173,9 @@ chronic:
 ## 对外接口
 
 ### B 端管理后台接口 (controller/admin/)
+
 | 控制器 | 职责 | 权限前缀 |
-|--------|------|----------|
+| -------- | ------ | ---------- |
 | PatientProfileController | 患者档案管理（分页/新增/编辑/详情/时间线） | chronic:patient:* |
 | ScreeningBatchController | 筛查批次管理 | chronic:screening:* |
 | DiseaseConfigController | 病种配置管理 | chronic:disease:* |
@@ -201,8 +209,9 @@ chronic:
 | ReferralController | 转诊管理 | chronic:referral:* |
 
 ### 医生端接口 (controller/doctor/)
+
 | 控制器 | 职责 |
-|--------|------|
+| -------- | ------ |
 | DoctorPatientController | 医生视角患者管理 |
 | DoctorTeamController | 医生团队管理 |
 | DoctorAuthController | 医生认证 |
@@ -217,8 +226,9 @@ chronic:
 | DoctorArchiveShareController | 医生档案共享 |
 
 ### 患者端接口 (controller/patient/)
+
 | 控制器 | 职责 |
-|--------|------|
+| -------- | ------ |
 | PatientCenterController | 个人中心 |
 | PatientAuthController | 患者认证 |
 | PatientHealthExamController | 健康体检 |
@@ -233,8 +243,9 @@ chronic:
 | PatientSosController | 紧急求助 |
 
 ### 开放接口 (controller/openapi/)
+
 | 控制器 | 职责 |
-|--------|------|
+| -------- | ------ |
 | OpenapiHisController | HIS 系统对接 |
 | OpenapiLisController | LIS 检验系统对接 |
 | OpenapiPacsController | PACS 影像系统对接 |
@@ -247,6 +258,7 @@ chronic:
 ## 关键依赖与配置
 
 ### 核心依赖
+
 ```xml
 unimed-chronic-api          # 本域 API 定义
 unimed-common-core          # 核心工具
@@ -264,6 +276,7 @@ unimed-api-workflow         # 工作流远程接口
 ```
 
 ### Dubbo 远程服务消费
+
 - RemoteUserService - 用户服务
 - RemoteDictService - 字典服务
 - RemoteTenantService - 租户服务
@@ -273,8 +286,9 @@ unimed-api-workflow         # 工作流远程接口
 ## 数据模型
 
 ### 核心业务表（55张）
+
 | 表名 | 说明 | 关键字段 |
-|------|------|----------|
+| ------ | ------ | ---------- |
 | ch_patient_profile | 患者档案 | patientId, name, idCard, phone, gender |
 | ch_patient_disease | 患者病种 | patientId, diseaseCode, enableStatus |
 | ch_patient_timeline | 患者时间线 | patientId, eventType, content |
@@ -334,14 +348,16 @@ unimed-api-workflow         # 工作流远程接口
 | ch_stat_area_day | 区域统计日表 | statDate, areaCode, metrics |
 
 ### 数据源分布
+
 - **慢病库（chronic）**: 55张业务表，存储慢病管理专属数据
 - **系统库（system-master，只读）**: 读取用户、字典、租户等共享数据
 
 ## 服务层架构
 
 ### Manager 层复杂业务编排
+
 | Manager | 职责 |
-|---------|------|
+| --------- | ------ |
 | PatientProfileManager | 患者档案创建、完整生命周期处理 |
 | TeamManager | 团队分配、医生管理 |
 | FollowupManager | 随访计划生成、任务调度 |
@@ -352,6 +368,7 @@ unimed-api-workflow         # 工作流远程接口
 ## 测试与质量
 
 ### 测试文件
+
 - `ChronicLoopIntegrationTest.java` - 业务流程闭环集成测试
 - `ChronicGapClosureIntegrationTest.java` - 缝隙填补集成测试
 - `ArchiveShareManagerTest.java` - 档案共享管理测试
@@ -365,6 +382,7 @@ unimed-api-workflow         # 工作流远程接口
 ## 编码规范
 
 ### 分层规范
+
 ```
 controller/          # 按角色分包（admin/doctor/patient/openapi）
   ├── admin/        # @SaCheckPermission 权限控制
@@ -381,6 +399,7 @@ manager/            # 复杂业务编排（事务边界）
 ```
 
 ### 权限码规范
+
 - Admin: `chronic:{resource}:list/add/edit/remove/status`
 - Doctor: `chronic:doctor:{resource}:*`
 - Patient: `@SaCheckPermission("chronic:patient:{action}")`
@@ -388,38 +407,48 @@ manager/            # 复杂业务编排（事务边界）
 ## 常见问题 (FAQ)
 
 ### Q1: 如何进行患者档案建档？
+
 A: 调用 PatientProfileController.add()，由 PatientProfileManager.createArchive() 完成：
+
 1. 校验身份证唯一性
 2. 创建基础档案
 3. 初始化病种关联（如果有）
 4. 创建时间线首节点
 
 ### Q2: 医生团队如何分配？
+
 A: 在签约时通过 TeamManager.assignTeam() 自动分配或手动指定，支持按区域匹配。
 
 ### Q3: 双数据源如何配置？
+
 A: 在 Nacos 配置中心定义 datasource.chronic 和 datasource.system-master，通过 DynamicDataSource 自动路由。
 
 ### Q4: 随访任务如何生成？
+
 A: FollowupManager 根据管理计划自动生成随访任务，支持定时任务（SnailJob）调度触发。
 
 ### Q5: 如何扩展新的健康设备类型？
+
 A: 1. 新增 ch_device_bind 记录；2. 实现 DeviceDataParser 解析数据；3. 存入 ch_device_raw_record；4. 转换后写入 ch_health_metric_record。
 
 ## 相关文件清单
 
 ### 核心文件
+
 - `unimed-chronic-biz/src/main/java/org/dromara/chronic/UnimedChronicApplication.java` - 启动类
 - `unimed-chronic-biz/src/main/resources/application.yml` - 应用配置
 - `unimed-chronic-biz/pom.xml` - 模块依赖
 
 ### SQL 变更脚本
+
 - `script/sql/update/chronic-*.sql` - 慢病模块 DDL 变更
 - `script/sql/update/chronic-mock-data.sql` - 模拟数据
 
 ### 子模块
+
 - `unimed-chronic-api/` - API 定义层
 - `unimed-chronic-biz/` - 业务实现层
 
 ## 变更记录 (Changelog)
+
 - **2026-04-22** - 初始化慢病模块文档
