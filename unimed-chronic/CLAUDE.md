@@ -120,6 +120,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-08-26** - 随访排期规则简化:移除"面对面"机制。删除 `ch_followup_rule.require_face_to_face_rounds` 列及此前误加的 `face_to_face_visit_type` 列;`FollowupRuleEngine` 的 proposal 去掉 faceToFaceVisitType/requireFaceToFaceRounds,`FollowupEnrollmentManager`/`FollowupTaskGenJob` 所有轮次统一采用规则 `default_visit_type`;`MultiDiseaseFollowupMerger` 多病场景随访方式取主病种 default_visit_type;`is_face_to_face` 由 visit_type==OFFLINE 推导。规则只留一个"随访方式"字段,需要线下直接配 defaultVisitType=OFFLINE 即可,不再偷偷生成线下任务。同步清理 BO/VO/前端 model.ts/data.ts/rule-drawer.vue/index.vue 相关字段。
 - **随访统计看板重设计** - 后端 `ChFollowupStatVo` 新增 随访结论/康复评级/任务状态/任务来源/失访原因 五个分布口径与 `controlledTrend` 控制趋势,`IChFollowupStatService`/`ChFollowupStatServiceImpl`/`FollowupStatController` 新增 6 个 `/chronic/admin/followup-stat/*` 端点并让 `getFullStatDashboard` 全量返回;前端 `stat/index.vue` 由 antdv 表格重写为 ECharts 看板(KPI 指标卡 + 趋势/方式/病种/结论/复康/状态漏斗/来源/失访图表 + 底表),`days` 时间范围筛选驱动趋势。约束:`areaCode`/`orgId` 仅透传不参与过滤。纯前端渲染+Java 内存统计,无 DB/SQL 变更。
 - **2026-04-22** - 初始化慢病模块文档;双数据源架构(独立慢病库 + 系统库只读兜底);62个控制器覆盖4层管控(admin/doctor/patient/openapi);55张业务表
 - **2026-04-20** - slow病管理服务增强（R4-R12）
