@@ -65,9 +65,6 @@ public class ChFollowupRuleServiceImpl implements IChFollowupRuleService {
         if (StringUtils.isBlank(entity.getDefaultVisitType())) {
             entity.setDefaultVisitType("PHONE");
         }
-        if (entity.getRequireFaceToFaceRounds() == null) {
-            entity.setRequireFaceToFaceRounds(2);
-        }
         // 幂等: 同一(病种,等级)已存在则拒绝,避免唯一键冲突
         checkUnique(bo.getDiseaseCode(), bo.getRiskLevel());
         ruleMapper.insert(entity);
@@ -90,9 +87,6 @@ public class ChFollowupRuleServiceImpl implements IChFollowupRuleService {
         }
         if (StringUtils.isBlank(entity.getDefaultVisitType())) {
             entity.setDefaultVisitType("PHONE");
-        }
-        if (entity.getRequireFaceToFaceRounds() == null) {
-            entity.setRequireFaceToFaceRounds(2);
         }
         // 编辑改动了关键键位时需校验与修改自身的唯一性
         checkUniqueExcluding(bo.getDiseaseCode(), bo.getRiskLevel(), bo.getId());
@@ -159,10 +153,6 @@ public class ChFollowupRuleServiceImpl implements IChFollowupRuleService {
         String visitType = bo.getDefaultVisitType() == null ? "" : bo.getDefaultVisitType().trim().toUpperCase(Locale.ROOT);
         if (StringUtils.isNotBlank(visitType) && !VISIT_TYPES.contains(visitType)) {
             throw new ServiceException("随访方式非法,仅支持 PHONE/ONLINE/OFFLINE/VIDEO");
-        }
-        if (bo.getRequireFaceToFaceRounds() != null && bo.getTotalRounds() != null
-            && bo.getRequireFaceToFaceRounds() > bo.getTotalRounds()) {
-            throw new ServiceException("面对面随访轮次不能大于总轮次");
         }
     }
 

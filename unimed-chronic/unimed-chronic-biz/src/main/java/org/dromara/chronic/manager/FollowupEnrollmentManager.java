@@ -164,10 +164,9 @@ public class FollowupEnrollmentManager {
             task.setTenantId("000000");
             task.setDelFlag("0");
 
-            // 面对面随访轮次标记
-            boolean isFaceToFace = round <= proposal.requireFaceToFaceRounds() || (round == 1 || round == 3);
-            task.setIsFaceToFace(isFaceToFace);
-            task.setVisitType(isFaceToFace ? "OFFLINE" : proposal.defaultVisitType());
+            // 所有轮次统一使用规则 default_visit_type,不再有独立的"面对面"机制
+            task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(proposal.defaultVisitType()));
+            task.setVisitType(proposal.defaultVisitType());
 
             followupTaskMapper.insert(task);
             calendar.add(Calendar.DAY_OF_MONTH, proposal.cycleDays());

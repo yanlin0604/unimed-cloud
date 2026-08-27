@@ -902,7 +902,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setPlanDueDate(calendar.getTime());
             task.setTaskStatus("PENDING");
             task.setTaskType("NORMAL");
-            boolean faceToFace = "OFFLINE".equalsIgnoreCase(visitItem.getVisitType()) || round == 1 || round == 3;
+            boolean faceToFace = "OFFLINE".equalsIgnoreCase(visitItem.getVisitType());
             task.setIsFaceToFace(faceToFace);
             task.setVisitType(visitItem.getVisitType());
             task.setAssigneeUserId(plan.getAssigneeUserId()); // 可为 null 进入任务池
@@ -949,7 +949,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             task.setPlanDueDate(calculateDueDate(firstDueDate, plan.getCycleDays(), round));
             task.setTaskStatus("PENDING");
             task.setTaskType("NORMAL");
-            task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(visitItem.getVisitType()) || round == 1 || round == 3);
+            task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(visitItem.getVisitType()));
             task.setVisitType(visitItem.getVisitType());
             task.setAssigneeUserId(plan.getAssigneeUserId());
             followupTaskMapper.insert(task);

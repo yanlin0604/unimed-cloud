@@ -53,11 +53,6 @@ public class ChFollowupRule extends TenantEntity {
     private String defaultVisitType;
 
     /**
-     * 面对面随访最少轮次,默认 2
-     */
-    private Integer requireFaceToFaceRounds;
-
-    /**
      * 方案建议文案(展示用,原代码注释)
      */
     private String summaryAdvice;

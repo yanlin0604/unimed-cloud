@@ -10,6 +10,8 @@ import org.dromara.chronic.domain.entity.ChFollowupPlan;
 import org.dromara.chronic.domain.entity.ChFollowupTask;
 import org.dromara.chronic.mapper.ChFollowupPlanMapper;
 import org.dromara.chronic.mapper.ChFollowupTaskMapper;
+import org.dromara.chronic.support.rule.FollowupRuleEngine;
+import org.dromara.common.core.utils.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
@@ -30,6 +32,7 @@ public class FollowupTaskGenJob {
 
     private final ChFollowupPlanMapper followupPlanMapper;
     private final ChFollowupTaskMapper followupTaskMapper;
+    private final FollowupRuleEngine ruleEngine;
 
     public ExecuteResult jobExecute(JobArgs jobArgs) {
         SnailJobLog.LOCAL.info("随访任务补偿生成开始");
@@ -60,7 +63,11 @@ public class FollowupTaskGenJob {
                 task.setPlanDueDate(computeDueDate(plan, round));
                 task.setAssigneeUserId(plan.getAssigneeUserId());
                 task.setTaskType("NORMAL");
-                task.setIsFaceToFace(Boolean.FALSE);
+                // 所有轮次统一使用规则 default_visit_type,不再有独立的"面对面"机制
+                FollowupRuleEngine.FollowupPlanProposal proposal = ruleEngine.generateProposal(
+                    plan.getDiseaseCode(), plan.getManagementLevel());
+                task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(proposal.defaultVisitType()));
+                task.setVisitType(proposal.defaultVisitType());
                 task.setTenantId(plan.getTenantId() != null ? plan.getTenantId() : "000000");
                 task.setCreateDept(plan.getCreateDept());
                 task.setCreateTime(new Date());

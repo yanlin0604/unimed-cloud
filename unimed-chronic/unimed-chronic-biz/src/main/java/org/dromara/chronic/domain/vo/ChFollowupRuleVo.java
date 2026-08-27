@@ -36,8 +36,6 @@ public class ChFollowupRuleVo implements Serializable {
     private Integer firstDueDays;
     @Schema(description = "默认随访方式")
     private String defaultVisitType;
-    @Schema(description = "面对面随访最少轮次")
-    private Integer requireFaceToFaceRounds;
     @Schema(description = "方案建议文案")
     private String summaryAdvice;
     @Schema(description = "是否启用")

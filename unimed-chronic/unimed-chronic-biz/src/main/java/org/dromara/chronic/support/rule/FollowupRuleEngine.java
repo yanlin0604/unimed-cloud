@@ -41,7 +41,6 @@ public class FollowupRuleEngine {
         int totalRounds,
         int firstDueDays,
         String defaultVisitType,
-        int requireFaceToFaceRounds,
         Long questionnaireId,
         String summaryAdvice
     ) {}
@@ -68,7 +67,6 @@ public class FollowupRuleEngine {
                 intValue(rule.getTotalRounds(), 4),
                 intValue(rule.getFirstDueDays(), 7),
                 defaultIfBlank(rule.getDefaultVisitType(), "PHONE").toUpperCase(Locale.ROOT),
-                intValue(rule.getRequireFaceToFaceRounds(), 2),
                 questionnaireId,
                 rule.getSummaryAdvice()
             );
@@ -78,7 +76,6 @@ public class FollowupRuleEngine {
         int totalRounds;
         int firstDueDays = 7; // 新建档/确诊默认建议 7 天内完成首诊随访与基线建立
         String defaultVisitType = "PHONE";
-        int requireFaceToFaceRounds = 2; // 默认要求面对面 ≥2 次
         String advice;
 
         switch (normalizedDisease) {
@@ -87,18 +84,15 @@ public class FollowupRuleEngine {
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
                     totalRounds = 12;
-                    requireFaceToFaceRounds = 4;
-                    advice = "高血压三级管理（高危/极高危）：至少每1个月随访1次，重点监测靶器官损害、血压达标情况及药物不良反应。";
+                    advice = "高血压三级管理(高危/极高危):至少每1个月随访1次,重点监测靶器官损害、血压达标情况及药物不良反应。";
                 } else if ("MEDIUM".equals(normalizedLevel)) {
                     cycleDays = 60;
                     totalRounds = 6;
-                    requireFaceToFaceRounds = 3;
-                    advice = "高血压二级管理（中危）：至少每2个月随访1次，指导规律用药与生活方式干预。";
+                    advice = "高血压二级管理(中危):至少每2个月随访1次,指导规律用药与生活方式干预。";
                 } else {
                     cycleDays = 90;
                     totalRounds = 4;
-                    requireFaceToFaceRounds = 2;
-                    advice = "高血压一级管理（低危）：至少每3个月随访1次（每年≥4次），其中面对面随访不少于2次。";
+                    advice = "高血压一级管理(低危):至少每3个月随访1次(每年≥4次)。";
                 }
             }
             case "T2DM" -> {
@@ -106,34 +100,29 @@ public class FollowupRuleEngine {
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
                     totalRounds = 12;
-                    requireFaceToFaceRounds = 4;
-                    advice = "2型糖尿病强化管理（血糖不达标或伴并发症）：每1个月随访1次，监测空腹/餐后血糖及胰岛素用药反应。";
+                    advice = "2型糖尿病强化管理(血糖不达标或伴并发症):每1个月随访1次,监测空腹/餐后血糖及胰岛素用药反应。";
                 } else {
                     cycleDays = 90;
                     totalRounds = 4;
-                    requireFaceToFaceRounds = 2;
-                    advice = "2型糖尿病常规管理（血糖达标且稳定）：每3个月随访1次（每年≥4次），其中面对面随访不少于2次。";
+                    advice = "2型糖尿病常规管理(血糖达标且稳定):每3个月随访1次(每年≥4次)。";
                 }
             }
             case "COPD" -> {
                 // 慢性阻塞性肺疾病管理规范
                 cycleDays = 90;
                 totalRounds = 4;
-                requireFaceToFaceRounds = 2;
-                advice = "慢阻肺患者管理：每年至少随访4次（其中面对面随访≥2次），评估CAT/mMRC呼吸困难分级与吸入剂依从性。";
+                advice = "慢阻肺患者管理:每年至少随访4次,评估CAT/mMRC呼吸困难分级与吸入剂依从性。";
             }
             case "CHD", "STROKE" -> {
                 // 冠心病 / 脑卒中 二级预防管理
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
                     totalRounds = 12;
-                    requireFaceToFaceRounds = 4;
-                    advice = "心脑血管重症/急性发作恢复期强化随访：每月随访1次，评估神经缺损/心绞痛发作与抗栓药物依从性。";
+                    advice = "心脑血管重症/急性发作恢复期强化随访:每月随访1次,评估神经缺损/心绞痛发作与抗栓药物依从性。";
                 } else {
                     cycleDays = 60;
                     totalRounds = 6;
-                    requireFaceToFaceRounds = 3;
-                    advice = "心脑血管常规二级预防管理：每2个月随访1次，维持血压血脂达标。";
+                    advice = "心脑血管常规二级预防管理:每2个月随访1次,维持血压血脂达标。";
                 }
             }
             case "CKD" -> {
@@ -141,28 +130,24 @@ public class FollowupRuleEngine {
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
                     totalRounds = 12;
-                    requireFaceToFaceRounds = 4;
-                    advice = "CKD 3~5期强化管理：每月随访1次，监测尿蛋白、肾功能与水肿情况。";
+                    advice = "CKD 3~5期强化管理:每月随访1次,监测尿蛋白、肾功能与水肿情况。";
                 } else {
                     cycleDays = 90;
                     totalRounds = 4;
-                    requireFaceToFaceRounds = 2;
-                    advice = "CKD 1~2期常规管理：每3个月随访1次，控制血压与低蛋白饮食指导。";
+                    advice = "CKD 1~2期常规管理:每3个月随访1次,控制血压与低蛋白饮食指导。";
                 }
             }
             case "TUMOR" -> {
                 // 恶性肿瘤康复期
                 cycleDays = 60;
                 totalRounds = 6;
-                requireFaceToFaceRounds = 2;
-                advice = "肿瘤康复随访：每2个月随访1次，评估体能状态(ECOG)、癌痛评分与定期复查进度。";
+                advice = "肿瘤康复随访:每2个月随访1次,评估体能状态(ECOG)、癌痛评分与定期复查进度。";
             }
             default -> {
                 // 通用慢病兜底规范
                 cycleDays = 90;
                 totalRounds = 4;
-                requireFaceToFaceRounds = 2;
-                advice = "通用慢病规范化随访管理：每3个月随访1次（每年4次）。";
+                advice = "通用慢病规范化随访管理:每3个月随访1次(每年4次)。";
             }
         }
 
@@ -176,7 +161,6 @@ public class FollowupRuleEngine {
             totalRounds,
             firstDueDays,
             defaultVisitType,
-            requireFaceToFaceRounds,
             questionnaireId,
             advice
         );

@@ -37,7 +37,6 @@ public class MultiDiseaseFollowupMerger {
         int totalRounds,
         int firstDueDays,
         String defaultVisitType,
-        int requireFaceToFaceRounds,
         Long questionnaireId,
         String summaryAdvice
     ) {}
@@ -81,14 +80,11 @@ public class MultiDiseaseFollowupMerger {
             .max(Comparator.comparingInt(this::levelRank))
             .orElse("LOW");
 
-        // 3. 最大面对面随访要求
-        int maxFaceToFace = proposals.stream()
-            .mapToInt(FollowupPlanProposal::requireFaceToFaceRounds)
-            .max()
-            .orElse(2);
+        // 3. 随访方式: 多病场景统一采用主病种(最高频)的默认随访方式
+        String visitType = strictest.defaultVisitType();
 
         String jsonList = toJson(diseaseCodes);
-        String mergedAdvice = String.format("多病共管协同随访（合并病种: %s）：以%s病种高频方案（周期%d天，每年%d次）为主干排期，并在季度节点融合共管。",
+        String mergedAdvice = String.format("多病共管协同随访(合并病种: %s):以%s病种高频方案(周期%d天,每年%d次)为主干排期,并在季度节点融合共管。",
             String.join("+", diseaseCodes), strictest.diseaseCode(), strictest.cycleDays(), strictest.totalRounds());
 
         return new MergedProposal(
@@ -100,8 +96,7 @@ public class MultiDiseaseFollowupMerger {
             strictest.cycleDays(),
             strictest.totalRounds(),
             strictest.firstDueDays(),
-            strictest.defaultVisitType(),
-            maxFaceToFace,
+            visitType,
             strictest.questionnaireId(),
             mergedAdvice
         );
@@ -118,7 +113,6 @@ public class MultiDiseaseFollowupMerger {
             p.totalRounds(),
             p.firstDueDays(),
             p.defaultVisitType(),
-            p.requireFaceToFaceRounds(),
             p.questionnaireId(),
             p.summaryAdvice()
         );
