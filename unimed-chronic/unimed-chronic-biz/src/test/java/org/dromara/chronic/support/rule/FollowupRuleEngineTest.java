@@ -44,7 +44,6 @@ public class FollowupRuleEngineTest {
         assertEquals("LOW", proposal.managementLevel());
         assertEquals(90, proposal.cycleDays());
         assertEquals(4, proposal.totalRounds());
-        assertEquals(2, proposal.requireFaceToFaceRounds());
         assertEquals(7, proposal.firstDueDays());
         assertTrue(proposal.summaryAdvice().contains("一级管理"));
     }
@@ -55,7 +54,6 @@ public class FollowupRuleEngineTest {
         FollowupPlanProposal proposal = ruleEngine.generateProposal("HTN", "MEDIUM");
         assertEquals(60, proposal.cycleDays());
         assertEquals(6, proposal.totalRounds());
-        assertEquals(3, proposal.requireFaceToFaceRounds());
         assertTrue(proposal.summaryAdvice().contains("二级管理"));
     }
 
@@ -65,7 +63,6 @@ public class FollowupRuleEngineTest {
         FollowupPlanProposal proposal = ruleEngine.generateProposal("HTN", "HIGH");
         assertEquals(30, proposal.cycleDays());
         assertEquals(12, proposal.totalRounds());
-        assertEquals(4, proposal.requireFaceToFaceRounds());
         assertTrue(proposal.summaryAdvice().contains("三级管理"));
     }
 
@@ -95,15 +92,14 @@ public class FollowupRuleEngineTest {
         assertEquals("COPD", proposal.diseaseCode());
         assertEquals(90, proposal.cycleDays());
         assertEquals(4, proposal.totalRounds());
-        assertEquals(2, proposal.requireFaceToFaceRounds());
         assertTrue(proposal.summaryAdvice().contains("慢阻肺"));
     }
 
     @Test
     @DisplayName("精确规则优先于病种通配规则")
     void testExactRuleHasPriority() {
-        ChFollowupRule exact = rule("HTN", "HIGH", 45, 8, 3, "精确规则");
-        ChFollowupRule wildcard = rule("HTN", "ANY", 90, 4, 2, "通配规则");
+        ChFollowupRule exact = rule("HTN", "HIGH", 45, 8, "精确规则");
+        ChFollowupRule wildcard = rule("HTN", "ANY", 90, 4, "通配规则");
         org.mockito.Mockito.when(followupRuleMapper.selectList(org.mockito.ArgumentMatchers.any()))
             .thenReturn(List.of(wildcard, exact));
 
@@ -111,15 +107,14 @@ public class FollowupRuleEngineTest {
 
         assertEquals(45, proposal.cycleDays());
         assertEquals(8, proposal.totalRounds());
-        assertEquals(3, proposal.requireFaceToFaceRounds());
         assertEquals("精确规则", proposal.summaryAdvice());
     }
 
     @Test
     @DisplayName("病种ANY优先于GENERAL等级规则")
     void testDiseaseAnyHasPriorityOverGeneralLevel() {
-        ChFollowupRule diseaseAny = rule("COPD", "ANY", 45, 8, 2, "病种通配");
-        ChFollowupRule generalHigh = rule("GENERAL", "HIGH", 30, 12, 4, "通用高危");
+        ChFollowupRule diseaseAny = rule("COPD", "ANY", 45, 8, "病种通配");
+        ChFollowupRule generalHigh = rule("GENERAL", "HIGH", 30, 12, "通用高危");
         org.mockito.Mockito.when(followupRuleMapper.selectList(org.mockito.ArgumentMatchers.any()))
             .thenReturn(List.of(generalHigh, diseaseAny));
 
@@ -132,7 +127,7 @@ public class FollowupRuleEngineTest {
     @Test
     @DisplayName("无病种规则时回退GENERAL等级规则")
     void testGeneralLevelFallback() {
-        ChFollowupRule generalHigh = rule("GENERAL", "HIGH", 21, 10, 5, "通用高危配置");
+        ChFollowupRule generalHigh = rule("GENERAL", "HIGH", 21, 10, "通用高危配置");
         org.mockito.Mockito.when(followupRuleMapper.selectList(org.mockito.ArgumentMatchers.any()))
             .thenReturn(List.of(generalHigh));
 
@@ -146,7 +141,7 @@ public class FollowupRuleEngineTest {
     @Test
     @DisplayName("停用规则被跳过并继续使用内置默认")
     void testInactiveRuleSkipped() {
-        ChFollowupRule inactive = rule("HTN", "HIGH", 1, 1, 1, "停用规则");
+        ChFollowupRule inactive = rule("HTN", "HIGH", 1, 1, "停用规则");
         inactive.setIsActive(false);
         org.mockito.Mockito.when(followupRuleMapper.selectList(org.mockito.ArgumentMatchers.any()))
             .thenReturn(List.of(inactive));
@@ -155,11 +150,10 @@ public class FollowupRuleEngineTest {
 
         assertEquals(30, proposal.cycleDays());
         assertEquals(12, proposal.totalRounds());
-        assertEquals(4, proposal.requireFaceToFaceRounds());
     }
 
     private ChFollowupRule rule(String diseaseCode, String riskLevel, int cycleDays,
-                                int totalRounds, int faceToFaceRounds, String advice) {
+                                int totalRounds, String advice) {
         ChFollowupRule rule = new ChFollowupRule();
         rule.setDiseaseCode(diseaseCode);
         rule.setRiskLevel(riskLevel);
@@ -167,7 +161,6 @@ public class FollowupRuleEngineTest {
         rule.setTotalRounds(totalRounds);
         rule.setFirstDueDays(7);
         rule.setDefaultVisitType("PHONE");
-        rule.setRequireFaceToFaceRounds(faceToFaceRounds);
         rule.setSummaryAdvice(advice);
         rule.setIsActive(true);
         return rule;
