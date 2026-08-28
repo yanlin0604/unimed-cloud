@@ -4,6 +4,7 @@ import org.dromara.chronic.domain.bo.ChDoctorTeamBo;
 import org.dromara.chronic.domain.bo.ChDoctorTeamMemberBo;
 import org.dromara.chronic.domain.vo.ChDoctorTeamMemberVo;
 import org.dromara.chronic.domain.vo.ChDoctorTeamVo;
+import org.dromara.chronic.domain.vo.ChPatientTeamVo;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 
@@ -31,4 +32,7 @@ public interface IChDoctorTeamService {
     List<ChDoctorTeamMemberVo> queryMembers(Long teamId);
 
     Boolean bindPatientTeam(Long patientId, Long teamId);
+
+    /** 查询患者当前有效签约团队及成员。 */
+    ChPatientTeamVo queryCurrentPatientTeam(Long patientId);
 }

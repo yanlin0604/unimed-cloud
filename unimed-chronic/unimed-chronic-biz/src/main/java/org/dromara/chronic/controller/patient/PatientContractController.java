@@ -12,6 +12,7 @@ import org.dromara.chronic.domain.vo.ChContractFulfillmentVo;
 import org.dromara.chronic.domain.vo.ChContractServicePackageVo;
 import org.dromara.chronic.domain.vo.ChDoctorTeamVo;
 import org.dromara.chronic.domain.vo.ChPatientContractVo;
+import org.dromara.chronic.domain.vo.ChPatientTeamVo;
 import org.dromara.chronic.service.IChDoctorTeamService;
 import org.dromara.chronic.service.IChPatientContractService;
 import org.dromara.common.core.domain.R;
@@ -48,6 +49,13 @@ public class PatientContractController extends BaseController {
     public R<ChPatientContractVo> currentContract() {
         Long patientId = patientContextHelper.getCurrentPatientId();
         return R.ok(contractService.queryCurrentContract(patientId));
+    }
+
+    @Operation(summary = "查询当前签约医生团队")
+    @GetMapping("/chronic/patient/contract/team/current")
+    public R<ChPatientTeamVo> currentTeam() {
+        Long patientId = patientContextHelper.getCurrentPatientId();
+        return R.ok(doctorTeamService.queryCurrentPatientTeam(patientId));
     }
 
     @Operation(summary = "查询可用服务包列表")

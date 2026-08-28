@@ -15,6 +15,7 @@ import org.dromara.chronic.domain.entity.ChDoctorTeam;
 import org.dromara.chronic.domain.entity.ChDoctorTeamMember;
 import org.dromara.chronic.domain.vo.ChDoctorTeamMemberVo;
 import org.dromara.chronic.domain.vo.ChDoctorTeamVo;
+import org.dromara.chronic.domain.vo.ChPatientTeamVo;
 import org.dromara.chronic.mapper.ChDoctorTeamMapper;
 import org.dromara.chronic.mapper.ChDoctorTeamMemberMapper;
 import org.dromara.chronic.mapper.ChPatientContractMapper;
@@ -30,6 +31,7 @@ import org.dromara.system.api.domain.vo.RemoteDictDataVo;
 import org.dromara.system.api.domain.vo.RemoteUserVo;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -179,6 +181,44 @@ public class ChDoctorTeamServiceImpl implements IChDoctorTeamService {
         }
 
         return members;
+    }
+
+    @Override
+    public ChPatientTeamVo queryCurrentPatientTeam(Long patientId) {
+        var contract = patientContractMapper.selectOne(
+            Wrappers.<org.dromara.chronic.domain.entity.ChPatientContract>lambdaQuery()
+                .eq(org.dromara.chronic.domain.entity.ChPatientContract::getPatientId, patientId)
+                .eq(org.dromara.chronic.domain.entity.ChPatientContract::getContractStatus, "ACTIVE")
+                .and(wrapper -> wrapper
+                    .isNull(org.dromara.chronic.domain.entity.ChPatientContract::getContractPeriodEnd)
+                    .or()
+                    .ge(org.dromara.chronic.domain.entity.ChPatientContract::getContractPeriodEnd, new Date()))
+                .isNotNull(org.dromara.chronic.domain.entity.ChPatientContract::getTeamId)
+                .orderByDesc(org.dromara.chronic.domain.entity.ChPatientContract::getContractPeriodStart)
+                .last("LIMIT 1")
+        );
+        if (contract == null) {
+            return null;
+        }
+        ChDoctorTeamVo team = teamMapper.selectVoById(contract.getTeamId());
+        if (team == null || !"ACTIVE".equalsIgnoreCase(team.getTeamStatus())) {
+            return null;
+        }
+        ChPatientTeamVo result = new ChPatientTeamVo();
+        result.setTeamId(team.getTeamId());
+        result.setTeamName(team.getTeamName());
+        result.setDeptId(team.getDeptId());
+        result.setDeptName(team.getDeptName());
+        result.setLeaderUserId(team.getLeaderUserId());
+        result.setTeamStatus(team.getTeamStatus());
+        result.setTeamStatusName(team.getTeamStatusName());
+        result.setMembers(queryMembers(team.getTeamId()));
+        result.setLeaderNickName(result.getMembers().stream()
+            .filter(member -> team.getLeaderUserId() != null && team.getLeaderUserId().equals(member.getUserId()))
+            .map(ChDoctorTeamMemberVo::getNickName)
+            .filter(StringUtils::isNotBlank)
+            .findFirst().orElse(null));
+        return result;
     }
 
     @Override
