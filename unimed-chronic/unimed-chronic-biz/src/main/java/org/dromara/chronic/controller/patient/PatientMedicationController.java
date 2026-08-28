@@ -6,11 +6,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dromara.chronic.domain.vo.ChMedicationCheckinStatVo;
 import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
 import org.dromara.chronic.service.IChMedicationService;
 import org.dromara.chronic.support.PatientContextHelper;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,11 +44,17 @@ public class PatientMedicationController extends BaseController {
         return R.ok(medicationService.queryMedicationList(patientId));
     }
 
+    @Operation(summary = "查询用药打卡统计")
+    @GetMapping("/chronic/patient/medication/checkin/stat")
+    public R<ChMedicationCheckinStatVo> checkinStat() {
+        Long patientId = patientContextHelper.getCurrentPatientId();
+        return R.ok(medicationService.queryCheckinStat(patientId));
+    }
+
     /**
      * 服药打卡
      */
     @Operation(summary = "服药打卡")
-    @RepeatSubmit
     @PostMapping("/chronic/patient/medication/checkin")
     public R<Boolean> checkin(@Parameter(description = "用药记录ID") @RequestParam Long medId) {
         Long patientId = patientContextHelper.getCurrentPatientId();

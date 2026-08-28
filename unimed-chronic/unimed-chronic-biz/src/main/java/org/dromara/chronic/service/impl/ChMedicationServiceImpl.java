@@ -10,14 +10,17 @@ import org.dromara.chronic.domain.bo.ChMedicationAdjustBo;
 import org.dromara.chronic.domain.bo.ChMedicationRecordBo;
 import org.dromara.chronic.domain.entity.ChDrugInteraction;
 import org.dromara.chronic.domain.entity.ChMedicationAdjust;
+import org.dromara.chronic.domain.entity.ChMedicationCheckin;
 import org.dromara.chronic.domain.entity.ChMedicationRecord;
 import org.dromara.chronic.domain.entity.ChPatientProfile;
 import org.dromara.chronic.domain.vo.ChDrugInteractionVo;
 import org.dromara.chronic.domain.vo.ChMedicationAdjustVo;
+import org.dromara.chronic.domain.vo.ChMedicationCheckinStatVo;
 import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
 import org.dromara.chronic.domain.vo.DrugInteractionCheckVo;
 import org.dromara.chronic.mapper.ChDrugInteractionMapper;
 import org.dromara.chronic.mapper.ChMedicationAdjustMapper;
+import org.dromara.chronic.mapper.ChMedicationCheckinMapper;
 import org.dromara.chronic.mapper.ChMedicationRecordMapper;
 import org.dromara.chronic.mapper.ChPatientProfileMapper;
 import org.dromara.chronic.service.IChMedicationService;
@@ -26,13 +29,15 @@ import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.dromara.common.redis.utils.RedisUtils;
-
-import java.time.Duration;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -50,6 +55,7 @@ public class ChMedicationServiceImpl implements IChMedicationService {
 
     private final ChMedicationRecordMapper medicationRecordMapper;
     private final ChMedicationAdjustMapper medicationAdjustMapper;
+    private final ChMedicationCheckinMapper medicationCheckinMapper;
     private final ChDrugInteractionMapper drugInteractionMapper;
     private final ChPatientProfileMapper patientProfileMapper;
 
@@ -234,9 +240,8 @@ public class ChMedicationServiceImpl implements IChMedicationService {
         return result;
     }
 
-    private static final String MEDICATION_CHECKIN_KEY = "chronic:medication:checkin:";
-
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean checkinMedication(Long medId, Long patientId) {
         ChMedicationRecord entity = medicationRecordMapper.selectById(medId);
         if (entity == null) {
@@ -245,13 +250,119 @@ public class ChMedicationServiceImpl implements IChMedicationService {
         if (!patientId.equals(entity.getPatientId())) {
             throw new ServiceException("无权操作他人的用药记录");
         }
-        if ("STOPPED".equalsIgnoreCase(entity.getStatus())) {
+        if (!"ACTIVE".equalsIgnoreCase(entity.getStatus())) {
             throw new ServiceException("该药物已停用，无法打卡");
         }
-        // 记录打卡时间到 Redis，key: chronic:medication:checkin:{medId}:{yyyy-MM-dd}
-        String dateKey = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        String redisKey = MEDICATION_CHECKIN_KEY + medId + ":" + dateKey;
-        RedisUtils.setCacheObject(redisKey, String.valueOf(System.currentTimeMillis()), Duration.ofHours(48));
+
+        LocalDate today = LocalDate.now();
+        Date now = new Date();
+        ChMedicationCheckin existing = medicationCheckinMapper.selectOne(
+            Wrappers.<ChMedicationCheckin>lambdaQuery()
+                .eq(ChMedicationCheckin::getPatientId, patientId)
+                .eq(ChMedicationCheckin::getMedId, medId)
+                .eq(ChMedicationCheckin::getCheckinDate, today)
+        );
+        if (existing == null) {
+            ChMedicationCheckin checkin = new ChMedicationCheckin();
+            checkin.setPatientId(patientId);
+            checkin.setMedId(medId);
+            checkin.setCheckinDate(today);
+            checkin.setFirstCheckinTime(now);
+            checkin.setLastCheckinTime(now);
+            try {
+                medicationCheckinMapper.insert(checkin);
+            } catch (DuplicateKeyException ignored) {
+                updateLastCheckinTime(patientId, medId, today, now);
+            }
+        } else {
+            existing.setLastCheckinTime(now);
+            medicationCheckinMapper.updateById(existing);
+        }
+
         return true;
+    }
+
+    @Override
+    public ChMedicationCheckinStatVo queryCheckinStat(Long patientId) {
+        LocalDate today = LocalDate.now();
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        List<ChMedicationRecordVo> activeMedications = medicationRecordMapper.selectVoList(
+            Wrappers.<ChMedicationRecord>lambdaQuery()
+                .eq(ChMedicationRecord::getPatientId, patientId)
+                .eq(ChMedicationRecord::getStatus, "ACTIVE")
+                .orderByDesc(ChMedicationRecord::getStartDate)
+        );
+
+        ChMedicationCheckinStatVo result = new ChMedicationCheckinStatVo();
+        result.setHasActiveMedication(!activeMedications.isEmpty());
+        if (activeMedications.isEmpty()) {
+            result.setConsecutiveDays(0);
+            result.setWeekCompletedDays(0);
+            result.setWeekExpectedDays(0);
+            result.setWeekAchievementRate(0);
+            result.setCheckedInToday(false);
+            result.setMedications(List.of());
+            return result;
+        }
+
+        HashSet<Long> activeMedicationIds = activeMedications.stream()
+            .map(ChMedicationRecordVo::getMedId)
+            .collect(Collectors.toCollection(HashSet::new));
+        List<ChMedicationCheckin> checkins = medicationCheckinMapper.selectList(
+            Wrappers.<ChMedicationCheckin>lambdaQuery()
+                .eq(ChMedicationCheckin::getPatientId, patientId)
+                .in(ChMedicationCheckin::getMedId, activeMedicationIds)
+                .le(ChMedicationCheckin::getCheckinDate, today)
+                .orderByDesc(ChMedicationCheckin::getCheckinDate)
+        );
+        HashSet<LocalDate> completedDates = checkins.stream()
+            .map(ChMedicationCheckin::getCheckinDate)
+            .collect(Collectors.toCollection(HashSet::new));
+        HashSet<Long> todayMedicationIds = checkins.stream()
+            .filter(item -> today.equals(item.getCheckinDate()))
+            .map(ChMedicationCheckin::getMedId)
+            .collect(Collectors.toCollection(HashSet::new));
+
+        boolean checkedInToday = completedDates.contains(today);
+        LocalDate cursor = checkedInToday ? today : today.minusDays(1);
+        int consecutiveDays = 0;
+        while (completedDates.contains(cursor)) {
+            consecutiveDays++;
+            cursor = cursor.minusDays(1);
+        }
+        int weekCompletedDays = (int) completedDates.stream()
+            .filter(date -> !date.isBefore(weekStart) && !date.isAfter(today))
+            .count();
+        int weekExpectedDays = today.getDayOfWeek().getValue();
+        int achievementRate = (int) Math.round(weekCompletedDays * 100.0 / weekExpectedDays);
+
+        List<ChMedicationCheckinStatVo.MedicationTodayVo> medications = activeMedications.stream().map(medication -> {
+            ChMedicationCheckinStatVo.MedicationTodayVo item = new ChMedicationCheckinStatVo.MedicationTodayVo();
+            item.setMedId(medication.getMedId());
+            item.setDrugName(medication.getDrugName());
+            item.setDosage(medication.getDosage());
+            item.setFrequency(medication.getFrequency());
+            item.setFrequencyName(medication.getFrequencyName());
+            item.setCheckedInToday(todayMedicationIds.contains(medication.getMedId()));
+            return item;
+        }).toList();
+
+        result.setConsecutiveDays(consecutiveDays);
+        result.setWeekCompletedDays(weekCompletedDays);
+        result.setWeekExpectedDays(weekExpectedDays);
+        result.setWeekAchievementRate(achievementRate);
+        result.setCheckedInToday(checkedInToday);
+        result.setMedications(medications);
+        return result;
+    }
+
+    private void updateLastCheckinTime(Long patientId, Long medId, LocalDate checkinDate, Date now) {
+        medicationCheckinMapper.update(null,
+            Wrappers.<ChMedicationCheckin>lambdaUpdate()
+                .eq(ChMedicationCheckin::getPatientId, patientId)
+                .eq(ChMedicationCheckin::getMedId, medId)
+                .eq(ChMedicationCheckin::getCheckinDate, checkinDate)
+                .set(ChMedicationCheckin::getLastCheckinTime, now)
+        );
     }
 }

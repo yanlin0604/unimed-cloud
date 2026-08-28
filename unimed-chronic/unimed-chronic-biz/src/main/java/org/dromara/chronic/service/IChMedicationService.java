@@ -5,6 +5,7 @@ import org.dromara.chronic.domain.bo.ChMedicationAdjustBo;
 import org.dromara.chronic.domain.bo.ChMedicationRecordBo;
 import org.dromara.chronic.domain.vo.ChDrugInteractionVo;
 import org.dromara.chronic.domain.vo.ChMedicationAdjustVo;
+import org.dromara.chronic.domain.vo.ChMedicationCheckinStatVo;
 import org.dromara.chronic.domain.vo.ChMedicationRecordVo;
 import org.dromara.chronic.domain.vo.DrugInteractionCheckVo;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -51,4 +52,7 @@ public interface IChMedicationService {
      * @throws ServiceException 药物已停用或不属于当前患者时抛出
      */
     Boolean checkinMedication(Long medId, Long patientId);
+
+    /** 查询患者用药打卡统计与今日用药状态。 */
+    ChMedicationCheckinStatVo queryCheckinStat(Long patientId);
 }
