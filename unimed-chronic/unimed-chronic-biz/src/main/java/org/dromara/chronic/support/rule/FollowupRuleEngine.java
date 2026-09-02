@@ -64,7 +64,7 @@ public class FollowupRuleEngine {
                 normalizedDisease,
                 normalizedLevel,
                 intValue(rule.getCycleDays(), 90),
-                intValue(rule.getTotalRounds(), 4),
+                intValue(rule.getTotalRounds(), 1),
                 intValue(rule.getFirstDueDays(), 7),
                 defaultIfBlank(rule.getDefaultVisitType(), "PHONE").toUpperCase(Locale.ROOT),
                 questionnaireId,
@@ -73,7 +73,9 @@ public class FollowupRuleEngine {
         }
 
         int cycleDays;
-        int totalRounds;
+        // 逐轮模型：规则只负责生成首轮，后续是否继续由医生每轮随访时决定，
+        // 故内置兜底不再按风险等级区分轮次数（原 4/6/12 会误导为预生成轮数）。
+        int totalRounds = 1;
         int firstDueDays = 7; // 新建档/确诊默认建议 7 天内完成首诊随访与基线建立
         String defaultVisitType = "PHONE";
         String advice;
@@ -83,15 +85,12 @@ public class FollowupRuleEngine {
                 // 高血压分级管理规范
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
-                    totalRounds = 12;
                     advice = "高血压三级管理(高危/极高危):至少每1个月随访1次,重点监测靶器官损害、血压达标情况及药物不良反应。";
                 } else if ("MEDIUM".equals(normalizedLevel)) {
                     cycleDays = 60;
-                    totalRounds = 6;
                     advice = "高血压二级管理(中危):至少每2个月随访1次,指导规律用药与生活方式干预。";
                 } else {
                     cycleDays = 90;
-                    totalRounds = 4;
                     advice = "高血压一级管理(低危):至少每3个月随访1次(每年≥4次)。";
                 }
             }

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.dromara.chronic.domain.entity.*;
 import org.dromara.chronic.mapper.*;
+import org.dromara.chronic.support.rule.FollowupRoundTaskGenerator;
 import org.dromara.chronic.support.rule.MultiDiseaseFollowupMerger;
 import org.dromara.chronic.support.rule.MultiDiseaseFollowupMerger.MergedProposal;
 import org.dromara.common.core.utils.StringUtils;
@@ -23,7 +24,8 @@ import java.util.stream.Collectors;
  * 慢病随访自动入组与计划生成编排层
  * <p>
  * 当患者确诊慢病（新建档案、HIS确诊同步、PHS基层同步、筛查阳性确诊）时，
- * 自动触发风险评估与多病共管合并引擎，生成对应的活跃随访计划与全年度随访任务。
+ * 自动触发风险评估与多病共管合并引擎，生成对应的活跃随访计划与首轮随访任务。
+ * 后续轮次不再预生成，由医生在完成每轮随访时填写「下次随访日期」逐轮驱动。
  *
  * @author unimed
  */
@@ -34,7 +36,7 @@ public class FollowupEnrollmentManager {
 
     private final ChFollowupPlanMapper followupPlanMapper;
     private final ChFollowupPlanItemMapper followupPlanItemMapper;
-    private final ChFollowupTaskMapper followupTaskMapper;
+    private final FollowupRoundTaskGenerator roundTaskGenerator;
     private final ChPatientDiseaseMapper patientDiseaseMapper;
     private final ChRiskAssessmentMapper riskAssessmentMapper;
     private final ChPatientProfileMapper patientProfileMapper;
@@ -148,42 +150,23 @@ public class FollowupEnrollmentManager {
         item.setDelFlag("0");
         followupPlanItemMapper.insert(item);
 
-        // 7. 预生成全年度随访任务
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(firstDueDate);
-        for (int round = 1; round <= proposal.totalRounds(); round++) {
-            ChFollowupTask task = new ChFollowupTask();
-            task.setPatientId(patientId);
-            task.setPlanId(plan.getPlanId());
-            task.setTaskRound(round);
-            task.setPlanDueDate(calendar.getTime());
-            task.setTaskStatus("PENDING");
-            task.setTaskType("NORMAL");
-            task.setAssigneeUserId(finalDoctorId);
-            task.setCreateDept(103L);
-            task.setTenantId("000000");
-            task.setDelFlag("0");
-
-            // 所有轮次统一使用规则 default_visit_type,不再有独立的"面对面"机制
-            task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(proposal.defaultVisitType()));
-            task.setVisitType(proposal.defaultVisitType());
-
-            followupTaskMapper.insert(task);
-            calendar.add(Calendar.DAY_OF_MONTH, proposal.cycleDays());
-        }
+        // 7. 仅生成首轮随访任务，后续轮次由医生完成本轮后决定是否继续
+        roundTaskGenerator.ensureRound(plan, 1, firstDueDate, proposal.defaultVisitType());
 
         // 8. 沉淀至患者时间线
         recordTimeline(patientId, "FOLLOWUP_PLAN_AUTO_GEN", "自动生成随访计划",
-            String.format("患者确诊慢病，系统自动生成%s管理计划（管理分级：%s，周期：%d天，总轮次：%d轮）。%s",
+            String.format("患者确诊慢病，系统自动生成%s管理计划（管理分级：%s，周期：%d天，管理目标 %d 轮）。"
+                    + "已安排首轮随访（到期日：%s），后续轮次由医生随访后逐轮确定。%s",
                 proposal.isMultiDisease() ? "多病共管" : proposal.primaryDiseaseCode(),
-                proposal.managementLevel(), proposal.cycleDays(), proposal.totalRounds(), proposal.summaryAdvice()));
+                proposal.managementLevel(), proposal.cycleDays(), proposal.totalRounds(),
+                DateUtil.format(firstDueDate, "yyyy-MM-dd"), proposal.summaryAdvice()));
 
         // 9. 向责任医生推送工作待办通知
         if (finalDoctorId != null && remoteMessageService != null) {
             try {
                 ChPatientProfile profile = patientProfileMapper.selectById(patientId);
                 String pName = profile != null ? profile.getName() : "患者";
-                String msg = String.format("【慢病入组通知】患者【%s】已确诊并自动生成慢病随访计划（共%d轮，首轮随访到期日：%s），请按期跟进。",
+                String msg = String.format("【慢病入组通知】患者【%s】已确诊并自动生成慢病随访计划（管理目标 %d 轮，首轮随访到期日：%s），请按期跟进。",
                     pName, proposal.totalRounds(), DateUtil.format(firstDueDate, "yyyy-MM-dd"));
                 remoteMessageService.publishMessage(List.of(finalDoctorId), msg);
             } catch (Exception e) {

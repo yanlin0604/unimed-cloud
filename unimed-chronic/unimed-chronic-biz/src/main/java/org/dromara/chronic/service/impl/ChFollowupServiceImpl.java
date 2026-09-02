@@ -21,6 +21,7 @@ import org.dromara.chronic.service.IChFollowupService;
 import org.dromara.chronic.service.IChMessageSessionService;
 import org.dromara.chronic.service.IChNotificationTemplateService;
 import org.dromara.chronic.support.FollowupOverdueRefresher;
+import org.dromara.chronic.support.rule.FollowupRoundTaskGenerator;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -61,6 +62,7 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     private final FollowupOverdueRefresher overdueRefresher;
     private final IChMessageSessionService messageSessionService;
     private final org.dromara.chronic.support.rule.FollowupDynamicAdjuster dynamicAdjuster;
+    private final FollowupRoundTaskGenerator roundTaskGenerator;
     private final ObjectMapper objectMapper;
 
     @DubboReference(mock = "org.dromara.resource.api.RemoteMessageServiceStub")
@@ -121,9 +123,8 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         if (Set.of("COMPLETED", "HISTORY").contains(current.getPlanStatus())) {
             throw new ServiceException("已完成或历史计划不能修改");
         }
-        if (ObjectUtil.defaultIfNull(current.getCurrentRound(), 0) > bo.getTotalRounds()) {
-            throw new ServiceException("总轮次不能小于当前已完成轮次");
-        }
+        // 逐轮模型下 total_rounds 不再是轮数上限（规则只负责生成首轮，续轮由医生逐次决定），
+        // 故此处不做「总轮次不得小于已完成轮次」校验，否则医生续到第 2 轮后计划编辑必然失败。
         ChFollowupPlan plan = MapstructUtils.convert(bo, ChFollowupPlan.class);
         if (plan.getPlanStatus() == null) {
             plan.setPlanStatus(current.getPlanStatus());
@@ -468,7 +469,13 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         // 6. 更新任务状态与方案轮次进度
         task.setTaskStatus("DONE");
         followupTaskMapper.updateById(task);
-        updatePlanProgress(task);
+
+        // 6.1 医生填写「下次随访日期」即安排下一轮; 留空表示本次为最后一轮, 由下方收敛判定结束计划
+        ChFollowupPlan plan = task.getPlanId() == null ? null : followupPlanMapper.selectById(task.getPlanId());
+        if (plan != null && StringUtils.isNotBlank(bo.getNextFollowupDate())) {
+            roundTaskGenerator.generateNextRound(task, plan, parseFollowupDate(bo.getNextFollowupDate()));
+        }
+        updatePlanProgress(task, plan);
 
         // 7. 动态调整状态机评估（控制不满意14天核查、连续不满意/转诊跟踪）
         if (dynamicAdjuster != null) {
@@ -698,6 +705,37 @@ public class ChFollowupServiceImpl implements IChFollowupService {
     /**
      * 沉淀随访事件到患者时间线
      */
+    /**
+     * 解析医生填写的下次随访日期，非法格式直接拒绝提交（避免生成错乱到期日的任务）
+     */
+    private Date parseFollowupDate(String dateStr) {
+        try {
+            return DateUtil.parse(dateStr.trim());
+        } catch (Exception e) {
+            throw new ServiceException("下次随访日期格式不正确，应为 yyyy-MM-dd");
+        }
+    }
+
+    /**
+     * 计划完成事件沉淀（逐轮模型下由医生不再安排下一轮触发）
+     */
+    private void recordPlanCompleted(Long patientId, ChFollowupPlan plan) {
+        if (patientTimelineMapper == null || patientId == null) return;
+        try {
+            ChPatientTimeline timeline = new ChPatientTimeline();
+            timeline.setPatientId(patientId);
+            timeline.setEventType("FOLLOWUP_PLAN_COMPLETED");
+            timeline.setEventTitle("随访计划完成");
+            timeline.setEventDetail(String.format("随访计划已完成（共完成 %d 轮），如需继续管理请重新制定随访计划。",
+                ObjectUtil.defaultIfNull(plan.getCurrentRound(), 0)));
+            timeline.setEventTime(new Date());
+            timeline.setTenantId(plan.getTenantId());
+            patientTimelineMapper.insert(timeline);
+        } catch (Exception e) {
+            log.warn("写入随访计划完成时间线失败 patientId={}, err={}", patientId, e.getMessage());
+        }
+    }
+
     private void recordPatientTimeline(Long patientId, ChFollowupSubmitBo bo) {
         try {
             ChPatientTimeline timeline = new ChPatientTimeline();
@@ -892,23 +930,9 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             .filter(item -> StringUtils.isNotBlank(item.getVisitType()))
             .findFirst()
             .orElseThrow(() -> new ServiceException("随访计划项缺少随访方式"));
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(visitItem.getDueDate() == null ? new Date() : visitItem.getDueDate());
-        for (int round = 1; round <= plan.getTotalRounds(); round++) {
-            ChFollowupTask task = new ChFollowupTask();
-            task.setPatientId(plan.getPatientId());
-            task.setPlanId(plan.getPlanId());
-            task.setTaskRound(round);
-            task.setPlanDueDate(calendar.getTime());
-            task.setTaskStatus("PENDING");
-            task.setTaskType("NORMAL");
-            boolean faceToFace = "OFFLINE".equalsIgnoreCase(visitItem.getVisitType());
-            task.setIsFaceToFace(faceToFace);
-            task.setVisitType(visitItem.getVisitType());
-            task.setAssigneeUserId(plan.getAssigneeUserId()); // 可为 null 进入任务池
-            followupTaskMapper.insert(task);
-            calendar.add(Calendar.DAY_OF_MONTH, plan.getCycleDays());
-        }
+        // 逐轮模下新建计划只生成首轮，后续轮次由医生完成随访时决定
+        Date firstDueDate = visitItem.getDueDate() == null ? new Date() : visitItem.getDueDate();
+        roundTaskGenerator.ensureRound(plan, 1, firstDueDate, visitItem.getVisitType());
     }
 
     private void syncUnfinishedTasks(ChFollowupPlan plan, List<ChFollowupPlanItemBo> itemList) {
@@ -917,50 +941,33 @@ public class ChFollowupServiceImpl implements IChFollowupService {
             .findFirst()
             .orElseThrow(() -> new ServiceException("随访计划项缺少随访方式"));
         Date firstDueDate = visitItem.getDueDate() == null ? new Date() : visitItem.getDueDate();
+        // 仅同步计划内常规轮次任务：DYNAMIC/REFERRAL_TRACK/EMERGENCY 任务 taskRound 为空，
+        // 既不能被拆箱比较轮次上限，也不应被计划编辑覆写方式与到期日
         List<ChFollowupTask> tasks = followupTaskMapper.selectList(
-            Wrappers.<ChFollowupTask>lambdaQuery().eq(ChFollowupTask::getPlanId, plan.getPlanId()));
-        Set<Integer> taskRounds = tasks.stream().map(ChFollowupTask::getTaskRound)
-            .filter(ObjectUtil::isNotNull).collect(Collectors.toSet());
+            Wrappers.<ChFollowupTask>lambdaQuery()
+                .eq(ChFollowupTask::getPlanId, plan.getPlanId())
+                .eq(ChFollowupTask::getTaskType, "NORMAL"));
         for (ChFollowupTask task : tasks) {
             if (Set.of("DONE", "CANCELLED").contains(task.getTaskStatus())) {
                 continue;
             }
-            if ("DISABLED".equals(plan.getPlanStatus()) || task.getTaskRound() > plan.getTotalRounds()) {
+            if ("DISABLED".equals(plan.getPlanStatus())) {
                 task.setTaskStatus("CANCELLED");
             } else {
                 task.setPatientId(plan.getPatientId());
                 task.setAssigneeUserId(plan.getAssigneeUserId());
-                task.setVisitType(visitItem.getVisitType());
-                task.setPlanDueDate(calculateDueDate(firstDueDate, plan.getCycleDays(), task.getTaskRound()));
+                // 仅首轮由计划配置派生，编辑计划可覆写其随访方式与到期日；
+                // 第 2 轮起由医生完成上轮时填写「下次随访日期」生成，方式与日期均为临床决策，
+                // 编辑计划不得覆写（原实现按 cycle_days 公式重算日期，会静默丢弃医生选的日期）。
+                if (Integer.valueOf(1).equals(task.getTaskRound())) {
+                    task.setVisitType(visitItem.getVisitType());
+                    task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(visitItem.getVisitType()));
+                    task.setPlanDueDate(firstDueDate);
+                }
             }
             followupTaskMapper.updateById(task);
         }
-        if ("DISABLED".equals(plan.getPlanStatus())) {
-            return;
-        }
-        for (int round = 1; round <= plan.getTotalRounds(); round++) {
-            if (taskRounds.contains(round)) {
-                continue;
-            }
-            ChFollowupTask task = new ChFollowupTask();
-            task.setPatientId(plan.getPatientId());
-            task.setPlanId(plan.getPlanId());
-            task.setTaskRound(round);
-            task.setPlanDueDate(calculateDueDate(firstDueDate, plan.getCycleDays(), round));
-            task.setTaskStatus("PENDING");
-            task.setTaskType("NORMAL");
-            task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(visitItem.getVisitType()));
-            task.setVisitType(visitItem.getVisitType());
-            task.setAssigneeUserId(plan.getAssigneeUserId());
-            followupTaskMapper.insert(task);
-        }
-    }
-
-    private Date calculateDueDate(Date firstDueDate, int cycleDays, int round) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(firstDueDate);
-        calendar.add(Calendar.DAY_OF_MONTH, cycleDays * (round - 1));
-        return calendar.getTime();
+        // 不再补建未来轮次：逐轮模型下只有医生填写「下次随访日期」才会产生下一轮
     }
 
     private ChFollowupQuestionnaire resolveQuestionnaire(ChFollowupTask task) {
@@ -1073,15 +1080,22 @@ public class ChFollowupServiceImpl implements IChFollowupService {
         answerMapper.insertBatch(entities);
     }
 
-    private void updatePlanProgress(ChFollowupTask task) {
-        ChFollowupPlan plan = followupPlanMapper.selectById(task.getPlanId());
+    private void updatePlanProgress(ChFollowupTask task, ChFollowupPlan plan) {
+        if (plan == null && task.getPlanId() != null) {
+            plan = followupPlanMapper.selectById(task.getPlanId());
+        }
         if (plan == null) return;
+        boolean wasActive = "ACTIVE".equals(plan.getPlanStatus());
         // 紧急/动态等计划外任务 taskRound 为空, 不参与轮次推进(直接取 max 会在拆箱时 NPE)
         if (task.getTaskRound() != null) {
             plan.setCurrentRound(Math.max(ObjectUtil.defaultIfNull(plan.getCurrentRound(), 0), task.getTaskRound()));
         }
         if (countUnfinishedTasks(task.getPlanId()) == 0) plan.setPlanStatus("COMPLETED");
         followupPlanMapper.updateById(plan);
+        // 逐轮模型下计划不再预生成全年度任务, 医生不再填下次日期时需显沉淀计划结束事件
+        if (wasActive && "COMPLETED".equals(plan.getPlanStatus())) {
+            recordPlanCompleted(task.getPatientId(), plan);
+        }
     }
 
     private void refreshPlanCompletion(Long planId) {

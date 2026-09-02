@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -107,10 +108,22 @@ public class ChFollowupServiceImplTest {
         overdueRefresher = mock(FollowupOverdueRefresher.class);
         messageSessionService = mock(org.dromara.chronic.service.IChMessageSessionService.class);
         org.dromara.chronic.support.rule.FollowupDynamicAdjuster dynamicAdjuster = mock(org.dromara.chronic.support.rule.FollowupDynamicAdjuster.class);
+        ChFollowupRuleMapper followupRuleMapper = mock(ChFollowupRuleMapper.class);
+        when(followupRuleMapper.selectList(any())).thenReturn(Collections.emptyList());
+        org.dromara.chronic.support.rule.FollowupRuleEngine ruleEngine =
+            new org.dromara.chronic.support.rule.FollowupRuleEngine(questionnaireMapper, followupRuleMapper);
+        org.dromara.chronic.support.rule.FollowupRoundTaskGenerator roundTaskGenerator =
+            new org.dromara.chronic.support.rule.FollowupRoundTaskGenerator(taskMapper, planItemMapper, ruleEngine);
+        // 模拟 MyBatis-Plus 插入回填雪花主键, 逐轮生成器依赖 planId 非空
+        doAnswer(inv -> {
+            inv.<ChFollowupPlan>getArgument(0).setPlanId(10L);
+            return 1;
+        }).when(planMapper).insert(any(ChFollowupPlan.class));
         service = new ChFollowupServiceImpl(planMapper, planItemMapper, taskMapper, recordMapper,
             questionnaireMapper, answerMapper, patientProfileMapper, patientTimelineMapper,
             healthMetricRecordMapper, medicationRecordMapper, notificationTemplateService,
-            healthMetricManager, diseaseNameHelper, overdueRefresher, messageSessionService, dynamicAdjuster, new ObjectMapper());
+            healthMetricManager, diseaseNameHelper, overdueRefresher, messageSessionService, dynamicAdjuster,
+            roundTaskGenerator, new ObjectMapper());
     }
 
     private ChFollowupTask pendingTask() {
@@ -224,14 +237,94 @@ public class ChFollowupServiceImplTest {
 
         // 验证健康指标自动入库调用
         verify(healthMetricManager, times(1)).reportAndCheckBatch(any());
-        // 验证时间线插入调用
-        verify(patientTimelineMapper, times(1)).insert(any(ChPatientTimeline.class));
+        // 时间线: 完成随访事件 + 计划完成事件
+        verify(patientTimelineMapper, times(2)).insert(any(ChPatientTimeline.class));
 
         assertEquals("DONE", task.getTaskStatus());
         verify(taskMapper).updateById(task);
+        // 未填「下次随访日期」= 本次为最后一轮, 不生成新任务, 计划收敛为已完成
+        verify(taskMapper, never()).insert(any(ChFollowupTask.class));
         assertEquals("COMPLETED", plan.getPlanStatus());
         assertEquals(1, plan.getCurrentRound());
         verify(planMapper).updateById(plan);
+    }
+
+    @Test
+    public void completeTaskWithNextDateShouldGenerateNextRoundAndKeepPlanActive() {
+        ChFollowupTask task = pendingTask();
+        // 第一次 selectOne 为 completeTask 取任务, 第二次为生成器的轮次幂等检查(返回 null 表示下一轮不存在)
+        when(taskMapper.selectOne(any())).thenReturn(task).thenReturn(null);
+        when(recordMapper.selectOne(any())).thenReturn(null);
+        when(planItemMapper.selectList(any())).thenReturn(Collections.emptyList());
+        ChFollowupPlan plan = new ChFollowupPlan();
+        plan.setPlanId(10L);
+        plan.setPatientId(100L);
+        plan.setAssigneeUserId(200L);
+        plan.setPlanStatus("ACTIVE");
+        plan.setCurrentRound(0);
+        plan.setTotalRounds(4);
+        when(planMapper.selectById(10L)).thenReturn(plan);
+        // 新生成的下一轮任务处于 PENDING, 计划不应收敛为完成
+        when(taskMapper.selectCount(any())).thenReturn(1L);
+
+        String nextDate = cn.hutool.core.date.DateUtil.formatDate(cn.hutool.core.date.DateUtil.offsetDay(new Date(), 30));
+        ChFollowupSubmitBo bo = submitBo();
+        bo.setNextFollowupDate(nextDate);
+
+        service.completeTask(1L, bo, 100L, 200L, 300L, "ONLINE");
+
+        ArgumentCaptor<ChFollowupTask> taskCaptor = ArgumentCaptor.forClass(ChFollowupTask.class);
+        verify(taskMapper, times(1)).insert(taskCaptor.capture());
+        ChFollowupTask next = taskCaptor.getValue();
+        assertEquals(2, next.getTaskRound());
+        assertEquals("PENDING", next.getTaskStatus());
+        assertEquals("NORMAL", next.getTaskType());
+        assertEquals(10L, next.getPlanId());
+        assertEquals(100L, next.getPatientId());
+        // 下一轮默认沿用本轮随访方式与执行人
+        assertEquals("PHONE", next.getVisitType());
+        assertEquals(200L, next.getAssigneeUserId());
+        assertEquals(nextDate, cn.hutool.core.date.DateUtil.formatDate(next.getPlanDueDate()));
+        assertEquals("ACTIVE", plan.getPlanStatus());
+    }
+
+    @Test
+    public void completeTaskShouldRejectPastNextDate() {
+        ChFollowupTask task = pendingTask();
+        when(taskMapper.selectOne(any())).thenReturn(task).thenReturn(null);
+        when(recordMapper.selectOne(any())).thenReturn(null);
+        when(planItemMapper.selectList(any())).thenReturn(Collections.emptyList());
+        ChFollowupPlan plan = new ChFollowupPlan();
+        plan.setPlanId(10L);
+        plan.setPlanStatus("ACTIVE");
+        when(planMapper.selectById(10L)).thenReturn(plan);
+        when(taskMapper.selectCount(any())).thenReturn(0L);
+
+        ChFollowupSubmitBo bo = submitBo();
+        bo.setNextFollowupDate("2000-01-01");
+
+        assertThrows(ServiceException.class, () -> service.completeTask(1L, bo, 100L, 200L, 300L, null));
+        // 日期非法必须在收敛计划状态之前失败, 不留下错乱状态
+        verify(taskMapper, never()).insert(any(ChFollowupTask.class));
+        verify(planMapper, never()).updateById(any(ChFollowupPlan.class));
+    }
+
+    @Test
+    public void completeTaskShouldRejectInvalidNextDateFormat() {
+        ChFollowupTask task = pendingTask();
+        when(taskMapper.selectOne(any())).thenReturn(task).thenReturn(null);
+        when(recordMapper.selectOne(any())).thenReturn(null);
+        when(planItemMapper.selectList(any())).thenReturn(Collections.emptyList());
+        ChFollowupPlan plan = new ChFollowupPlan();
+        plan.setPlanId(10L);
+        plan.setPlanStatus("ACTIVE");
+        when(planMapper.selectById(10L)).thenReturn(plan);
+
+        ChFollowupSubmitBo bo = submitBo();
+        bo.setNextFollowupDate("明天下午");
+
+        assertThrows(ServiceException.class, () -> service.completeTask(1L, bo, 100L, 200L, 300L, null));
+        verify(taskMapper, never()).insert(any(ChFollowupTask.class));
     }
 
     // ==================== 随访任务池与认领/指派/释放 ====================
@@ -316,7 +409,9 @@ public class ChFollowupServiceImplTest {
         assertNull(planCaptor.getValue().getAssigneeUserId());
 
         ArgumentCaptor<ChFollowupTask> taskCaptor = ArgumentCaptor.forClass(ChFollowupTask.class);
-        verify(taskMapper, times(2)).insert(taskCaptor.capture());
+        // 逐轮模型: 新建计划只生成首轮, 不再按 totalRounds 预生成
+        verify(taskMapper, times(1)).insert(taskCaptor.capture());
+        assertEquals(1, taskCaptor.getValue().getTaskRound());
         assertTrue(taskCaptor.getAllValues().stream()
             .allMatch(task -> task.getAssigneeUserId() == null));
     }

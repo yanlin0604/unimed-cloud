@@ -10,18 +10,17 @@ import org.dromara.chronic.domain.entity.ChFollowupPlan;
 import org.dromara.chronic.domain.entity.ChFollowupTask;
 import org.dromara.chronic.mapper.ChFollowupPlanMapper;
 import org.dromara.chronic.mapper.ChFollowupTaskMapper;
-import org.dromara.chronic.support.rule.FollowupRuleEngine;
-import org.dromara.common.core.utils.StringUtils;
+import org.dromara.chronic.support.rule.FollowupRoundTaskGenerator;
 import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
  * 随访任务补偿生成定时任务
  * <p>
- * 扫描生效的随访计划，仅补齐缺失轮次的随访任务（createPlan 为主生成点，Job 仅做补偿）
+ * 逐轮模型下随访任务由「入组生成首轮 + 医生完成每轮后决定是否继续」驱动，本 Job 只做兜底：
+ * 扫描生效计划，若其完全没有计划内轮次任务（首轮写入失败等异常场景），补齐首轮任务；
+ * 已有任何轮次任务的计划一律不再外推未来轮次，避免把医生尚未决定的随访提前派出去。
  *
  * @author unimed
  */
@@ -30,12 +29,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FollowupTaskGenJob {
 
+    /** 计划外临时任务类型，不参与"计划是否已有轮次任务"的判定 */
+    private static final List<String> OUT_OF_PLAN_TASK_TYPES = List.of("EMERGENCY", "DYNAMIC", "REFERRAL_TRACK");
+
     private final ChFollowupPlanMapper followupPlanMapper;
     private final ChFollowupTaskMapper followupTaskMapper;
-    private final FollowupRuleEngine ruleEngine;
+    private final FollowupRoundTaskGenerator roundTaskGenerator;
 
     public ExecuteResult jobExecute(JobArgs jobArgs) {
-        SnailJobLog.LOCAL.info("随访任务补偿生成开始");
+        SnailJobLog.LOCAL.info("随访首轮任务补偿开始");
         int generated = 0;
 
         List<ChFollowupPlan> activePlans = followupPlanMapper.selectList(
@@ -44,47 +46,20 @@ public class FollowupTaskGenJob {
         );
 
         for (ChFollowupPlan plan : activePlans) {
-            for (int round = 1; round <= plan.getTotalRounds(); round++) {
-                Long existing = followupTaskMapper.selectCount(
-                    Wrappers.<ChFollowupTask>lambdaQuery()
-                        .eq(ChFollowupTask::getPlanId, plan.getPlanId())
-                        .eq(ChFollowupTask::getTaskRound, round)
-                        .eq(ChFollowupTask::getPatientId, plan.getPatientId())
-                );
-                if (existing > 0) {
-                    continue;
-                }
-
-                ChFollowupTask task = new ChFollowupTask();
-                task.setPlanId(plan.getPlanId());
-                task.setPatientId(plan.getPatientId());
-                task.setTaskRound(round);
-                task.setTaskStatus("PENDING");
-                task.setPlanDueDate(computeDueDate(plan, round));
-                task.setAssigneeUserId(plan.getAssigneeUserId());
-                task.setTaskType("NORMAL");
-                // 所有轮次统一使用规则 default_visit_type,不再有独立的"面对面"机制
-                FollowupRuleEngine.FollowupPlanProposal proposal = ruleEngine.generateProposal(
-                    plan.getDiseaseCode(), plan.getManagementLevel());
-                task.setIsFaceToFace("OFFLINE".equalsIgnoreCase(proposal.defaultVisitType()));
-                task.setVisitType(proposal.defaultVisitType());
-                task.setTenantId(plan.getTenantId() != null ? plan.getTenantId() : "000000");
-                task.setCreateDept(plan.getCreateDept());
-                task.setCreateTime(new Date());
-                task.setDelFlag("0");
-                followupTaskMapper.insert(task);
-                generated++;
+            Long existing = followupTaskMapper.selectCount(
+                Wrappers.<ChFollowupTask>lambdaQuery()
+                    .eq(ChFollowupTask::getPlanId, plan.getPlanId())
+                    .and(w -> w.isNull(ChFollowupTask::getTaskType)
+                        .or().notIn(ChFollowupTask::getTaskType, OUT_OF_PLAN_TASK_TYPES))
+            );
+            if (existing != null && existing > 0) {
+                continue;
             }
+            roundTaskGenerator.ensureRound(plan, 1, roundTaskGenerator.resolveFirstDueDate(plan), null);
+            generated++;
         }
 
-        SnailJobLog.REMOTE.info("随访任务补偿生成完成, 补齐任务数: {}", generated);
-        return ExecuteResult.success("补偿随访任务" + generated + "条");
-    }
-
-    private Date computeDueDate(ChFollowupPlan plan, int round) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(plan.getCreateTime() != null ? plan.getCreateTime() : new Date());
-        calendar.add(Calendar.DAY_OF_MONTH, plan.getCycleDays() * (round - 1));
-        return calendar.getTime();
+        SnailJobLog.REMOTE.info("随访首轮任务补偿完成, 补齐首轮任务数: {}", generated);
+        return ExecuteResult.success("补齐首轮随访任务" + generated + "条");
     }
 }
