@@ -37,8 +37,12 @@ public class ChFollowupRuleBo extends BaseEntity {
     @NotNull(message = "随访周期不能为空")
     private Integer cycleDays;
 
-    @Schema(description = "总轮次", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "总轮次不能为空")
+    /**
+     * 逐轮生成模型下由服务端统一置 1（见 ChFollowupRuleServiceImpl#validateRule），不再作为运营可配项。
+     * 因此不加 @NotNull：管理端表单已移除该字段，若保留必填校验，
+     * Bean Validation 会在进入 service 之前直接拒绝请求（setTotalRounds(1) 来不及生效）。
+     */
+    @Schema(description = "总轮次（服务端固定为1，无需传入）", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Integer totalRounds;
 
     @Schema(description = "首轮到期天数")

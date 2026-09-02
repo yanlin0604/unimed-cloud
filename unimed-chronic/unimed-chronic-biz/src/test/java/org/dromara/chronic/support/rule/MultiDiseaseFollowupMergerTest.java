@@ -42,7 +42,7 @@ public class MultiDiseaseFollowupMergerTest {
         assertFalse(proposal.isMultiDisease());
         assertEquals("HTN", proposal.primaryDiseaseCode());
         assertEquals(90, proposal.cycleDays());
-        assertEquals(4, proposal.totalRounds());
+        assertEquals(1, proposal.totalRounds());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class MultiDiseaseFollowupMergerTest {
         assertTrue(proposal.isMultiDisease());
         assertEquals(2, proposal.diseaseCodes().size());
         assertEquals(30, proposal.cycleDays()); // 取严格的高危高血压 30 天周期
-        assertEquals(12, proposal.totalRounds());
+        assertEquals(1, proposal.totalRounds());
         assertEquals("HIGH", proposal.managementLevel());
         assertTrue(proposal.summaryAdvice().contains("多病共管"));
     }

@@ -56,7 +56,7 @@ public class FollowupRuleEngine {
         String normalizedDisease = normalize(diseaseCode);
         String normalizedLevel = normalizeLevel(riskLevel);
 
-        // 优先查库:四级回退链 (病种,等级) -> (病种,ANY) -> (GENERAL,等级) -> (GENERAL,ANY)
+        // 优先查库:两级回退 (病种,等级) -> (病种,ANY);未命中该病种的任何规则则走下方内置默认
         ChFollowupRule rule = matchRule(normalizedDisease, normalizedLevel);
         if (rule != null) {
             Long questionnaireId = resolveQuestionnaireId(normalizedDisease);
@@ -98,29 +98,24 @@ public class FollowupRuleEngine {
                 // 2型糖尿病分级管理规范
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
-                    totalRounds = 12;
                     advice = "2型糖尿病强化管理(血糖不达标或伴并发症):每1个月随访1次,监测空腹/餐后血糖及胰岛素用药反应。";
                 } else {
                     cycleDays = 90;
-                    totalRounds = 4;
                     advice = "2型糖尿病常规管理(血糖达标且稳定):每3个月随访1次(每年≥4次)。";
                 }
             }
             case "COPD" -> {
                 // 慢性阻塞性肺疾病管理规范
                 cycleDays = 90;
-                totalRounds = 4;
                 advice = "慢阻肺患者管理:每年至少随访4次,评估CAT/mMRC呼吸困难分级与吸入剂依从性。";
             }
             case "CHD", "STROKE" -> {
                 // 冠心病 / 脑卒中 二级预防管理
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
-                    totalRounds = 12;
                     advice = "心脑血管重症/急性发作恢复期强化随访:每月随访1次,评估神经缺损/心绞痛发作与抗栓药物依从性。";
                 } else {
                     cycleDays = 60;
-                    totalRounds = 6;
                     advice = "心脑血管常规二级预防管理:每2个月随访1次,维持血压血脂达标。";
                 }
             }
@@ -128,24 +123,20 @@ public class FollowupRuleEngine {
                 // 慢性肾脏病
                 if ("HIGH".equals(normalizedLevel) || "VERY_HIGH".equals(normalizedLevel)) {
                     cycleDays = 30;
-                    totalRounds = 12;
                     advice = "CKD 3~5期强化管理:每月随访1次,监测尿蛋白、肾功能与水肿情况。";
                 } else {
                     cycleDays = 90;
-                    totalRounds = 4;
                     advice = "CKD 1~2期常规管理:每3个月随访1次,控制血压与低蛋白饮食指导。";
                 }
             }
             case "TUMOR" -> {
                 // 恶性肿瘤康复期
                 cycleDays = 60;
-                totalRounds = 6;
                 advice = "肿瘤康复随访:每2个月随访1次,评估体能状态(ECOG)、癌痛评分与定期复查进度。";
             }
             default -> {
                 // 通用慢病兜底规范
                 cycleDays = 90;
-                totalRounds = 4;
                 advice = "通用慢病规范化随访管理:每3个月随访1次(每年4次)。";
             }
         }
@@ -189,7 +180,7 @@ public class FollowupRuleEngine {
     }
 
     private String normalize(String diseaseCode) {
-        return diseaseCode == null ? "GENERAL" : diseaseCode.trim().toUpperCase(Locale.ROOT);
+        return StringUtils.isBlank(diseaseCode) ? "" : diseaseCode.trim().toUpperCase(Locale.ROOT);
     }
 
     private String normalizeLevel(String riskLevel) {
@@ -204,13 +195,15 @@ public class FollowupRuleEngine {
     }
 
     /**
-     * 按四级回退链匹配启用的可配置规则:
+     * 按两级回退链匹配启用的可配置规则:
      * 1. (病种, 等级) 精确行
      * 2. (病种, ANY) 通配行
-     * 3. (GENERAL, 等级) 通用病种同名等级
-     * 4. (GENERAL, ANY) 通用兜底
      * <p>
-     * 未命中返回 null(由调用方走代码内置 switch 兜底,保证零行为回归)
+     * 病种是规则的唯一匹配维度，不存在「跨病种通用规则」这一档：未配规则的病种
+     * （新增病种、并发症子病种、病种编码为空）由 {@code generateProposal} 的内置 switch
+     * default 分支兜底，保持零行为回归。
+     * <p>
+     * 未命中返回 null(由调用方走代码内置 switch 兜底)
      */
     private ChFollowupRule matchRule(String diseaseCode, String riskLevel) {
         if (followupRuleMapper == null) {
@@ -227,39 +220,26 @@ public class FollowupRuleEngine {
             // 同键可能命中多条(如 A 租户与 B 租户隔离后通常一条;若重复取最新一条)
             ChFollowupRule exactDiseaseLevel = null;
             ChFollowupRule diseaseAny = null;
-            ChFollowupRule generalLevel = null;
-            ChFollowupRule generalAny = null;
             for (ChFollowupRule r : rows) {
                 // 防御性校验:仅采纳启用行(与查询条件 isActive=1 双保险)
                 if (!Boolean.TRUE.equals(r.getIsActive())) {
                     continue;
                 }
-                boolean isGeneral = "GENERAL".equalsIgnoreCase(r.getDiseaseCode());
-                boolean levelAny = "ANY".equalsIgnoreCase(r.getRiskLevel());
-                boolean codeMatch = isGeneral || r.getDiseaseCode().equalsIgnoreCase(diseaseCode);
-                if (!codeMatch) {
+                // 病种必须精确同名；病种不同（含空病种）一律不参与匹配
+                if (StringUtils.isBlank(r.getDiseaseCode())
+                    || !r.getDiseaseCode().equalsIgnoreCase(diseaseCode)) {
                     continue;
                 }
-                if (!isGeneral && !levelAny && r.getRiskLevel().equalsIgnoreCase(riskLevel)) {
-                    exactDiseaseLevel = r;
-                } else if (!isGeneral && levelAny) {
+                if ("ANY".equalsIgnoreCase(r.getRiskLevel())) {
                     diseaseAny = r;
-                } else if (isGeneral && !levelAny && r.getRiskLevel().equalsIgnoreCase(riskLevel)) {
-                    generalLevel = r;
-                } else if (isGeneral && levelAny) {
-                    generalAny = r;
+                } else if (r.getRiskLevel().equalsIgnoreCase(riskLevel)) {
+                    exactDiseaseLevel = r;
                 }
             }
             if (exactDiseaseLevel != null) {
                 return exactDiseaseLevel;
             }
-            if (diseaseAny != null) {
-                return diseaseAny;
-            }
-            if (generalLevel != null) {
-                return generalLevel;
-            }
-            return generalAny;
+            return diseaseAny;
         } catch (Exception e) {
             log.warn("查询随访排期规则失败,回退内置默认 diseaseCode={}, riskLevel={}, err={}",
                 diseaseCode, riskLevel, e.getMessage());

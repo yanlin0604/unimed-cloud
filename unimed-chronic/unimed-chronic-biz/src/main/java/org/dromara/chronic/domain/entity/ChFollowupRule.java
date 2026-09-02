@@ -23,7 +23,7 @@ public class ChFollowupRule extends TenantEntity {
     private Long id;
 
     /**
-     * 病种编码(HTN/T2DM/COPD/CHD/STROKE/CKD/TUMOR/DYSLIPID 或 GENERAL 通用)
+     * 病种编码(HTN/T2DM/COPD/CHD/STROKE/CKD/TUMOR/DYSLIPID 等，取值域为 ch_disease_config)
      */
     private String diseaseCode;
 

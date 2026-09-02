@@ -50,8 +50,9 @@ public class MultiDiseaseFollowupMerger {
      */
     public MergedProposal mergeProposals(List<String> diseaseCodes, Map<String, String> riskLevels) {
         if (CollUtil.isEmpty(diseaseCodes)) {
-            FollowupPlanProposal defaultProp = ruleEngine.generateProposal("GENERAL", "LOW");
-            return toMergedProposal(false, List.of("GENERAL"), "GENERAL", "[\"GENERAL\"]", defaultProp);
+            // 无确诊病种：病种保持为空，由引擎内置默认档排期（不存在「通用病种」这种编码）
+            FollowupPlanProposal defaultProp = ruleEngine.generateProposal(null, "LOW");
+            return toMergedProposal(false, List.of(), null, "[]", defaultProp);
         }
 
         if (diseaseCodes.size() == 1) {

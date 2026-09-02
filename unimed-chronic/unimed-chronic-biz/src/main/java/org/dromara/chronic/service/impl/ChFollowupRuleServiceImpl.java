@@ -143,9 +143,10 @@ public class ChFollowupRuleServiceImpl implements IChFollowupRuleService {
         if (bo.getCycleDays() == null || bo.getCycleDays() <= 0) {
             throw new ServiceException("随访周期必须大于0");
         }
-        if (bo.getTotalRounds() == null || bo.getTotalRounds() <= 0) {
-            throw new ServiceException("总轮次必须大于0");
-        }
+        // 逐轮模型：规则只负责生成首轮，后续是否继续由医生每轮填写「下次随访日期」决定，
+        // 因此 total_rounds 不再作为运营可配项（避免“配了多轮却只生成首轮”的配置与结果不一致），
+        // 统一固定为 1；保留该列仅为兼容历史计划展示。
+        bo.setTotalRounds(1);
         String riskLevel = bo.getRiskLevel() == null ? "" : bo.getRiskLevel().trim().toUpperCase(Locale.ROOT);
         if (!RISK_LEVELS.contains(riskLevel)) {
             throw new ServiceException("风险等级非法,仅支持 LOW/MEDIUM/HIGH/VERY_HIGH/ANY");
@@ -186,7 +187,7 @@ public class ChFollowupRuleServiceImpl implements IChFollowupRuleService {
     }
 
     private String normalizeCode(String code) {
-        return code == null ? "GENERAL" : code.trim().toUpperCase(Locale.ROOT);
+        return code == null ? "" : code.trim().toUpperCase(Locale.ROOT);
     }
 
     private String normalizeLevel(String level) {

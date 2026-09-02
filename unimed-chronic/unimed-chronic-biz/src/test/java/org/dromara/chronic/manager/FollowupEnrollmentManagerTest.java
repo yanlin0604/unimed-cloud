@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.dromara.chronic.domain.entity.*;
 import org.dromara.chronic.mapper.*;
+import org.dromara.chronic.support.rule.FollowupRoundTaskGenerator;
 import org.dromara.chronic.support.rule.FollowupRuleEngine;
 import org.dromara.chronic.support.rule.MultiDiseaseFollowupMerger;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ public class FollowupEnrollmentManagerTest {
     private ChPatientProfileMapper profileMapper;
     private ChPatientTimelineMapper timelineMapper;
     private MultiDiseaseFollowupMerger multiDiseaseMerger;
+    private FollowupRoundTaskGenerator roundTaskGenerator;
 
     private FollowupEnrollmentManager enrollmentManager;
 
@@ -59,15 +61,22 @@ public class FollowupEnrollmentManagerTest {
         when(followupRuleMapper.selectList(any())).thenReturn(Collections.emptyList());
         FollowupRuleEngine ruleEngine = new FollowupRuleEngine(questionnaireMapper, followupRuleMapper);
         multiDiseaseMerger = new MultiDiseaseFollowupMerger(ruleEngine, new ObjectMapper());
+        roundTaskGenerator = new FollowupRoundTaskGenerator(taskMapper, planItemMapper, ruleEngine);
+
+        // 模拟 MyBatis-Plus 插入时回填雪花主键, 否则生成器会因 planId 为空拒绝写任务
+        doAnswer(inv -> {
+            inv.<ChFollowupPlan>getArgument(0).setPlanId(1L);
+            return 1;
+        }).when(planMapper).insert(any(ChFollowupPlan.class));
 
         enrollmentManager = new FollowupEnrollmentManager(
-            planMapper, planItemMapper, taskMapper, diseaseMapper, riskMapper, profileMapper,
+            planMapper, planItemMapper, roundTaskGenerator, diseaseMapper, riskMapper, profileMapper,
             timelineMapper, multiDiseaseMerger, new ObjectMapper()
         );
     }
 
     @Test
-    @DisplayName("确诊慢病自动入组：生成高血压随访计划与全年度任务")
+    @DisplayName("确诊慢病自动入组：生成高血压随访计划与首轮任务（后续逐轮由医生决定）")
     void testAutoEnrollmentGeneratesPlanAndTasks() {
         Long patientId = 100L;
         String diseaseCode = "HTN";
@@ -87,16 +96,19 @@ public class FollowupEnrollmentManagerTest {
         assertEquals("HTN", plan.getDiseaseCode());
         assertEquals("ACTIVE", plan.getPlanStatus());
         assertEquals(90, plan.getCycleDays());
-        assertEquals(4, plan.getTotalRounds());
+        assertEquals(1, plan.getTotalRounds());
 
-        // 验证生成4轮任务
+        // 验证仅生成首轮任务, 不再预生成全年度轮次
         ArgumentCaptor<ChFollowupTask> taskCaptor = ArgumentCaptor.forClass(ChFollowupTask.class);
-        verify(taskMapper, times(4)).insert(taskCaptor.capture());
+        verify(taskMapper, times(1)).insert(taskCaptor.capture());
         List<ChFollowupTask> tasks = taskCaptor.getAllValues();
-        assertEquals(4, tasks.size());
+        assertEquals(1, tasks.size());
         assertEquals(1, tasks.get(0).getTaskRound());
-        assertEquals(4, tasks.get(3).getTaskRound());
-        assertTrue(tasks.get(0).getIsFaceToFace()); // 第1轮建立基线要求面对面
+        assertEquals("NORMAL", tasks.get(0).getTaskType());
+        assertEquals("PENDING", tasks.get(0).getTaskStatus());
+        // 面对面机制已废弃, isFaceToFace 仅由 visitType 推导; HTN 默认 PHONE 故为 false
+        assertEquals("PHONE", tasks.get(0).getVisitType());
+        assertFalse(tasks.get(0).getIsFaceToFace());
 
         // 验证写入时间线
         verify(timelineMapper, times(1)).insert(any(ChPatientTimeline.class));
