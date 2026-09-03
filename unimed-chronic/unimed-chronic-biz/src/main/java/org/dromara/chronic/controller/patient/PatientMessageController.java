@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChMessageContentBo;
 import org.dromara.chronic.domain.vo.ChMessageContentVo;
 import org.dromara.chronic.domain.vo.ChMessageSessionVo;
+import org.dromara.chronic.domain.vo.ChPatientDetailVo;
 import org.dromara.chronic.service.IChMessageSessionService;
+import org.dromara.chronic.service.IChPatientProfileService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
@@ -32,16 +34,11 @@ import java.util.List;
 public class PatientMessageController extends BaseController {
 
     private final IChMessageSessionService messageSessionService;
+    private final IChPatientProfileService patientProfileService;
     private final PatientContextHelper patientContextHelper;
 
     /**
      * 校验会话属于当前登录患者，并返回该会话。
-     * <p>
-     * sessionId 由前端传入且为自增整数，不校验归属则可枚举读取／写入他人的医患对话。
-     * 错误信息不区分「不存在」与「无权」，避免探测会话是否存在。
-     *
-     * @param sessionId 会话ID
-     * @return 归属校验通过的会话
      */
     private ChMessageSessionVo requireOwnSession(Long sessionId) {
         Long patientId = patientContextHelper.getCurrentPatientId();
@@ -59,6 +56,20 @@ public class PatientMessageController extends BaseController {
         return R.ok(messageSessionService.queryByPatientId(patientId));
     }
 
+    @Operation(summary = "获取或创建在线问诊咨询会话")
+    @PostMapping("/chronic/patient/message/consultation/session")
+    public R<Long> getOrCreateConsultationSession(@Parameter(description = "指定医生用户ID(可选)") @RequestParam(required = false) Long doctorUserId) {
+        Long patientId = patientContextHelper.getCurrentPatientId();
+        if (doctorUserId == null) {
+            ChPatientDetailVo detail = patientProfileService.queryDetailById(patientId);
+            if (detail != null && detail.getDoctorUserId() != null) {
+                doctorUserId = detail.getDoctorUserId();
+            }
+        }
+        Long sessionId = messageSessionService.getOrCreateConsultationSession(patientId, doctorUserId);
+        return R.ok(sessionId);
+    }
+
     @Operation(summary = "会话详情")
     @GetMapping("/chronic/patient/message/session/{sessionId}")
     public R<ChMessageSessionVo> sessionDetail(@Parameter(description = "会话ID") @PathVariable Long sessionId) {
@@ -69,17 +80,16 @@ public class PatientMessageController extends BaseController {
     @RepeatSubmit
     @PostMapping("/chronic/patient/message/send")
     public R<Long> send(@Validated @RequestBody ChMessageContentBo bo) {
-        // 原实现只设置 senderType，未校验 bo.sessionId 归属：
-        // 患者可往任意会话（他人与其医生的对话）插入消息，属越权写。
         requireOwnSession(bo.getSessionId());
         bo.setSenderType("PATIENT");
         return R.ok(messageSessionService.sendMessage(bo));
     }
 
-    @Operation(summary = "查询消息历史")
+    @Operation(summary = "查询消息历史(支持增量)")
     @GetMapping("/chronic/patient/message/session/{sessionId}/history")
-    public R<List<ChMessageContentVo>> history(@Parameter(description = "会话ID") @PathVariable Long sessionId) {
+    public R<List<ChMessageContentVo>> history(@Parameter(description = "会话ID") @PathVariable Long sessionId,
+                                               @Parameter(description = "起始消息ID(增量)") @RequestParam(required = false) Long sinceId) {
         requireOwnSession(sessionId);
-        return R.ok(messageSessionService.queryMessagesBySessionId(sessionId));
+        return R.ok(messageSessionService.queryMessagesBySessionId(sessionId, sinceId));
     }
 }

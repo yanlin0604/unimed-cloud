@@ -141,4 +141,30 @@ public class ChMessageSessionServiceImpl implements IChMessageSessionService {
                 .last("LIMIT 200")
         );
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long getOrCreateConsultationSession(Long patientId, Long doctorUserId) {
+        if (patientId == null) {
+            throw new ServiceException("患者ID不能为空");
+        }
+        ChMessageSession existing = sessionMapper.selectOne(
+            Wrappers.<ChMessageSession>lambdaQuery()
+                .eq(ChMessageSession::getPatientId, patientId)
+                .eq(doctorUserId != null, ChMessageSession::getDoctorUserId, doctorUserId)
+                .eq(ChMessageSession::getSessionType, "DOCTOR_PATIENT")
+                .isNull(ChMessageSession::getTaskId)
+                .orderByDesc(ChMessageSession::getLastMessageTime)
+                .last("limit 1"));
+        if (existing != null) {
+            return existing.getSessionId();
+        }
+        ChMessageSession session = new ChMessageSession();
+        session.setPatientId(patientId);
+        session.setDoctorUserId(doctorUserId);
+        session.setSessionType("DOCTOR_PATIENT");
+        session.setLastMessageTime(new Date());
+        sessionMapper.insert(session);
+        return session.getSessionId();
+    }
 }

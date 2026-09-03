@@ -47,4 +47,13 @@ public interface IChMessageSessionService {
      * @return 按时间正序的消息列表
      */
     List<ChMessageContentVo> queryMessagesBySessionId(Long sessionId, Long sinceId);
+
+    /**
+     * 获取或创建患者与责任医生的日常问诊咨询会话(DOCTOR_PATIENT)
+     *
+     * @param patientId    患者ID
+     * @param doctorUserId 医生用户ID
+     * @return 会话ID
+     */
+    Long getOrCreateConsultationSession(Long patientId, Long doctorUserId);
 }
