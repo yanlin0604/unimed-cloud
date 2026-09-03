@@ -203,4 +203,9 @@ public class ChPatientProfile extends TenantEntity {
      */
     @TableLogic
     private String delFlag;
+
+    /**
+     * 归档/删除原因
+     */
+    private String deletionReason;
 }
