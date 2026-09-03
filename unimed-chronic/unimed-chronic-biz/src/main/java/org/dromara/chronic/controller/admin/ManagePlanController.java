@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dromara.chronic.domain.bo.ChManagePlanBo;
-import org.dromara.chronic.domain.vo.ChManagePlanVo;
+import org.dromara.chronic.manager.ManagePlanManager;
 import org.dromara.chronic.service.IChManagePlanService;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.validate.AddGroup;
@@ -19,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 管理方案控制器
@@ -32,6 +33,7 @@ import java.util.List;
 public class ManagePlanController extends BaseController {
 
     private final IChManagePlanService managePlanService;
+    private final ManagePlanManager managePlanManager;
 
     @Operation(summary = "新建管理方案")
     @SaCheckPermission("chronic:plan:add")
@@ -72,7 +74,14 @@ public class ManagePlanController extends BaseController {
     @Operation(summary = "查询患者管理方案列表")
     @SaCheckPermission("chronic:plan:list")
     @GetMapping("/chronic/admin/patient/{patientId}/plans")
-    public R<List<ChManagePlanVo>> list(@Parameter(description = "患者ID") @PathVariable Long patientId) {
+    public R<List<org.dromara.chronic.domain.vo.ChManagePlanVo>> list(@Parameter(description = "患者ID") @PathVariable Long patientId) {
         return R.ok(managePlanService.queryByPatientId(patientId));
+    }
+
+    @Operation(summary = "周期成效自动评估")
+    @SaCheckPermission("chronic:plan:query")
+    @GetMapping("/chronic/admin/plans/{planId}/evaluate")
+    public R<Map<String, Object>> evaluate(@Parameter(description = "方案ID") @PathVariable Long planId) {
+        return R.ok(managePlanManager.evaluatePlanEffectiveness(planId));
     }
 }
