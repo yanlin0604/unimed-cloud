@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -44,13 +45,14 @@ public class DoctorPerformanceController extends BaseController {
     public TableDataInfo<ChPerformanceEval> page(@RequestParam(required = false) String doctorName,
                                                  @RequestParam(required = false) String evalCycle,
                                                  PageQuery pageQuery) {
-        return evalMapper.selectVoPage(
+        Page<ChPerformanceEval> result = evalMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChPerformanceEval>lambdaQuery()
                 .like(StrUtil.isNotBlank(doctorName), ChPerformanceEval::getDoctorName, doctorName)
                 .eq(StrUtil.isNotBlank(evalCycle), ChPerformanceEval::getEvalCycle, evalCycle)
                 .orderByDesc(ChPerformanceEval::getTotalScore)
         );
+        return TableDataInfo.build(result);
     }
 
     /**

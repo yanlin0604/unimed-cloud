@@ -128,12 +128,13 @@ public class ChPatientAdminWorkflowController extends BaseController {
     @Operation(summary = "分页查询回收站归档档案")
     @SaCheckPermission("chronic:patient:query")
     @GetMapping("/recycle-bin/page")
-    public TableDataInfo<ChPatientProfile> getRecycleBinPage(PageQuery pageQuery) {
-        return patientProfileMapper.selectVoPage(
+    public TableDataInfo<org.dromara.chronic.domain.vo.ChPatientProfileVo> getRecycleBinPage(PageQuery pageQuery) {
+        var result = patientProfileMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChPatientProfile>lambdaQuery()
                 .eq(ChPatientProfile::getDelFlag, "2")
                 .orderByDesc(ChPatientProfile::getUpdateTime)
         );
+        return TableDataInfo.build(result);
     }
 }

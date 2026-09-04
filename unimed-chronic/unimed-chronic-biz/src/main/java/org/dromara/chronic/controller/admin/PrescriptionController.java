@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,9 +43,9 @@ public class PrescriptionController extends BaseController {
     @SaCheckPermission("chronic:prescription:query")
     @GetMapping("/page")
     public TableDataInfo<ChPrescription> page(@RequestParam(required = false) String keyword,
-                                              @RequestParam(required = false) String prescriptionType,
-                                              PageQuery pageQuery) {
-        return prescriptionMapper.selectVoPage(
+                                               @RequestParam(required = false) String prescriptionType,
+                                               PageQuery pageQuery) {
+        Page<ChPrescription> result = prescriptionMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChPrescription>lambdaQuery()
                 .and(StrUtil.isNotBlank(keyword), w -> w.like(ChPrescription::getPrescriptionNo, keyword)
@@ -53,6 +54,7 @@ public class PrescriptionController extends BaseController {
                 .eq(StrUtil.isNotBlank(prescriptionType), ChPrescription::getPrescriptionType, prescriptionType)
                 .orderByDesc(ChPrescription::getPrescriptionTime)
         );
+        return TableDataInfo.build(result);
     }
 
     /**

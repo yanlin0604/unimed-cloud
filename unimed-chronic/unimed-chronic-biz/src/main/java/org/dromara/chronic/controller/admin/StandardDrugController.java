@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,7 +44,7 @@ public class StandardDrugController extends BaseController {
                                               @RequestParam(required = false) String chronicCategory,
                                               @RequestParam(required = false) String medicareCategory,
                                               PageQuery pageQuery) {
-        return drugMapper.selectVoPage(
+        Page<ChStandardDrug> result = drugMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChStandardDrug>lambdaQuery()
                 .and(StrUtil.isNotBlank(keyword), w -> w.like(ChStandardDrug::getCommonName, keyword)
@@ -54,6 +55,7 @@ public class StandardDrugController extends BaseController {
                 .eq(StrUtil.isNotBlank(medicareCategory), ChStandardDrug::getMedicareCategory, medicareCategory)
                 .orderByAsc(ChStandardDrug::getDrugId)
         );
+        return TableDataInfo.build(result);
     }
 
     /**

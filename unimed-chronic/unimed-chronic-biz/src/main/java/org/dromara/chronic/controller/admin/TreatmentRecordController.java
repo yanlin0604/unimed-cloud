@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,7 +41,7 @@ public class TreatmentRecordController extends BaseController {
                                                 @RequestParam(required = false) String treatmentType,
                                                 @RequestParam(required = false) String keyword,
                                                 PageQuery pageQuery) {
-        return treatmentRecordMapper.selectVoPage(
+        Page<ChTreatmentRecord> result = treatmentRecordMapper.selectVoPage(
             pageQuery.build(),
             Wrappers.<ChTreatmentRecord>lambdaQuery()
                 .eq(patientId != null, ChTreatmentRecord::getPatientId, patientId)
@@ -49,6 +50,7 @@ public class TreatmentRecordController extends BaseController {
                     .or().like(ChTreatmentRecord::getOperatorDoctorName, keyword))
                 .orderByDesc(ChTreatmentRecord::getStartDate)
         );
+        return TableDataInfo.build(result);
     }
 
     @Operation(summary = "新增或更新治疗记录")
