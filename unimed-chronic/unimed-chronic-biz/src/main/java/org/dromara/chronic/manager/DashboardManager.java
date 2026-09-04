@@ -100,26 +100,40 @@ public class DashboardManager {
     }
 
     /**
-     * 大屏专用端点：聚合关键指标
+     * 大屏专用端点：聚合关键指标（真实库表动态汇总）
      */
     public Map<String, Object> bigScreenSummary(String areaCode) {
-        List<ChStatAreaDayVo> stats = queryAreaStats(areaCode, null);
         Map<String, Object> result = new java.util.HashMap<>();
-        if (!stats.isEmpty()) {
-            ChStatAreaDayVo latest = stats.get(0);
-            result.put("patientCount", latest.getPatientCount());
-            result.put("managedCount", latest.getManagedCount());
-            result.put("warningCount", latest.getWarningCount());
-            result.put("followupCount", latest.getFollowupCount());
-            result.put("statDate", latest.getStatDate());
+        try {
+            Long totalPatients = patientProfileMapper.selectCount(
+                Wrappers.<org.dromara.chronic.domain.entity.ChPatientProfile>lambdaQuery()
+                    .eq(org.dromara.chronic.domain.entity.ChPatientProfile::getDelFlag, "0")
+            );
+            Long totalPlans = managePlanMapper.selectCount(
+                Wrappers.<ChManagePlan>lambdaQuery()
+                    .eq(ChManagePlan::getPlanStatus, "ACTIVE")
+            );
+            Long warningCount = warningEventMapper.selectCount(
+                Wrappers.<org.dromara.chronic.domain.entity.ChWarningEvent>lambdaQuery()
+                    .in(org.dromara.chronic.domain.entity.ChWarningEvent::getEventStatus, List.of("NEW", "PROCESSING"))
+            );
+            Long followupCount = followupTaskMapper.selectCount(null);
+
+            result.put("patientCount", totalPatients != null ? totalPatients : 0L);
+            result.put("managedCount", totalPlans != null ? totalPlans : 0L);
+            result.put("warningCount", warningCount != null ? warningCount : 0L);
+            result.put("followupCount", followupCount != null ? followupCount : 0L);
+            result.put("statDate", new java.text.SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        } catch (Exception e) {
+            log.error("聚合大屏数据失败", e);
         }
         return result;
     }
 
-    /** 首期支持病种（COPD 因随访模板未就绪，暂不纳入首期） */
+    /** 首期与全量支持病种编码 */
     private static final List<String> FIRST_PHASE_DISEASE_CODES = List.of(
-        "HYPERTENSION", "DIABETES", "ASTHMA",
-        "CHD", "STROKE", "CANCER", "CKD", "MENTAL_DISORDER"
+        "HYPERTENSION", "HTN", "DIABETES", "T2DM", "COPD", "ASTHMA",
+        "CHD", "STROKE", "CANCER", "TUMOR", "CKD", "DYSLIPID", "MENTAL_DISORDER"
     );
 
     public TableDataInfo<ChPatientProfileVo> querySpecialDiseasePatientPage(ChPatientDiseaseBo bo, PageQuery pageQuery, List<String> diseaseScope) {
@@ -269,13 +283,15 @@ public class DashboardManager {
 
     private static String resolveDiseaseName(String diseaseCode) {
         return switch (diseaseCode) {
-            case "HYPERTENSION" -> "高血压";
-            case "DIABETES" -> "糖尿病";
-            case "ASTHMA" -> "哮喘";
-            case "CHD" -> "冠心病";
+            case "HYPERTENSION", "HTN" -> "原发性高血压";
+            case "DIABETES", "T2DM" -> "2型糖尿病";
+            case "COPD" -> "慢性阻塞性肺疾病";
+            case "ASTHMA" -> "支气管哮喘";
+            case "CHD" -> "冠状动脉粥样硬化性心脏病";
             case "STROKE" -> "脑卒中";
-            case "CANCER" -> "肿瘤";
+            case "CANCER", "TUMOR" -> "恶性肿瘤";
             case "CKD" -> "慢性肾脏病";
+            case "DYSLIPID" -> "血脂异常";
             case "MENTAL_DISORDER" -> "严重精神障碍";
             default -> diseaseCode;
         };
